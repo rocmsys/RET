@@ -1,2 +1,2 @@
 # ROCmML
-ROCm Machine Learning installer 
+ROCm Machine Learning stack installer 
