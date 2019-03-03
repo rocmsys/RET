@@ -9,24 +9,28 @@ function getOSInfo(){
 	local  __res_ver=$2
 	local  __res_arch=$3
 
+	local __OS
+	local __VER
+	local __ARCH
+
 	if [ -f /etc/os-release ]; then
 		. /etc/os-release
-		local __OS=$NAME
-		local __VER=$VERSION_ID
+		__OS=$NAME
+		__VER=$VERSION_ID
 	elif [ -f /etc/lsb-release ]; then
     		. /etc/lsb-release
-	        local __OS=$DISTRIB_ID
-		local __VER=$DISTRIB_RELEASE
+	        __OS=$DISTRIB_ID
+		__VER=$DISTRIB_RELEASE
 	else
-	    	local __OS=$(uname -s)
-		local __VER=$(uname -r)
+	    	__OS=$(uname -s)
+		__VER=$(uname -r)
 	fi
 
 	# Get OS Architecture
 	if [ $(uname -m) == 'x86_64' ]; then
-    		local __ARCH=x64
+    		__ARCH=x64
 	else
-		local __ARCH=x86
+		__ARCH=x86
 	fi
 
 	eval $__res_os="'$__OS'"
