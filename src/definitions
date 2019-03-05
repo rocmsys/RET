@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Include files
+SRC="${BASH_SOURCE%/*}"
+if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
+
+. $SRC/utils
+. $SRC/format
+
+
+KERNEL_URL=kernel.ubuntu.com/~kernel-ppa/mainline/

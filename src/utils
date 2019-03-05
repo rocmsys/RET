@@ -1,0 +1,55 @@
+#!/bin/bash
+
+#function checkDeps(){
+#}
+
+function isPrgInstalled {
+	# Init to found eq true
+  	# 0 means no failure and non-0 means failure.
+	local __found=0
+
+	# update value if not found
+  	type $1 >/dev/null 2>&1 || { __found=1; }
+
+	return $__found
+}
+
+# Get OS and Version
+# Return OS, Version, Kernel and the Architecture
+function getOSInfo(){
+	# Init output variables 
+	local __res_os=$1
+	local __res_ver=$2
+	local __res_kernel=$3
+	local __res_arch=$4
+
+	local __OS
+	local __VER
+	local __ARCH
+	local __KERNEL=$(uname -r)
+
+	if [ -f /etc/os-release ]; then
+		. /etc/os-release
+		__OS=$NAME
+		__VER=$VERSION_ID
+	elif [ -f /etc/lsb-release ]; then
+		. /etc/lsb-release
+	        __OS=$DISTRIB_ID
+		__VER=$DISTRIB_RELEASE
+	else
+		__OS=$(uname -s)
+		__VER=$(uname -r)
+	fi
+
+	# Get OS Architecture
+	if [ $(uname -m) == 'x86_64' ]; then
+		__ARCH=x64
+	else
+		__ARCH=x86
+	fi
+
+	eval $__res_os="'$__OS'"
+	eval $__res_ver="'$__VER'"
+	eval $__res_kernel="'$__KERNEL'"
+	eval $__res_arch="'$__ARCH'"
+}

@@ -3,26 +3,25 @@
 # Clear the terminal
 tput clear
 
-# Include utils functions
-. ./utils
+# Include files
+. src/definitions
 
 # Check OS
 function checkOs(){
 	if [[ "$OSTYPE" == "linux-gnu" ]]; then
-		getOSInfo OS VER ARCH
-		echo $OS $VER $ARCH
+		getOSInfo OS VER KERNEL ARCH
+		echo -e ${Bold}${FG_Green}$OS $VER $KERNEL $ARCH${End}
 	else
-		echo "OS not supported!"
+		echo -e "OS not supported!"
 	fi
 }
 
+if isPrgInstalled "lynxx"; then echo -e "${FG_Green}✔ Found${End}"; else echo -e "${FG_Red}✘ Not Found${End}"; fi
+if isPrgInstalled "lynx"; then echo -e "${FG_Green}✔ Found${End}"; else echo -e "${FG_Red}✘ Not Found${End}"; fi
 
 # Check OS
-echo -e Checking OS...
+echo -e ${Bold}Checking OS...${End}
 checkOs
 
 
 # 1.Install rocm-kernel
-#sudo apt update
-#sudo apt install linux-headers-4.13.0-32-generic linux-image-4.13.0-32-generic linux-image-extra-4.13.0-32-generic linux-signed-image-4.13.0-32-generic
-
