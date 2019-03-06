@@ -6,21 +6,23 @@ tput clear
 # Include files
 . src/definitions
 
+
 # Check OS
 function checkOs(){
 	if [[ "$OSTYPE" == "linux-gnu" ]]; then
 		getOSInfo OS VER KERNEL ARCH
-		echo -e ${Bold}${FG_Green}$OS $VER $KERNEL $ARCH${End}
+		logPrint "OS" "${OS}" "${SUCC}"
+		logPrint "VERSION" "${VER}" "${SUCC}"
+		logPrint "KERNEL" "${KERNEL}" "${SUCC}"
+		logPrint "ARCH" "${ARCH}" "${SUCC}"
 	else
-		echo -e "OS not supported!"
+		logPrint "OS" "Not Supported!" "${FAIL}"
 	fi
 }
 
-if isPrgInstalled "lynxx"; then echo -e "${FG_Green}✔ Found${End}"; else echo -e "${FG_Red}✘ Not Found${End}"; fi
-if isPrgInstalled "lynx"; then echo -e "${FG_Green}✔ Found${End}"; else echo -e "${FG_Red}✘ Not Found${End}"; fi
-
+checkDeps src/requirements.txt
 # Check OS
-echo -e ${Bold}Checking OS...${End}
+echo -e ${STEP}Checking OS...${END}
 checkOs
 
 

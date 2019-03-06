@@ -1,8 +1,31 @@
 #!/bin/bash
 
-#function checkDeps(){
-#}
+function logPrint(){
+	# Init input variables 
+        local __title=$1
+        local __value=$2
+        local __state=$3
 
+	local __msg=$(printf '\t%-10s' "${__title}")
+        printf '%-25s' "$__msg .........."
+	echo -e "${__state}${__value}${END}";
+
+}
+
+
+function checkDeps(){
+	echo -e "${STEP}Verifying Dependencies...${END}"
+	while read -r dep || [[ -n "$dep" ]]; do
+		if isPrgInstalled $dep; then
+			logPrint "${dep}" "Found" "${SUCC}"
+		else
+			logPrint "${dep}" "Found" "${FAIL}"
+		fi
+	done < "$1"
+}
+
+# Check if program is installed
+# Return 0,1
 function isPrgInstalled {
 	# Init to found eq true
   	# 0 means no failure and non-0 means failure.
