@@ -7,5 +7,5 @@ if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 . $SRC/utils
 . $SRC/format
 
-
+GLB_DEPS=src/requirements.txt
 KERNEL_URL=kernel.ubuntu.com/~kernel-ppa/mainline/

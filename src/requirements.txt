@@ -1,8 +1,0 @@
-lynx
-curl
-dkms
-git
-sudo
-wget
-whiptail
-node

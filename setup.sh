@@ -11,19 +11,26 @@ tput clear
 function checkOs(){
 	if [[ "$OSTYPE" == "linux-gnu" ]]; then
 		getOSInfo OS VER KERNEL ARCH
-		logPrint "OS" "${OS}" "${SUCC}"
-		logPrint "VERSION" "${VER}" "${SUCC}"
-		logPrint "KERNEL" "${KERNEL}" "${SUCC}"
-		logPrint "ARCH" "${ARCH}" "${SUCC}"
+		logPrint "DET" "OS" "${OS}" "${SUCC}"
+		logPrint "DET" "VERSION" "${VER}" "${SUCC}"
+		logPrint "DET" "KERNEL" "${KERNEL}" "${SUCC}"
+		logPrint "DET" "ARCH" "${ARCH}" "${SUCC}"
 	else
 		logPrint "OS" "Not Supported!" "${FAIL}"
 	fi
 }
 
-checkDeps src/requirements.txt
+checkDeps ${GLB_DEPS}
 # Check OS
-echo -e ${STEP}Checking OS...${END}
+logPrint "STEP" "Checking OS"
 checkOs
 
+# read yaml file
+#eval $(parse_yaml requirements/os_req.yml)
+parse_yaml requirements/os_req.yml "release"
+
+# access yaml content
+echo "parse yaml"
+echo $config_development_database
 
 # 1.Install rocm-kernel
