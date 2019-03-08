@@ -31,14 +31,42 @@ function checkDeps(){
 
 parse_yaml() {
     local __file_name=$1
-    local comment=
-    's|^---||g' # doc begin
-    's|^...||g' # doc end
-    '/^#/s|#.*||g;' # line begin with #
-    '/['\"''\'']#.*['\"''\'']/!s| #.*||g' # inline comment 
-    '/\b\(true\|yes\|on\)\b/' # true
-    '/\b\(false\|no\|off\)\b/' # false
-    '/^$/d' # rm black lines
+    local __s='[[:space:]]*' 
+    local __w='[a-zA-Z0-9_]*' 
+    local __fs=${fs:-$(echo @|tr @ '\034')}
+    local __q=''\"\'''
+    local xx=" #.*"
+
+    local __rm_bl='/^$/d' # rm black lines
+    local __rm_sp='s|'$__s'$||g;' # rm spaces at the end of the lines
+    local __rm_doc_begin='s|^'$__s'\(---\)'$__s'||g' # rm doc begin
+    local __rm_doc_end='s|^'$__s'\(\.\.\.\)'$__s'||g' # rm doc end
+
+
+    local __rm_cmt='s|^'$__s'#.*||g' # rm line begin with #
+    local __rm_il_cmt='/#.*['$__q']/!s|[[:space:]]#.*||g' # rm inline comment
+    local __get_map_list='s|^\('$__s'\)\('$__w'\)'$__s'[:-]'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # map detection key: value, key: 'value', key: "value"
+
+    #'/\b\(True\|true\|yes\|on\)\b/' # true
+    #'/\b\(False\|false\|no\|off\)\b/' # false
+
+    sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_bl -e $__get_map_list requirements/os_req.yml
+}
+
+#################################################
+# @param $1: The yaml file to check if there is
+#       a key
+# @param $2: The key to check if it exists
+# @echo: $Ash__TRUE if the key exists,
+#       $Ash__FALSE otherwise
+#################################################
+YamlParse__has_key() {
+    local line=$(grep -x "^$2:.*" "$1")
+    if [[ "$line" != "" ]]; then
+        echo "$Ash__TRUE"
+    else
+        echo "$Ash__FALSE"
+    fi
 }
 
 # Check if program is installed
@@ -93,3 +121,4 @@ function getOSInfo(){
 	eval $__res_kernel="'$__KERNEL'"
 	eval $__res_arch="'$__ARCH'"
 }
+

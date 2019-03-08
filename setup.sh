@@ -27,7 +27,7 @@ checkOs
 
 # read yaml file
 #eval $(parse_yaml requirements/os_req.yml)
-parse_yaml requirements/os_req.yml "release"
+parse_yaml requirements/os_req.yml
 
 # access yaml content
 echo "parse yaml"
