@@ -29,6 +29,18 @@ function checkDeps(){
 	done < "$1"
 }
 
+parse_yaml() {
+    local __file_name=$1
+    local comment=
+    's|^---||g' # doc begin
+    's|^...||g' # doc end
+    '/^#/s|#.*||g;' # line begin with #
+    '/['\"''\'']#.*['\"''\'']/!s| #.*||g' # inline comment 
+    '/\b\(true\|yes\|on\)\b/' # true
+    '/\b\(false\|no\|off\)\b/' # false
+    '/^$/d' # rm black lines
+}
+
 # Check if program is installed
 # Return 0,1
 function isPrgInstalled {
