@@ -35,7 +35,6 @@ parse_yaml() {
     local __w='[a-zA-Z0-9_]*' 
     local __fs=${fs:-$(echo @|tr @ '\034')}
     local __q=''\"\'''
-    local xx=" #.*"
 
     local __rm_bl='/^$/d' # rm black lines
     local __rm_sp='s|'$__s'$||g;' # rm spaces at the end of the lines
