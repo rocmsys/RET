@@ -46,9 +46,6 @@ parse_yaml() {
     local __rm_il_cmt='/#.*['$__q']/!s|[[:space:]]#.*||g' # rm inline comment
     local __get_map_list='s|^\('$__s'\)\('$__w'\)'$__s'[:-]'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # map detection key: value, key: 'value', key: "value"
 
-    #'/\b\(True\|true\|yes\|on\)\b/' # true
-    #'/\b\(False\|false\|no\|off\)\b/' # false
-
     sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_bl -e $__get_map_list requirements/os_req.yml
 }
 
