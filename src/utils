@@ -31,14 +31,16 @@ function logPrint {
 # Input $1 array with the name of deps
 # Input $2 array with the version of deps
 function checkDeps {
+    local __array=("$@")
+
     logPrint "STEP" "Verifying Dependencies"
-    while read -r dep || [[ -n "$dep" ]]; do
-        if isPrgInstalled $dep; then
-	    logPrint "${dep}" "Found" "${SUCC}"
-	else
-	    logPrint "${dep}" "Not Found" "${FAIL}"
-	fi
-    done < "$1"
+    for dep in "${__array[@]}"; do
+        if isPrgInstalled "${dep}"; then
+            logPrint "DET" "${dep}" "Found" "${SUCC}"
+        else
+            logPrint "DET" "${dep}" "Not Found" "${FAIL}"
+        fi
+    done
 }
 
 # Read and parse yaml file 
@@ -64,7 +66,6 @@ function parse_yaml {
     local __get_item_list='s|^\('$__s'\)-'$__s'\('$__w'\)'$__s':'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # - key: value
     local __get_map_list='s|^\('$__s'\)\('$__w'\)'$__s'[:-]'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # map detection key: value, key: 'value', key: "value"
 
-    fileSanityCheck $__file_name
 
     cat $__file_name | \
         sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_il_cmt -e $__rm_bl -e $__get_item_list -e $__get_map_list | \
@@ -123,6 +124,9 @@ function parse_yaml {
 function yaml2arr {
     local __yaml_file=$1
     local __res_array=$2
+
+    # Make Sanity Check
+    fileSanityCheck $__yaml_file
 
     local __array=$(parse_yaml $__yaml_file)
     IFS=$'\r\n' eval  $__res_array='(${__array})'
@@ -208,11 +212,11 @@ function getOSInfo {
 function fileSanityCheck {
     # Check if file exists
     if [ ! -f $1 ]; then
-        logPrint "ERR" "File Not Found!" "$__file_name"
+        logPrint "ERR" "File Not Found!" "$1"
     fi
 
     if [ ! -s $1 ]; then
-        logPrint "ERR" "File is empty!" "$__file_name"
+        logPrint "ERR" "File is empty!" "$1"
     fi
 }
 
