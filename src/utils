@@ -31,15 +31,21 @@ function logPrint {
 # Input $1 array with the name of deps
 # Input $2 array with the version of deps
 function checkDeps {
-    local __array=("$@")
-
+    local -n __name_array=$1
+    local -n __ver_array=$2
+    local __idx=0
+	
     logPrint "STEP" "Verifying Dependencies"
-    for dep in "${__array[@]}"; do
+    for dep in "${__name_array[@]}"; do
         if isPrgInstalled "${dep}"; then
             logPrint "DET" "${dep}" "Found" "${SUCC}"
         else
+            # Get Version
+	    local __version="${__ver_array[$__idx]}"
+	    #echo $__version
             logPrint "DET" "${dep}" "Not Found" "${FAIL}"
         fi
+	((__idx++))
     done
 }
 
@@ -140,8 +146,7 @@ function yaml2arr {
 function getYAMLValue {
     local __key=$1
     local __val_array=$2
-    shift 2
-    local __array=("$@")
+    local -n __array=$3
     
     for item in "${__array[@]}"; do
         if [[ ${item} == ${__key}":="* ]] ; then

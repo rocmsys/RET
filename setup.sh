@@ -26,11 +26,23 @@ function checkOs {
 }
 
 # Check Dependencies
-if getYAMLValue "dependencies|globale|name" VAl_ARRAY "${YAML_ARRAY[@]}"; then 
-    checkDeps "${VAl_ARRAY[@]}" 
+if getYAMLValue "dependencies|globale|name" DEPS_ARRAY YAML_ARRAY; then 
+    getYAMLValue "dependencies|globale|name|version" VER_ARRAY YAML_ARRAY
+    checkDeps DEPS_ARRAY VER_ARRAY
 else 
     logPrint "ERR" "No Dependencies Found with this key!" "dependencies|globale|name" "${FAIL}"
 fi
+
+demo_multiple_arrays() {
+  local -n _array_one=$1
+  local -n _array_two=$2
+  printf '1: %q\n' "${_array_one[@]}"
+  printf '2: %q\n' "${_array_two[@]}"
+}
+
+
+array_one=( "one argument" "another argument" )
+array_two=( "array two part one" "array two part two" )
 
 
 
