@@ -50,3 +50,4 @@ BG_WHITE='\e[107m'
 STEP="${BOLD}${FG_CYAN}[+] "
 SUCC="${FG_GREEN}✔ "
 FAIL="${FG_RED}✘ "
+ERR="${FG_RED}✘ ERROR: "

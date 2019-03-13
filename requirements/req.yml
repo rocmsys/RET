@@ -1,0 +1,67 @@
+---
+# General informations
+name: ROCmML
+version: 0.1.0
+author: TBD
+summary: ROCm ML Stack installer
+license: TBD
+source: https://github.com/
+
+# Supported Operating Systems
+os_support:
+  - os: Ubuntu
+  - Ubuntu:
+    release:
+      - 16.04
+      - 18.04
+    kernel:
+      - version: ">= 4.13 < 4.18"
+      - default: 4.15
+
+  - os: RedHat
+  - RedHat:
+    release:
+      - 7.4
+      - 7.5
+      - 7.6
+    kernel:
+      - version: TBD
+      - default: TBD
+
+  - os: CentOS
+  - CentOS:
+    release:
+      - 7.4
+      - 7.5
+      - 7.6
+    kernel:
+      - version: TBD
+      - default: TBD
+
+# Package dependencies
+dependencies:
+  - globale:
+    - name: lynx
+      version: latest
+    - name: curl
+      version: latest
+    - name: dkms
+      version: latest
+    - name: sudo
+      version: latest
+    - name: wget
+      version: latest
+    - name: whiptail
+      version: latest
+    - name: node
+      version: latest
+  - tensorflow:
+    - name: TBD
+      version: TBD
+  - pytorch:
+    - name: TBD
+      version: TBD
+
+# Project description
+description: TBD
+...

@@ -1,40 +1,57 @@
 #!/bin/bash
 
-function logPrint(){
-	# Init input variables 
-        local __type=$1
-	local __title=$2
+# Print the message/inser to the log file 
+# Input $1 type [STEP (for one of the main steps), DET (for detailed info), ERR (for error)]
+# Input $2 title
+# Input $3 value (only for type [DET, ERR])
+# Input $4 State [SUCC, FAIL]
+function logPrint {
+    # Init input variables 
+    local __type=$1
+    local __title=$2
 
-	if [ "${__type}" = "STEP" ]; then
-		echo
-		echo -e "${STEP}${__title}...${END}";
+    if [ "${__type}" = "STEP" ]; then
+        echo
+	echo -e "${STEP}${__title}...${END}";
+    elif [ "${__type}" = "DET" ]; then
+        local __value=$3
+        local __state=$4
+        local __msg=$(printf '\t%-10s' "${__title}")
+        printf '%-25s' "$__msg .........."
+        echo -e "${__state}${__value}${END}";
+    else
+        local __value=$3
+        echo
+	echo -e "${ERR}${__title}...[${__value}]${END}";
+        exit 2
+    fi
+}
+
+# Check if the required dependencies are installed
+# Input $1 array with the name of deps
+# Input $2 array with the version of deps
+function checkDeps {
+    logPrint "STEP" "Verifying Dependencies"
+    while read -r dep || [[ -n "$dep" ]]; do
+        if isPrgInstalled $dep; then
+	    logPrint "${dep}" "Found" "${SUCC}"
 	else
-		local __value=$3
-	        local __state=$4
-		local __msg=$(printf '\t%-10s' "${__title}")
-        	printf '%-25s' "$__msg .........."
-        	echo -e "${__state}${__value}${END}";
+	    logPrint "${dep}" "Not Found" "${FAIL}"
 	fi
+    done < "$1"
 }
 
-
-function checkDeps(){
-	logPrint "STEP" "Verifying Dependencies"
-	while read -r dep || [[ -n "$dep" ]]; do
-		if isPrgInstalled $dep; then
-			logPrint "${dep}" "Found" "${SUCC}"
-		else
-			logPrint "${dep}" "Found" "${FAIL}"
-		fi
-	done < "$1"
-}
-
-parse_yaml() {
+# Read and parse yaml file 
+# Input: yaml file name
+# Note: this parser support only the syntax needed. Flow Styles are not supported
+function parse_yaml {
     local __file_name=$1
     local __s='[[:space:]]*' 
     local __w='[a-zA-Z0-9_]*' 
-    local __fs=${fs:-$(echo @|tr @ '\034')}
+    local __fs=${__fs:-$(echo @|tr @ '\034')}
     local __q=''\"\'''
+    local __sep=\"\|\"
+    local __br_eq=\":=\"
 
     local __rm_bl='/^$/d' # rm black lines
     local __rm_sp='s|'$__s'$||g;' # rm spaces at the end of the lines
@@ -43,29 +60,93 @@ parse_yaml() {
 
 
     local __rm_cmt='s|^'$__s'#.*||g' # rm line begin with #
-    local __rm_il_cmt='/#.*['$__q']/!s|[[:space:]]#.*||g' # rm inline comment
+    local __rm_il_cmt='/#['$__q']/!s|[[:space:]]#.*||g' # rm inline comment
+    local __get_item_list='s|^\('$__s'\)-'$__s'\('$__w'\)'$__s':'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # - key: value
     local __get_map_list='s|^\('$__s'\)\('$__w'\)'$__s'[:-]'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # map detection key: value, key: 'value', key: "value"
 
-    #'/\b\(True\|true\|yes\|on\)\b/' # true
-    #'/\b\(False\|false\|no\|off\)\b/' # false
+    fileSanityCheck $__file_name
 
-    sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_bl -e $__get_map_list requirements/os_req.yml
+    cat $__file_name | \
+        sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_il_cmt -e $__rm_bl -e $__get_item_list -e $__get_map_list | \
+	
+    awk -F$__fs 'BEGIN{
+        last_indent = 0; br_count = 0;
+    }
+    {
+        #The suggested syntax for YAML files is to use 2 spaces for indentation
+        indent = length($1)/2;
+	
+
+        # extract the dictionarie key 
+	if(length($2)!= 0){node[indent] = $2}
+
+	# extract the value
+	value= (length($3)!= 0)? $3: "null";
+
+	# reinit child elements
+	if(indent < last_indent){for(i=indent+1; i <= last_indent; i++){delete node[i]; idx[i]=0;}}
+	last_indent = indent;
+
+	br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
+        branch=br node[indent];
+	
+
+	# remove the last char
+        if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
+
+	# Check if branch already exists
+	# update if true; else insert new value
+	isBrExists = 0;
+	for(i in br_array){
+            split(br_array[i], tmp_br, '$__br_eq');
+		
+            if(branch == tmp_br[1]){
+	        br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
+		isBrExists = 1;
+	    }
+	}
+
+	if(isBrExists == 0){
+	    # put valid branch in array
+	    if(value != "null"){
+	        br_array[br_count] = branch '$__br_eq' value;
+		br_count++;
+	    }
+	}
+    }END{
+	for(i=0; i<=br_count; i++){print(br_array[i]);}
+    }'
 }
 
-#################################################
-# @param $1: The yaml file to check if there is
-#       a key
-# @param $2: The key to check if it exists
-# @echo: $Ash__TRUE if the key exists,
-#       $Ash__FALSE otherwise
-#################################################
-YamlParse__has_key() {
-    local line=$(grep -x "^$2:.*" "$1")
-    if [[ "$line" != "" ]]; then
-        echo "$Ash__TRUE"
-    else
-        echo "$Ash__FALSE"
-    fi
+# Parser yaml file into array
+# Return second param
+function yaml2arr {
+    local __yaml_file=$1
+    local __res_array=$2
+
+    local __array=$(parse_yaml $__yaml_file)
+    IFS=$'\r\n' eval  $__res_array='(${__array})'
+    #echo "${__res_array[3]}"
+}
+
+# Get value yaml value by key
+# Input $1 Key 
+# Input $2 Output Array
+# Input $3 YAML_Array
+function getYAMLValue {
+    local __key=$1
+    local __val_array=$2
+    shift 2
+    local __array=("$@")
+    
+    for item in "${__array[@]}"; do
+        if [[ ${item} == ${__key}":="* ]] ; then
+            local __value="${item#*:=}" # get the value part
+	    IFS=$';' eval  $__val_array='(${__value})'
+	    return 0;
+        fi
+    done
+    return 1
 }
 
 # Check if program is installed
@@ -83,7 +164,7 @@ function isPrgInstalled {
 
 # Get OS and Version
 # Return OS, Version, Kernel and the Architecture
-function getOSInfo(){
+function getOSInfo {
 	# Init output variables 
 	local __res_os=$1
 	local __res_ver=$2
@@ -119,5 +200,19 @@ function getOSInfo(){
 	eval $__res_ver="'$__VER'"
 	eval $__res_kernel="'$__KERNEL'"
 	eval $__res_arch="'$__ARCH'"
+}
+
+
+# Check if file exists and not empty
+# Return Error and exit the exec
+function fileSanityCheck {
+    # Check if file exists
+    if [ ! -f $1 ]; then
+        logPrint "ERR" "File Not Found!" "$__file_name"
+    fi
+
+    if [ ! -s $1 ]; then
+        logPrint "ERR" "File is empty!" "$__file_name"
+    fi
 }
 
