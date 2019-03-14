@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Format
 BOLD='\e[1m'
@@ -48,6 +48,7 @@ BG_WHITE='\e[107m'
 
 # Custom format
 STEP="${BOLD}${FG_CYAN}[+] "
+NOTE="${BOLD}${BG_DARK_GRAY}[!] "
 SUCC="${FG_GREEN}✔ "
 FAIL="${FG_RED}✘ "
 ERR="${FG_RED}✘ ERROR: "

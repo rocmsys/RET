@@ -42,7 +42,7 @@ os_support:
 dependencies:
   - globale:
     - name: lynx
-      version: latest
+      version: 2.15.6
     - name: curl
       version: latest
     - name: dkms
