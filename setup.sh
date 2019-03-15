@@ -6,6 +6,17 @@ tput clear
 # Include files
 . src/definitions
 
+# Check privileges
+if ! isSudo; then
+    logPrint "NOTE" "You need the root or sudo privileges to run this script." 
+    sudo echo 2>/dev/null 1>&2
+
+    EXIT_STATE=$?
+    if [ "$EXIT_STATE" -ne 0 ]; then
+        logPrint "ERR" "User has no root or sudo privileges!" "$USER" "${FAIL}"
+    fi
+fi
+
 # read yaml file
 yaml2arr "requirements/req.yml" YAML_ARRAY
 
@@ -25,6 +36,12 @@ function checkOs {
     fi
 }
 
+
+# Check OS
+logPrint "STEP" "Checking OS"
+checkOs
+
+
 # Check Dependencies
 if getYAMLValue "dependencies|globale|name" DEPS_ARRAY YAML_ARRAY; then 
     getYAMLValue "dependencies|globale|name|version" VER_ARRAY YAML_ARRAY
@@ -32,23 +49,6 @@ if getYAMLValue "dependencies|globale|name" DEPS_ARRAY YAML_ARRAY; then
 else 
     logPrint "ERR" "No Dependencies Found with this key!" "dependencies|globale|name" "${FAIL}"
 fi
-
-demo_multiple_arrays() {
-  local -n _array_one=$1
-  local -n _array_two=$2
-  printf '1: %q\n' "${_array_one[@]}"
-  printf '2: %q\n' "${_array_two[@]}"
-}
-
-
-array_one=( "one argument" "another argument" )
-array_two=( "array two part one" "array two part two" )
-
-
-
-# Check OS
-logPrint "STEP" "Checking OS"
-checkOs
 
 # 1.Install rocm-kernel
 
