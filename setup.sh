@@ -8,19 +8,19 @@ tput clear
 
 # Check privileges
 if ! isSudo; then
-    logPrint "NOTE" "You need the root or sudo privileges to run this script." 
-    sudo echo 2>/dev/null 1>&2
+    if ! sudo -n true 2>/dev/null; then  # Check sudo for the current terminal session
+        logPrint "NOTE" "You need the root or sudo privileges to run this script." 
+        sudo echo 2>/dev/null 1>&2
 
-    EXIT_STATE=$?
-    if [ "$EXIT_STATE" -ne 0 ]; then
-        logPrint "ERR" "User has no root or sudo privileges!" "$USER" "${FAIL}"
+        EXIT_STATE=$?
+        if [ "$EXIT_STATE" -ne 0 ]; then
+            logPrint "ERR" "User has no root or sudo privileges!" "$USER" "${FAIL}"
+        fi
     fi
 fi
 
 # read yaml file
 yaml2arr "requirements/req.yml" YAML_ARRAY
-
-
 
 
 # Check OS
