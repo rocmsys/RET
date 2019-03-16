@@ -15,7 +15,7 @@ os_support:
       - 16.04
       - 18.04
     kernel:
-      - version: ">= 4.13 < 4.18"
+      - version: ">=4.13 <=4.18" # from 4.13 to 4.18
       - default: 4.15
 
   - os: RedHat

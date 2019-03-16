@@ -26,6 +26,7 @@ FG_LIGHT_BLUE='\e[94m'
 FG_LIGHT_MAGENTA='\e[95m'
 FG_LIGHT_CYAN='\e[96m'
 FG_WHITE='\e[97m'
+FG_ORANGE='\e[38;5;208m'
 
 # Colors Background
 BG_DEFAULT='\e[49m'
@@ -47,8 +48,10 @@ BG_LIGHT_CYAN='\e[106m'
 BG_WHITE='\e[107m'
 
 # Custom format
-STEP="${BOLD}${FG_CYAN}[+] "
-NOTE="${BOLD}${BG_DARK_GRAY}[!] "
 SUCC="${FG_GREEN}✔ "
 FAIL="${FG_RED}✘ "
-ERR="${FG_RED}✘ ERROR: "
+ERR="${FG_RED}✘ [ERROR] "
+WARN="${FG_ORANGE}[WARNING] "
+STEP="${BOLD}${FG_CYAN}[+] "
+NOTE="${BOLD}${BG_DARK_GRAY}[INFO] "
+

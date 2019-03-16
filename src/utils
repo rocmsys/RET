@@ -1,38 +1,101 @@
 #!/usr/bin/env bash
 
 # Print the message/inser to the log file 
-# Input $1 type [STEP (for one of the main steps), DET (for detailed info), ERR (for error), NOTE ( for note)]
-# Input $2 title
-# Input $3 value (only for type [DET, ERR])
-# Input $4 State [SUCC, FAIL]
+# Input $1: type [STEP (for one of the main steps), DET (for detailed info), ERR (for error), NOTE ( for note)]
+# Input $2: title
+# Input $3: value (only for type [DET, ERR])
+# Input $4: State [SUCC, FAIL]
 function logPrint {
     # Init input variables 
     local __type=$1
     local __title=$2
+    local __value=$3
 
     if [ "${__type}" = "STEP" ]; then
         echo
 	echo -e "${STEP}${__title}...${END}";
     elif [ "${__type}" = "DET" ]; then
-        local __value=$3
         local __state=$4
         local __msg=$(printf '\t%-10s' "${__title}")
         printf '%-25s' "$__msg .........."
         echo -e "${__state}${__value}${END}";
     elif [ "${__type}" = "ERR" ]; then
-        local __value=$3
         echo
 	echo -e "${ERR}${__title}...[${__value}]${END}";
         exit 2
-    else
+    elif [ "${__type}" = "WARN" ]; then
+        echo
+	echo -e "${WARN}${__title}...[${__value}]${END}";
+    elif [ "${__type}" = "NOTE" ]; then
         echo
 	echo -e "${NOTE}${__title}${END}";
     fi
 }
 
+
+# Check OS, Distro and kernel
+# Input $1: array with the Distro
+function checkOs {
+    local __state="${SUCC}"
+
+    if [[ "$OSTYPE" == "linux-gnu" ]]; then
+        getOSInfo OS REL KERNEL ARCH
+
+        (isSupported "os_support|os" "${OS}") || __state="${FAIL}"
+        logPrint "DET" "OS" "${OS}" "${__state}"
+
+        (isSupported "os_support|${OS}|release" "${REL}") || __state="${FAIL}"
+	logPrint "DET" "RELEASE" "${REL}" "${__state}"
+
+	# Check just Kernel and major revision
+        local __kernel_version="${KERNEL%%.*}"
+        local __major_revision="${KERNEL#*.}"
+        __major_revision="${__major_revision%%.*}"
+
+        (isSupported "os_support|${OS}|kernel|version" "${__kernel_version}.${__major_revision}") || __state="${FAIL}"
+        logPrint "DET" "KERNEL" "${KERNEL}" "${__state}"
+
+	logPrint "DET" "ARCH" "${ARCH}" "${SUCC}"
+    else
+        logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
+    fi
+}
+
+# Convert string from ">=4.13 <=4.18" to array like [4.13, 4.14, 4.15, 4.16, 4.17, 4.18]
+# Input $1: string to convert
+function str2ArrayRange {
+    local __str=$1
+    local __s='[[:space:]]*' 
+    local __digit='[0-9.]*'
+
+    echo $__str | sed -n 's|^.*>='$__s'\('$__digit'\)[[:space:]]<='$__s'\('$__digit'\).*|\1-\2|p' |
+    awk 'BEGIN{FS="-";}{for (i=$1; i<$2; i+=0.01) { print(i); }}'
+}
+
+# Check if value exists in the supported array items
+# Input $1: Key to look for in array
+# Input $2: Value to check if it supported
+function isSupported {
+    local __key=$1
+    local __val=$2
+    local __ret_array=()
+    local __index=-1
+
+    getYAMLValue "${__key}" YAML_ARRAY __ret_array
+  
+    # Check if __ret_array needs to be interept (If sym. like >=, <=, <, etc.)
+    if [[ "${__ret_array[0]}" == *'>='*'<='* ]]; then
+        __ret_array=$(str2ArrayRange "${__ret_array[0]}") 
+        IFS=$'\r\n' eval  __ret_array='(${__ret_array})'
+    fi
+
+    (isInArray "__ret_array" "${__val}" __index) && return 0;
+    return 1;
+}
+
 # Check if the required dependencies are installed
-# Input $1 array with the name of deps
-# Input $2 array with the version of deps
+# Input $1: array with the name of deps
+# Input $2: array with the version of deps
 function checkDeps {
     local -n __name_array=$1
     local -n __ver_array=$2
@@ -67,7 +130,7 @@ function checkDeps {
 
 
 # Read and parse yaml file 
-# Input: yaml file name
+# Input $1: yaml file name
 # Note: this parser support only the syntax needed. Flow Styles are not supported
 function parse_yaml {
     local __file_name=$1
@@ -142,8 +205,10 @@ function parse_yaml {
     }'
 }
 
+
 # Parser yaml file into array
-# Return second param
+# Input $1: yaml file name
+# Output $2: Return Array
 function yaml2arr {
     local __yaml_file=$1
     local __res_array=$2
@@ -157,25 +222,46 @@ function yaml2arr {
 }
 
 # Get value yaml value by key
-# Input $1 Key 
-# Input $2 Output Array
-# Input $3 YAML_Array
+# Input $1: Key 
+# Input $2: YAML_Array Ref
+# Input $3: Output Array
 function getYAMLValue {
     local __key=$1
-    local __val_array=$2
-    local -n __array=$3
+    local -n __ref_yaml_array=$2
+    local __ref_yaml_val_array=$3
     
-    for item in "${__array[@]}"; do
-        if [[ ${item} == ${__key}":="* ]] ; then
-            local __value="${item#*:=}" # get the value part
-	    IFS=$';' eval  $__val_array='(${__value})'
+    if isInArray "__ref_yaml_array" "${__key}:=" INDEX; then
+        local __value="${__ref_yaml_array[$INDEX]#*:=}" # get the value part
+        IFS=$';' eval  $__ref_yaml_val_array='(${__value})'
+        return 0;
+    else
+        logPrint "ERR" "No Dependencies Found with this key!" "$__key" "${FAIL}"
+	return 1;
+    fi
+}
+
+# Check if array contains value
+# Input $1: Array Ref
+# Input $2: Vaue/Key
+# Output $3: item index
+function isInArray {
+    local -n __ref_in_array=$1
+    local __key=$2
+    local __idx=$3
+    local __index=0
+
+    for item in "${__ref_in_array[@]}"; do
+        if [[ "${item}" == ${__key}* ]] ; then
+	    eval $__idx="'$__index'"
 	    return 0;
         fi
+        ((__index++))
     done
     return 1;
 }
 
 # Check if program is installed
+# Input $1: program name
 # Return 0,1
 function isPrgInstalled {
 	# Init to found eq true
@@ -230,6 +316,7 @@ function getOSInfo {
 
 
 # Check if file exists and not empty
+# Input $1: file name
 # Return Error and exit the exec
 function fileSanityCheck {
     # Check if file exists
@@ -243,6 +330,7 @@ function fileSanityCheck {
 }
 
 # Get user confirmation of Y/n 
+# Input $1: message (optional)
 # Return 0,1
 function confirmYn {
     read -r -p "${1:-Are you sure? [Y/n] }" REPLY
@@ -261,6 +349,37 @@ function isSudo {
     return 0;
 }
 
+# Install package
+# Input $1: package array
+# Return 0,1
 function installPkg {
-    echo "install pkg"
+    local -n __packages=$1
+
+    # fix broken dependencies in place
+    apt-get install -fqq >/dev/null 2>&1
+    checkReturn "$?" "WARN" "apt-get install -f"
+
+    # Updates the package lists
+    apt-get update &>/dev/null
+
+    for dep in "${__packages[@]}"; do
+        apt-get -qq -y install "${dep}" &>/dev/null
+        checkReturn "$?" "ERR" "apt-get install ${dep}"
+    done
 }
+
+
+# Check if command return error
+# Input $1: Return State
+# Input $2: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
+# INput $3: The cmd causing the error
+function checkReturn {
+    local __state=$1
+    local __type=$2
+    local __cmd=$3
+
+    if [ "$__state" -ne 0 ]; then
+        logPrint "$__type" "An error occurred while executing the command!" "$__cmd"
+    fi
+}
+
