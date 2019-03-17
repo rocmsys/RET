@@ -43,18 +43,11 @@ function checkOs {
         getOSInfo OS REL KERNEL ARCH
 
 	# Check distro name
-        if (! isSupported "os_support|os" "${OS}"); then 
-	    __state="${FAIL}" 
-	    __failed="NSDISTRO" 
-        fi
+        (isSupported "os_support|os" "${OS}") && __state="${SUCC}" || { __state="${FAIL}"; __failed="NSDISTRO"; }
         logPrint "DET" "OS" "${OS}" "${__state}"
 
 	# Check Release version
-	__state="${SUCC}"
-        if (! isSupported "os_support|${OS}|release" "${REL}"); then
-	    __state="${FAIL}" 
-            [ -z "$__failed" ] && __failed="NSREL"
-	fi
+        (isSupported "os_support|${OS}|release" "${REL}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSREL"; }
 	logPrint "DET" "RELEASE" "${REL}" "${__state}"
 
 	# Check just Kernel and major revision
@@ -63,10 +56,7 @@ function checkOs {
         __major_revision="${__major_revision%%.*}"
 
         __state="${SUCC}"
-        if (! isSupported "os_support|${OS}|kernel|version" "s${__kernel_version}.${__major_revision}"); then
-	    __state="${FAIL}" 
-	    [ -z "$__failed" ] && __failed="NSKERNEL"
-	fi
+        (isSupported "os_support|${OS}|kernel|version" "${__kernel_version}.${__major_revision}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSKERNEL"; }
         logPrint "DET" "KERNEL" "${KERNEL}" "${__state}"
 
 	# Just print the current Arch
