@@ -37,14 +37,24 @@ function logPrint {
 # Input $1: array with the Distro
 function checkOs {
     local __state="${SUCC}"
+    local __failed
 
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
         getOSInfo OS REL KERNEL ARCH
 
-        (isSupported "os_support|os" "${OS}") || __state="${FAIL}"
+	# Check distro name
+        if (! isSupported "os_support|os" "${OS}"); then 
+	    __state="${FAIL}" 
+	    __failed="NSDISTRO" 
+        fi
         logPrint "DET" "OS" "${OS}" "${__state}"
 
-        (isSupported "os_support|${OS}|release" "${REL}") || __state="${FAIL}"
+	# Check Release version
+	__state="${SUCC}"
+        if (! isSupported "os_support|${OS}|release" "${REL}"); then
+	    __state="${FAIL}" 
+            [ -z "$__failed" ] && __failed="NSREL"
+	fi
 	logPrint "DET" "RELEASE" "${REL}" "${__state}"
 
 	# Check just Kernel and major revision
@@ -52,13 +62,25 @@ function checkOs {
         local __major_revision="${KERNEL#*.}"
         __major_revision="${__major_revision%%.*}"
 
-        (isSupported "os_support|${OS}|kernel|version" "${__kernel_version}.${__major_revision}") || __state="${FAIL}"
+        __state="${SUCC}"
+        if (! isSupported "os_support|${OS}|kernel|version" "s${__kernel_version}.${__major_revision}"); then
+	    __state="${FAIL}" 
+	    [ -z "$__failed" ] && __failed="NSKERNEL"
+	fi
         logPrint "DET" "KERNEL" "${KERNEL}" "${__state}"
 
+	# Just print the current Arch
 	logPrint "DET" "ARCH" "${ARCH}" "${SUCC}"
     else
         logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
     fi
+
+    case "$__failed" in
+        "NSDISTRO") logPrint "ERR" "OS distro Not Supported!" "${OS}" "${FAIL}" ;;
+        "NSREL")    logPrint "ERR" "OS release Not Supported!" "${REL}" "${FAIL}" ;;
+        "NSKERNEL") logPrint "WARN" "OS kernel Not Supported!" "${KERNEL}" "${FAIL}" ;;
+        *) # Do nothing ;;
+    esac    
 }
 
 # Convert string from ">=4.13 <=4.18" to array like [4.13, 4.14, 4.15, 4.16, 4.17, 4.18]
