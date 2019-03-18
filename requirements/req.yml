@@ -42,7 +42,7 @@ os_support:
 dependencies:
   - globale:
     - name: lynx
-      version: 2.15.6
+      version: latest
     - name: curl
       version: latest
     - name: dkms
@@ -50,8 +50,6 @@ dependencies:
     - name: sudo
       version: latest
     - name: wget
-      version: latest
-    - name: whiptail
       version: latest
     - name: node
       version: latest

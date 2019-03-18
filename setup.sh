@@ -12,7 +12,7 @@ if ! isSudo; then
 fi
 
 # read yaml file
-yaml2arr "requirements/req.yml" YAML_ARRAY
+yaml2arr "$REQ_FILE" YAML_ARRAY
 #echo "${YAML_ARRAY[@]}"
 
 # Check OS
