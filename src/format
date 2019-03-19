@@ -53,5 +53,6 @@ FAIL="${FG_RED}✘ "
 ERR="${FG_RED}✘ [ERROR] "
 WARN="${FG_ORANGE}[WARNING] "
 STEP="${BOLD}${FG_CYAN}[+] "
+SUBSTEP="  ${BOLD}${DIM}${FG_CYAN}[+] "
 NOTE="${BOLD}${BG_DARK_GRAY}[INFO] "
 

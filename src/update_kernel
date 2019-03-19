@@ -10,54 +10,68 @@ function getKernel {
     # Get the last kernel version
     local __valid_chars='[a-zA-Z0-9.-]*'
     local __cmd_ret_getkernel=($(curl -sL "$1?C=M;O=D" | grep v"$2" | sed -n 's/.*href="\('$__valid_chars'\).*/\1/p' | awk '{print($0)}'))
-
-    # Get download URLs
     local __kernel_version="${__cmd_ret_getkernel[0]}"
 
+
+    # Get download URLs
     __cmd_ret_getkernel="$(lynx -dump -listonly -nonumbers "$1${__kernel_version}" | grep -v ""BUILD.LOG"" | sort | uniq)"
     [[ -z "${__cmd_ret_getkernel}" ]] && logPrint "ERR" "No kernel found with this version!" "${__kernel_version}" "${FAIL}"
 
 
-echo "download..."
+
 
     # Download the corresponding packages
+    logPrint "SUBSTEP" "Download kernel shared headers"
     local __kernel_headers_all="$(echo "$__cmd_ret_getkernel" | grep ""headers"" | grep ""all"")"
     [[ -z "${__kernel_headers_all}" ]] && __kernel_headers_all="kernel_headers_all"
     downloadFile "$__kernel_headers_all" "$5" "ERR" 
 
+    logPrint "SUBSTEP" "Download kernel headers"
     local __kernel_headers="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""headers"")"
     [[ -z "${__kernel_headers}" ]] && __kernel_headers="kernel_headers"
     downloadFile "$__kernel_headers" "$5" "ERR" 
 
+    logPrint "SUBSTEP" "Download kernel image"
     local __kernel_image="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""image"")"
     [[ -z "${__kernel_image}" ]] && __kernel_image="kernel_image"
-    downloadFile "$__kernel_image" "$5" "WARN" 
+    downloadFile "$__kernel_image" "$5" "ERR" 
 
+    logPrint "SUBSTEP" "Download kernel modules"
     local __kernel_modules="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""modules"")"
     [[ -z "${__kernel_modules}" ]] && __kernel_modules="kernel_modules"
     downloadFile "$__kernel_modules" "$5" "WARN" 
-
-echo "Done"
 }
 
 # Update the Linux Kernel
 # Input $1: OS Distro
 # Input $2: Current kernel
-# Input $3: To download kernel version
-# Input $4: System Arch
+# Input $3: System Arch
 function updateKernel {
     local __kernel_type="$2"
+
+    # Install Necessary Packages
+    logPrint "NOTE" "Install necessary packages."
+    local __necessary_packages=("git" "curl" "wget" "lynx" "sed" "gawk")
+    installPkg __necessary_packages
+
+    # Get the recommended kernel
+    local __default_kernel=()
+    getYAMLValue "os_support|${__distro_checkOS}|kernel|default" YAML_ARRAY __default_kernel
+
+
+
+    logPrint "NOTE" "A kernel update to version "${__default_kernel[0]}" is required to complete this setup."
+    confirmYn "Update kernel? [Y/n] " || logPrint "ERR" "Update Kernel: OS Kernel Not Supported!" "$2" "${FAIL}"
 
     # Remove linux temp
     if ls /tmp/linux-* >/dev/null 2>&1; then
 	rm /tmp/linux-*
     fi
 
-echo $TEMP_DIRECTRORY
-
+    logPrint "STEP" "Download Kernel packages"
     case "$1" in
         "Ubuntu") [[ ! -z "${__kernel_type##*-}" ]] && __kernel_type=${__kernel_type##*-} || __kernel_type=${__kernel_type#*-}
-	          getKernel "$UBUNTU_KERNEL_URL" "$3" "$4" "$__kernel_type" "$TEMP_DIRECTRORY" ;;
+	          getKernel "$UBUNTU_KERNEL_URL" "${__default_kernel[0]}" "$4" "$__kernel_type" "$TEMP_DIRECTRORY" ;;
 
         "RedHat") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
 	"CentOS") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;

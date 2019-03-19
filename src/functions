@@ -14,6 +14,9 @@ function logPrint {
     if [ "${__type}" = "STEP" ]; then
         echo
 	echo -e "${STEP}${__title}...${END}";
+    elif [ "${__type}" = "SUBSTEP" ]; then
+        echo
+	echo -e "${SUBSTEP}${__title}...${END}";
     elif [ "${__type}" = "DET" ]; then
         local __state=$4
         local __msg=$(printf '\t%-10s' "${__title}")
@@ -27,6 +30,9 @@ function logPrint {
         echo
 	echo -e "${WARN}${__title}...[${__value}]${END}";
     elif [ "${__type}" = "NOTE" ]; then
+        echo
+	echo -e "${NOTE}${__title}${END}";
+    else
         echo
 	echo -e "${NOTE}${__title}${END}";
     fi
@@ -75,11 +81,8 @@ function checkOs {
         "NSREL")    logPrint "ERR" "OS release Not Supported!" "${__release_checkOS}" "${FAIL}" ;;
         "NSKERNEL") logPrint "WARN" "OS kernel Not Supported!" "${__kernel_checkOS}" "${FAIL}" 
 
-		    # Get the recommended kernel
-		    local __default_kernel=()
-		    getYAMLValue "os_support|${__distro_checkOS}|kernel|default" YAML_ARRAY __default_kernel
-                    #echo ${__distro_checkOS}
-		    updateKernel "${__distro_checkOS}" "${__kernel_checkOS}" "${__default_kernel[0]}" "${__arch_checkOS}" ;;
+		    # Update kernel
+                    updateKernel "${__distro_checkOS}" "${__kernel_checkOS}" "${__arch_checkOS}" ;;
         *) # Do nothing ;;
     esac    
 }
