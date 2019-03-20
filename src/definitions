@@ -12,3 +12,4 @@ if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 REQ_FILE=requirements/req.yml
 UBUNTU_KERNEL_URL=kernel.ubuntu.com/~kernel-ppa/mainline/
 TEMP_DIRECTRORY=$(mktemp -d)
+EMPTY_ARRAY=()

@@ -11,6 +11,9 @@ if ! isSudo; then
         logPrint "ERR" "Please run the following command instead!" "sudo $0" "${FAIL}"
 fi
 
+# Pre-installation requirements
+preStart
+
 # read yaml file
 yaml2arr "$REQ_FILE" YAML_ARRAY
 #echo "${YAML_ARRAY[@]}"

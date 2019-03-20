@@ -21,25 +21,29 @@ function getKernel {
 
 
     # Download the corresponding packages
-    logPrint "SUBSTEP" "Download kernel shared headers"
+    startLoadBar "Download kernel shared headers"
     local __kernel_headers_all="$(echo "$__cmd_ret_getkernel" | grep ""headers"" | grep ""all"")"
     [[ -z "${__kernel_headers_all}" ]] && __kernel_headers_all="kernel_headers_all"
     downloadFile "$__kernel_headers_all" "$5" "ERR" 
+    stopLoadBar
 
-    logPrint "SUBSTEP" "Download kernel headers"
+    startLoadBar "Download kernel headers" 
     local __kernel_headers="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""headers"")"
     [[ -z "${__kernel_headers}" ]] && __kernel_headers="kernel_headers"
     downloadFile "$__kernel_headers" "$5" "ERR" 
+    stopLoadBar
 
-    logPrint "SUBSTEP" "Download kernel image"
+    startLoadBar "Download kernel image"
     local __kernel_image="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""image"")"
     [[ -z "${__kernel_image}" ]] && __kernel_image="kernel_image"
     downloadFile "$__kernel_image" "$5" "ERR" 
+    stopLoadBar
 
-    logPrint "SUBSTEP" "Download kernel modules"
+    startLoadBar "Download kernel modules"
     local __kernel_modules="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""modules"")"
     [[ -z "${__kernel_modules}" ]] && __kernel_modules="kernel_modules"
     downloadFile "$__kernel_modules" "$5" "WARN" 
+    stopLoadBar
 }
 
 # Update the Linux Kernel
@@ -48,11 +52,6 @@ function getKernel {
 # Input $3: System Arch
 function updateKernel {
     local __kernel_type="$2"
-
-    # Install Necessary Packages
-    logPrint "NOTE" "Install necessary packages."
-    local __necessary_packages=("git" "curl" "wget" "lynx" "sed" "gawk")
-    installPkg __necessary_packages
 
     # Get the recommended kernel
     local __default_kernel=()

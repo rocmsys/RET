@@ -12,11 +12,10 @@ function logPrint {
     local __value=$3
 
     if [ "${__type}" = "STEP" ]; then
-        echo
-	echo -e "${STEP}${__title}...${END}";
+	((STEP_COUNT++)); local __terminal_width=$(tput cols); echo; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+	echo -e "${STEP}[STEP:$STEP_COUNT] ${__title}...${END}";
     elif [ "${__type}" = "SUBSTEP" ]; then
-        echo
-	echo -e "${SUBSTEP}${__title}...${END}";
+        printf "${SUBSTEP}${__title}...${END}\r" 
     elif [ "${__type}" = "DET" ]; then
         local __state=$4
         local __msg=$(printf '\t%-10s' "${__title}")
@@ -122,15 +121,17 @@ function isSupported {
 # Check if the required dependencies are installed
 # Input $1: array with the name of deps
 # Input $2: array with the version of deps
+# Input $3: title (Optional)
 function checkDeps {
     local -n __name_array=$1
-    local -n __ver_array=$2
+    local -n __ver_array=${2:-EMPTY_ARRAY}
     local __idx=0
+    local __title_checkDeps=${3:-"Verifying Dependencies"}
     local __dep_toInstall
     local __DEPS_TOINSTALL=() # Array of deps
 
 
-    logPrint "STEP" "Verifying Dependencies"
+    logPrint "STEP" "${__title_checkDeps}"
     for dep in "${__name_array[@]}"; do
 	if isPrgInstalled "${dep}"; then
             logPrint "DET" "${dep}" "Found" "${SUCC}"
@@ -139,7 +140,7 @@ function checkDeps {
 
             # Get Version
 	    local __version="${__ver_array[$__idx]}"
-            [ "$__version" != "latest" ] && __dep_toInstall="${dep}=${__version}"
+            [ ! -z "$__version" ] && [ "$__version" != "latest" ] && __dep_toInstall="${dep}=${__version}"
 
 	    __DEPS_TOINSTALL+=("${__dep_toInstall}")
             logPrint "DET" "${dep}" "Not Found!" "${FAIL}"
@@ -150,7 +151,7 @@ function checkDeps {
     # Install deps if needed
     if [ "${#__DEPS_TOINSTALL[@]}" -ne 0 ]; then
         logPrint "NOTE" "The above not installed packages are required to complete this setup."
-        confirmYn "Install dependencies? [Y/n] " && installPkg __DEPS_TOINSTALL
+        (confirmYn "Install dependencies? [Y/n] ") || logPrint "ERR" "Packages are required to complete this setupa!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")" && { startLoadBar "Install dependencies..."; installPkg __DEPS_TOINSTALL; stopLoadBar; } 
     fi
 }
 
@@ -414,3 +415,39 @@ function checkReturn {
     fi
 }
 
+# Install Necessary Packages
+function preStart {
+    local __necessary_packages=("git" "curl" "wget" "lynx" "sed" "gawk")
+    checkDeps __necessary_packages "" "Run Pre-installation Requirements"
+}
+
+# Load bar while running a command
+# Input $1: message text
+# Input $2: message type
+function loadBar {
+    local __msg_loadbar="$1"
+    local __msg_type_loadbar="${2:-SUBSTEP}"
+    tput civis;
+
+    while :
+    do 
+        for (( i=0; i<${#LOADBAR}; i++ )); do
+	   sleep 0.1
+           logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
+        done
+    done
+    tput cnorm;
+}
+
+# Start load bar
+# Input $1: message text
+function startLoadBar {
+    loadBar "$1" &
+    LOADBARPID=$!
+}
+
+# Stop loader
+function stopLoadBar {
+    kill "${LOADBARPID}"
+    wait "${LOADBARPID}" >/dev/null 2>&1
+}

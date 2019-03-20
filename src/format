@@ -55,4 +55,5 @@ WARN="${FG_ORANGE}[WARNING] "
 STEP="${BOLD}${FG_CYAN}[+] "
 SUBSTEP="  ${BOLD}${DIM}${FG_CYAN}[+] "
 NOTE="${BOLD}${BG_DARK_GRAY}[INFO] "
-
+LOADBAR="⡇⠏⡏⡟⠟⠻⢻⢹⢸⣰⣴⣦⣧⣇" 
+CLEAR="\e[2K"
