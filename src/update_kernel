@@ -81,7 +81,7 @@ function updateKernel {
     # kernel Installation
     logPrint "STEP" "Install the Kernel packages"
     startLoadBar "Install kernel packages"
-    #dpkg -i "$TEMP_DIRECTRORY/linux*.deb"
+    dpkg -i "$TEMP_DIRECTRORY/linux*.deb"
     sleep 2
     stopLoadBar "Download Completed Successfully."
 
