@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Print the message/inser to the log file 
-# Input $1: type [STEP (for one of the main steps), DET (for detailed info), ERR (for error), NOTE ( for note)]
+# Input $1: type [STEP (for one of the main steps), DET (for detailed info), ERR (for error), NOTE ( for note), DONE (success confirmation)]
 # Input $2: title
 # Input $3: value (only for type [DET, ERR])
 # Input $4: State [SUCC, FAIL]
@@ -11,23 +11,33 @@ function logPrint {
     local __title=$2
     local __value=$3
 
+    # Step heading
     if [ "${__type}" = "STEP" ]; then
-	((STEP_COUNT++)); local __terminal_width=$(tput cols); echo; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+	((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
 	echo -e "${STEP}[STEP:$STEP_COUNT] ${__title}...${END}";
+    # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then
-        printf "${SUBSTEP}${__title}...${END}\r" 
+        echo -ne "${SUBSTEP}${__title}...${END}\r" 
+    # Detailed info
     elif [ "${__type}" = "DET" ]; then
         local __state=$4
         local __msg=$(printf '\t%-10s' "${__title}")
         printf '%-25s' "$__msg .........."
         echo -e "${__state}${__value}${END}";
+    # Success confirmation
+    elif [ "${__type}" = "DONE" ]; then
+        echo
+	echo -e "${DONE}${__title}${END}";
+    # Error and exit
     elif [ "${__type}" = "ERR" ]; then
         echo
 	echo -e "${ERR}${__title}...[${__value}]${END}";
-        exit 2
+        exitAll 2
+    # Warning
     elif [ "${__type}" = "WARN" ]; then
         echo
 	echo -e "${WARN}${__title}...[${__value}]${END}";
+    # Info
     elif [ "${__type}" = "NOTE" ]; then
         echo
 	echo -e "${NOTE}${__title}${END}";
@@ -78,7 +88,7 @@ function checkOs {
     case "$__failed" in
         "NSDISTRO") logPrint "ERR" "OS distro Not Supported!" "${__distro_checkOS}" "${FAIL}" ;;
         "NSREL")    logPrint "ERR" "OS release Not Supported!" "${__release_checkOS}" "${FAIL}" ;;
-        "NSKERNEL") logPrint "WARN" "OS kernel Not Supported!" "${__kernel_checkOS}" "${FAIL}" 
+        "NSKERNEL") logPrint "WARN" "OS kernel Not Supported!" "${__kernel_checkOS}" "${FAIL}"
 
 		    # Update kernel
                     updateKernel "${__distro_checkOS}" "${__kernel_checkOS}" "${__arch_checkOS}" ;;
@@ -151,7 +161,13 @@ function checkDeps {
     # Install deps if needed
     if [ "${#__DEPS_TOINSTALL[@]}" -ne 0 ]; then
         logPrint "NOTE" "The above not installed packages are required to complete this setup."
-        (confirmYn "Install dependencies? [Y/n] ") || logPrint "ERR" "Packages are required to complete this setupa!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")" && { startLoadBar "Install dependencies..."; installPkg __DEPS_TOINSTALL; stopLoadBar; } 
+        if (confirmYn "Install dependencies? [Y/n] "); then
+	    startLoadBar "Install dependencies"
+            installPkg __DEPS_TOINSTALL
+            stopLoadBar "Installation Completed Successfully."
+        else
+	    logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
+	fi
     fi
 }
 
@@ -422,32 +438,88 @@ function preStart {
 }
 
 # Load bar while running a command
-# Input $1: message text
-# Input $2: message type
+# Input $1: Message text
+# Input $2: Message type
 function loadBar {
     local __msg_loadbar="$1"
     local __msg_type_loadbar="${2:-SUBSTEP}"
-    tput civis;
+    local __pos_loadbar="${3:-0}"
+    tput civis
 
-    while :
+    while true
     do 
-        for (( i=0; i<${#LOADBAR}; i++ )); do
-	   sleep 0.1
-           logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
+        for (( i=${__pos_loadbar}; i<${#LOADBAR}; i++ )); do
+	   logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
+	   sleep 0.1; 
         done
     done
-    tput cnorm;
 }
 
 # Start load bar
-# Input $1: message text
+# Input $1: Message text
 function startLoadBar {
-    loadBar "$1" &
+
+    stopLoadBar >/dev/null 2>&1 # Stop previous process if exists
+    loadBar "$1" "SUBSTEP" "$2" &
     LOADBARPID=$!
 }
 
 # Stop loader
+# Input $1: Message text
+# Input $2: Stop state
+# Input $3: Message Value (Optional)
 function stopLoadBar {
-    kill "${LOADBARPID}"
+    local __msg_stopLoadBar="$1"
+    local __msg_type_stopLoadBar="${2:-DONE}"
+    local __msg_value_stopLoadBar="$3"
+    tput cnorm
+
+    kill -9 "${LOADBARPID}" >/dev/null 2>&1 # send SIGKILL 
     wait "${LOADBARPID}" >/dev/null 2>&1
+    [ -z "${__msg_stopLoadBar}" ] || logPrint "${__msg_type_stopLoadBar}" "${__msg_stopLoadBar}" "${__msg_value_stopLoadBar}"
+}
+
+# Stop all process befor exit this program
+# Input $1: exit code
+function exitAll {
+   stopLoadBar; echo
+   exit $1
+}
+
+# Download file from URL
+# Input $1: URL
+# Input $2: Output Path
+# Input $3: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
+# Input $4: Message text
+function downloadFile {
+    local __err_type_downloadFile=$3
+    local __cmd_ret_downloadFile
+    local __msg_txt_downloadFile=${4:-"Download file"}
+
+    # Read terminal output and pass it to loadBar
+    function updatePercentage {
+        local __download_per
+        local __LoadBar_Pos=0
+	local __succ_updatePercentage=1
+        local __previous_value_updatePercentage="${__download_per}"
+
+        while read __download_per
+  	do
+            if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
+	        ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
+                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
+	        __previous_value_updatePercentage="${__download_per}"
+		__succ_updatePercentage=0
+	    fi
+        done
+	[ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
+	return $__succ_updatePercentage;
+    }
+
+    # Download file and get the current download state
+    wget --progress=dot -P "$2" "$1" 2>&1 | grep --line-buffered "%" | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage
+
+    # Check the return state 
+    __cmd_ret_downloadFile="$?"
+    checkReturn "$__cmd_ret_downloadFile" "wget -O $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
 }

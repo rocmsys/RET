@@ -8,42 +8,41 @@
 # Input $5: Output Path
 function getKernel {
     # Get the last kernel version
+    startLoadBar "Fetch the kernel URL"
     local __valid_chars='[a-zA-Z0-9.-]*'
     local __cmd_ret_getkernel=($(curl -sL "$1?C=M;O=D" | grep v"$2" | sed -n 's/.*href="\('$__valid_chars'\).*/\1/p' | awk '{print($0)}'))
     local __kernel_version="${__cmd_ret_getkernel[0]}"
-
+    
+    [[ -z "${__kernel_version}" ]] && logPrint "ERR" "No kernel found with this version!" "$2" "${FAIL}"
 
     # Get download URLs
     __cmd_ret_getkernel="$(lynx -dump -listonly -nonumbers "$1${__kernel_version}" | grep -v ""BUILD.LOG"" | sort | uniq)"
     [[ -z "${__cmd_ret_getkernel}" ]] && logPrint "ERR" "No kernel found with this version!" "${__kernel_version}" "${FAIL}"
-
+    stopLoadBar
 
 
 
     # Download the corresponding packages
-    startLoadBar "Download kernel shared headers"
-    local __kernel_headers_all="$(echo "$__cmd_ret_getkernel" | grep ""headers"" | grep ""all"")"
-    [[ -z "${__kernel_headers_all}" ]] && __kernel_headers_all="kernel_headers_all"
-    downloadFile "$__kernel_headers_all" "$5" "ERR" 
-    stopLoadBar
+    local __kernel_headers_all="$(echo "$__cmd_ret_getkernel" | grep ""headers"" | grep -m 1 ""all"")"
+    [[ -z "${__kernel_headers_all}" ]] && logPrint "ERR" "No kernel shared headers found with this version!" "${__kernel_version}" "${FAIL}"
+    downloadFile "$__kernel_headers_all" "$5" "ERR" "Download kernel shared headers" 
 
-    startLoadBar "Download kernel headers" 
-    local __kernel_headers="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""headers"")"
-    [[ -z "${__kernel_headers}" ]] && __kernel_headers="kernel_headers"
-    downloadFile "$__kernel_headers" "$5" "ERR" 
-    stopLoadBar
+ 
+    local __kernel_headers="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""headers"")"
+    [[ -z "${__kernel_headers}" ]] && logPrint "ERR" "No kernel headers found with this version!" "${__kernel_version}" "${FAIL}"
+    downloadFile "$__kernel_headers" "$5" "ERR" "Download kernel headers" 
 
-    startLoadBar "Download kernel image"
-    local __kernel_image="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""image"")"
-    [[ -z "${__kernel_image}" ]] && __kernel_image="kernel_image"
-    downloadFile "$__kernel_image" "$5" "ERR" 
-    stopLoadBar
 
-    startLoadBar "Download kernel modules"
-    local __kernel_modules="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep ""modules"")"
+    local __kernel_image="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""image"")"
+    [[ -z "${__kernel_image}" ]] && logPrint "ERR" "No kernel image found with this version!" "${__kernel_version}" "${FAIL}"
+    downloadFile "$__kernel_image" "$5" "ERR" "Download kernel image"
+
+
+    local __kernel_modules="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""modules"")"
     [[ -z "${__kernel_modules}" ]] && __kernel_modules="kernel_modules"
-    downloadFile "$__kernel_modules" "$5" "WARN" 
-    stopLoadBar
+    downloadFile "$__kernel_modules" "$5" "WARN" "Download kernel modules"
+    stopLoadBar "Download Completed Successfully." "DONE" 
+ 
 }
 
 # Update the Linux Kernel
@@ -51,7 +50,8 @@ function getKernel {
 # Input $2: Current kernel
 # Input $3: System Arch
 function updateKernel {
-    local __kernel_type="$2"
+    local __kernel_type_updateKernel="$2"
+    local __sys_arch_updateKernel="$3"
 
     # Get the recommended kernel
     local __default_kernel=()
@@ -67,30 +67,27 @@ function updateKernel {
 	rm /tmp/linux-*
     fi
 
-    logPrint "STEP" "Download Kernel packages"
+    logPrint "STEP" "Download the Kernel packages"
     case "$1" in
-        "Ubuntu") [[ ! -z "${__kernel_type##*-}" ]] && __kernel_type=${__kernel_type##*-} || __kernel_type=${__kernel_type#*-}
-	          getKernel "$UBUNTU_KERNEL_URL" "${__default_kernel[0]}" "$4" "$__kernel_type" "$TEMP_DIRECTRORY" ;;
+        "Ubuntu") [[ ! -z "${__kernel_type_updateKernel##*-}" ]] && __kernel_type_updateKernel=${__kernel_type_updateKernel##*-} \
+		                                                 || __kernel_type_updateKernel=${__kernel_type_updateKernel#*-}
+	          getKernel "$UBUNTU_KERNEL_URL" "${__default_kernel[0]}" "$__sys_arch_updateKernel" "$__kernel_type_updateKernel" "$TEMP_DIRECTRORY" ;;
 
         "RedHat") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
 	"CentOS") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
-        *) 	  logPrint "ERR" "Update Kernel: OS Distro Not Supportedxx!" "$1" "${FAIL}" ;;
+        *) 	  logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
     esac   
 
-# Installing kernel
-#${SUDO} dpkg -i linux*.deb
+    # kernel Installation
+    logPrint "STEP" "Install the Kernel packages"
+    startLoadBar "Install kernel packages"
+    #dpkg -i "$TEMP_DIRECTRORY/linux*.deb"
+    sleep 2
+    stopLoadBar "Download Completed Successfully."
 
-}
+    if [ -f /var/run/reboot-required ]; then
+        echo 'reboot required'
+       logPrint "ERR" "Reboot Required! Please run this script after the reboot." "Update Kernel" "${FAIL}"
+    fi
 
-# Download file from URL
-# Input $1: URL
-# Input $2: Output Path
-# Input $3: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-function downloadFile {
-    local __err_type_downloadFile
-    local __cmd_ret_downloadFile
-
-    wget -P $2 $1 >/dev/null 2>&1
-    __cmd_ret_downloadFile="$?"
-    checkReturn "$__cmd_ret_downloadFile" "wget -O $2 $1" "$3" "There was a problem downloading this package!"
 }
