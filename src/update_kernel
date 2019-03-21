@@ -22,27 +22,26 @@ function getKernel {
 
 
 
-    # Download the corresponding packages
+    # Download the shared headers
     local __kernel_headers_all="$(echo "$__cmd_ret_getkernel" | grep ""headers"" | grep -m 1 ""all"")"
     [[ -z "${__kernel_headers_all}" ]] && logPrint "ERR" "No kernel shared headers found with this version!" "${__kernel_version}" "${FAIL}"
     downloadFile "$__kernel_headers_all" "$5" "ERR" "Download kernel shared headers" 
 
- 
+    # Download the kernel headers
     local __kernel_headers="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""headers"")"
     [[ -z "${__kernel_headers}" ]] && logPrint "ERR" "No kernel headers found with this version!" "${__kernel_version}" "${FAIL}"
     downloadFile "$__kernel_headers" "$5" "ERR" "Download kernel headers" 
 
-
+    # Download the kernel image
     local __kernel_image="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""image"")"
     [[ -z "${__kernel_image}" ]] && logPrint "ERR" "No kernel image found with this version!" "${__kernel_version}" "${FAIL}"
     downloadFile "$__kernel_image" "$5" "ERR" "Download kernel image"
 
-
+    # Download the kernel modules
     local __kernel_modules="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""modules"")"
     [[ -z "${__kernel_modules}" ]] && __kernel_modules="kernel_modules"
     downloadFile "$__kernel_modules" "$5" "WARN" "Download kernel modules"
     stopLoadBar "Download Completed Successfully." "DONE" 
- 
 }
 
 # Update the Linux Kernel
@@ -81,9 +80,14 @@ function updateKernel {
     # kernel Installation
     logPrint "STEP" "Install the Kernel packages"
     startLoadBar "Install kernel packages"
-    dpkg -i "$TEMP_DIRECTRORY/linux*.deb"
-    sleep 2
-    stopLoadBar "Download Completed Successfully."
+    dpkg -i "$TEMP_DIRECTRORY/linux*.deb" >/dev/null 2>&1
+    __cmd_ret_updateKernel="$?"
+    [ $__cmd_ret_updateKernel -ne 0 ] && stopLoadBar "There was a problem installing the kernel!" "ERR" "dpkg -i $TEMP_DIRECTRORY/linux*.deb" || stopLoadBar "Download Completed Successfully."
+
+    echo "test"
+     
+    checkReturn "$__cmd_ret_updateKernel" "dpkg -i" "ERR" "There was a problem installing the kernel!" 
+}
 
     if [ -f /var/run/reboot-required ]; then
         echo 'reboot required'
