@@ -80,15 +80,13 @@ function updateKernel {
     # kernel Installation
     logPrint "STEP" "Install the Kernel packages"
     startLoadBar "Install kernel packages"
-    dpkg -i "$TEMP_DIRECTRORY/linux*.deb" >/dev/null 2>&1
+    dpkg -i "$TEMP_DIRECTRORY/"linux*.deb >/dev/null 2>&1
     __cmd_ret_updateKernel="$?"
-    [ $__cmd_ret_updateKernel -ne 0 ] && stopLoadBar "There was a problem installing the kernel!" "ERR" "dpkg -i $TEMP_DIRECTRORY/linux*.deb" || stopLoadBar "Download Completed Successfully."
+    [ $__cmd_ret_updateKernel -ne 0 ] && stopLoadBar "There was a problem installing the kernel!" "ERR" "dpkg -i $TEMP_DIRECTRORY/linux*.deb" \
+                                      || stopLoadBar "Download Completed Successfully."
 
-    echo "test"
-     
-    checkReturn "$__cmd_ret_updateKernel" "dpkg -i" "ERR" "There was a problem installing the kernel!" 
-}
 
+    # Check if system reboot required
     if [ -f /var/run/reboot-required ]; then
         echo 'reboot required'
        logPrint "ERR" "Reboot Required! Please run this script after the reboot." "Update Kernel" "${FAIL}"
