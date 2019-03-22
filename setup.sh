@@ -19,7 +19,7 @@ preStart
 
 # read yaml file
 yaml2arr "$REQ_FILE" YAML_ARRAY
-#echo "${YAML_ARRAY[@]}"
+echo "${YAML_ARRAY[@]}"
 
 # Check OS
 logPrint "STEP" "Checking OS"

@@ -48,17 +48,14 @@ function getKernel {
 # Input $1: OS Distro
 # Input $2: Current kernel
 # Input $3: System Arch
+# Input $4: New kernel version
 function updateKernel {
     local __kernel_type_updateKernel="$2"
     local __sys_arch_updateKernel="$3"
+    local __kernel_version_updateKernel="$4"
 
-    # Get the recommended kernel
-    local __default_kernel=()
-    getYAMLValue "os_support|${__distro_checkOS}|kernel|default" YAML_ARRAY __default_kernel
-
-
-
-    logPrint "NOTE" "A kernel update to version "${__default_kernel[0]}" is required to complete this setup."
+    
+    logPrint "NOTE" "A kernel update to version "${__kernel_version_updateKernel}" is required to complete this setup."
     confirmYn "Update kernel? [Y/n] " || logPrint "ERR" "Update Kernel: OS Kernel Not Supported!" "$2" "${FAIL}"
 
     # Remove linux temp

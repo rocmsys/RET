@@ -76,7 +76,7 @@ function checkOs {
         __major_revision="${__major_revision%%.*}"
 
         __state="${SUCC}"
-        (isSupported "os_support|${__distro_checkOS}|kernel|version" "s${__kernel_version}.${__major_revision}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSKERNEL"; }
+        (isSupported "os_support|${__distro_checkOS}|kernel|${__release_checkOS}|version" "${__kernel_version}.${__major_revision}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSKERNEL"; }
         logPrint "DET" "KERNEL" "${__kernel_checkOS}" "${__state}"
 
 	# Just print the current Arch
@@ -90,8 +90,10 @@ function checkOs {
         "NSREL")    logPrint "ERR" "OS release Not Supported!" "${__release_checkOS}" "${FAIL}" ;;
         "NSKERNEL") logPrint "WARN" "OS kernel Not Supported!" "${__kernel_checkOS}" "${FAIL}"
 
-		    # Update kernel
-                    updateKernel "${__distro_checkOS}" "${__kernel_checkOS}" "${__arch_checkOS}" ;;
+        	    # Get the recommended kernel and Update kernel
+    		    local __default_kernel=()
+                    getYAMLValue "os_support|${__distro_checkOS}|kernel|${__release_checkOS}|default" YAML_ARRAY __default_kernel
+                    updateKernel "${__distro_checkOS}" "${__kernel_checkOS}" "${__arch_checkOS}" "${__default_kernel[0]}" ;;
         *) # Do nothing ;;
     esac    
 }
@@ -102,9 +104,16 @@ function str2ArrayRange {
     local __str=$1
     local __s='[[:space:]]*' 
     local __digit='[0-9.]*'
+    local __conversation_type="SEQ" # Params are SEQ (for sequence) and SPT (for split)
+ 
+    [[ "${__str}" == *'>='*'<='* ]] && __conversation_type="SEQ" || __conversation_type="SPT"
 
-    echo $__str | sed -n 's|^.*>='$__s'\('$__digit'\)[[:space:]]<='$__s'\('$__digit'\).*|\1-\2|p' |
-    awk 'BEGIN{FS="-";}{for (i=$1; i<$2; i+=0.01) { print(i); }}'
+    if [[ "$__conversation_type" == "SEQ" ]]; then
+        echo $__str | sed -n 's|^.*>='$__s'\('$__digit'\)[[:space:]]<='$__s'\('$__digit'\).*|\1-\2|p' |
+                      awk 'BEGIN{FS="-";}{for (i=$1; i<$2; i+=0.01) { print(i); }}'
+    elif [[ "$__conversation_type" == "SPT" ]]; then
+        echo $__str | sed 's| ||g' | awk '{ split($0,a,"|"); for (item in a){ print(a[item]);} }' 
+    fi
 }
 
 # Check if value exists in the supported array items
@@ -117,9 +126,9 @@ function isSupported {
     local __index=-1
 
     getYAMLValue "${__key}" YAML_ARRAY __ret_array
-  
+
     # Check if __ret_array needs to be interept (If sym. like >=, <=, <, etc.)
-    if [[ "${__ret_array[0]}" == *'>='*'<='* ]]; then
+    if [[ "${__ret_array[0]}" == *'>='*'<='* || "${__ret_array[0]}" == *'|'* ]]; then
         __ret_array=$(str2ArrayRange "${__ret_array[0]}") 
         IFS=$'\r\n' eval  __ret_array='(${__ret_array})'
     fi
@@ -178,7 +187,7 @@ function checkDeps {
 function parse_yaml {
     local __file_name=$1
     local __s='[[:space:]]*' 
-    local __w='[a-zA-Z0-9_]*' 
+    local __w='[a-zA-Z0-9_.]*' 
     local __fs=${__fs:-$(echo @|tr @ '\034')}
     local __q=''\"\'''
     local __sep=\"\|\"
@@ -194,7 +203,6 @@ function parse_yaml {
     local __rm_il_cmt='/#['$__q']/!s|[[:space:]]#.*||g' # rm inline comment
     local __get_item_list='s|^\('$__s'\)-'$__s'\('$__w'\)'$__s':'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # - key: value
     local __get_map_list='s|^\('$__s'\)\('$__w'\)'$__s'[:-]'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # map detection key: value, key: 'value', key: "value"
-
 
     cat $__file_name | \
         sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_il_cmt -e $__rm_bl -e $__get_item_list -e $__get_map_list | \
@@ -278,7 +286,8 @@ function getYAMLValue {
         IFS=$';' eval  $__ref_yaml_val_array='(${__value})'
         return 0;
     else
-        logPrint "ERR" "No Dependencies Found with this key!" "$__key" "${FAIL}"
+        logPrint "ERR" "No value Found with this key!" "$__key" "${FAIL}"
+
 	return 1;
     fi
 }
@@ -522,4 +531,35 @@ function downloadFile {
     # Check the return state 
     __cmd_ret_downloadFile="$?"
     checkReturn "$__cmd_ret_downloadFile" "wget -O $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
+}
+
+function printUsage {
+ {
+   echo ""
+   echo ""
+   echo "Usage: a2LEF.sh [--verbose] [--very-verbose] [--help]              \\"
+   echo "                [--allow-offgrid] [--fake-power] [--no-split-term] \\"
+   echo "                <--techno <tech_file> >                            \\"
+   echo "                <--library <lib_dir> [--library <lib_dir>]>        \\"
+   echo "                <--lef <lef_file> >                                \\"
+   echo "                <--cell <cell_name> >"
+   echo "       a2LEF.sh [-vVhop] <-t <tech_file> >                         \\"
+   echo "                         <-l <lib_dir> [-l <lib_dir>]>             \\"
+   echo "                         <-L <lef_file> >                          \\"
+   echo "                         <-c <cell_name> > "
+   echo ""
+   echo "Options:"
+   echo "    o [--help|-h]                : print this help."
+   echo "    o [--verbose|-v]             : be verbose."
+   echo "    o [--very-verbose|-V]        : be very verbose :-)."
+   echo "    o [--allow-offgrid|-o]       : allow terminals to be offgrid."
+   echo "    o [--no-split-term|-T]       : do not split terminals segments."
+   echo "    o [--fake-power|-p]          : do not attempt to generate"
+   echo "        PORT geometries for power pins."
+   echo "    o <--techno|-t <tech_file> > : location of the LEF techno header."
+   echo "    o <--library|-l <lib_dir> >  : Alliance library directory."
+   echo "    o <--lef|-L <lef_file> >     : output LEF file."
+   echo "    o <--cell|-c <cell_name> >   : process a single (macro) cell."
+   echo ""
+   echo ""
 }

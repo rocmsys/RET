@@ -1,3 +1,7 @@
+# Use | to split between different value of the same item
+# Use ">=4.13 <=4.15" to describe a range of value of the same item. This will be interpreted as 4.13|4.14|4.15
+
+
 ---
 # General informations
 name: ROCmML
@@ -15,8 +19,12 @@ os_support:
       - 16.04
       - 18.04
     kernel:
-      - version: ">=4.13 <=4.17" # from 4.13 to 4.18
-      - default: 4.15
+      - 16.04:
+        - version: 4.13|4.17
+        - default: 4.15
+      - 18.04:
+        - version: 4.15|4.18 
+        - default: 4.18
 
   - os: RedHat
   - RedHat:
