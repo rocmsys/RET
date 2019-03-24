@@ -537,19 +537,53 @@ function printUsage {
    echo ""
    echo "ROCmML Version (v${MY_VERSION})"
    echo ""
-   echo "Description: ${MY_DESCRIPTION}"
+   echo "Description: ${MY_DESCRIPTION} xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx"
    echo ""
-   echo "Usage: setup.sh [--version] [--help] [--verbose]            "
-   echo "                [--benchmark] [--benchmark] [--dryrun]      "
-   echo "                <install> <args>"
+   echo "Usage: setup [<option>] "
+   echo "             <command> "
+   echo ""
+   echo "command:"
+   echo "    [install] <ML Framework> : Install ML Framework TF/PT"
+   echo "    [remove]  <ML Framework> : Remove ML Framework TF/PT"
+   echo "    [update]  <ML Framework> : Update ML Framework TF/PT"
+   echo ""
    echo "Options:"
-   echo "    [--help|-h]                : print help"
-   echo "    [--version|-v]             : print version"
-   echo "    [--verbose|-V]             : be verbose"
-   echo "    [--benchmark|-b]           : run benchmark"
+   echo "    [-h|--help]              : Show this help message"
+   echo "    [-v|--version]           : Show version of this package"
+   echo "    [-V|--verbose]           : Be verbose"
+   echo "    [-b|--benchmark]         : Run benchmark"
+   echo "    [-d|--dryrun]            : Run dryrun"
    echo ""
    echo "Note:"
-   echo "  Some info here..."
+   echo "  xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx..."
    echo
 }
 
+function parseArgs {
+    until [ $# = 0 ]
+    do
+      case "$1" in
+        --version)
+          printf "VERSION\n"
+          exit
+         ;;
+
+        update)
+          [[ $command ]] && echo "error only one command"
+          command=$1
+          shift
+        ;;
+
+        install)
+          [[ $command ]] && echo "error only one command"
+          command=$1
+          shift
+        ;;
+
+        *)
+          printUsage
+          exit
+        ;;
+      esac
+    done
+}

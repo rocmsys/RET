@@ -14,7 +14,10 @@ if ! isSudo; then
         logPrint "ERR" "Please run the following command instead!" "sudo $0" "${FAIL}"
 fi
 
-printUsage
+[ $# = 0 ] && { printUsage; exit; } || parseArgs "$@" 
+
+
+
 
 # Pre-installation requirements
 preStart
