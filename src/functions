@@ -13,8 +13,8 @@ function logPrint {
 
     # Step heading
     if [ "${__type}" = "STEP" ]; then
-	((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
-	echo -e "${STEP}[STEP:$STEP_COUNT] ${__title}...${END}";
+	sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+	echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
     # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then
         echo -ne "${SUBSTEP}${__title}...${END}\r" 
@@ -316,12 +316,12 @@ function isInArray {
 # Input $1: program name
 # Return 0,1
 function isPrgInstalled {
-	# Init to found eq true
+	# Init to found eq false
   	# 0 means no failure and non-0 means failure.
-	local __found=0
+	local __found=1
 
-	# update value if not found
-  	type $1 >/dev/null 2>&1 || { __found=1; }
+	# update value if found
+  	type "$1" >/dev/null 2>&1 && __found=0 || { (dpkg -l "$1" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
 
 	return $__found;
 }
@@ -443,7 +443,7 @@ function checkReturn {
 # Install Necessary Packages and
 # read YAML file
 function preStart {
-    local __necessary_packages=("git" "curl" "wget" "lynx" "sed" "gawk")
+    local __necessary_packages=("git" "tee" "curl" "wget" "lynx" "sed" "gawk")
     checkDeps __necessary_packages "" "Run Pre-installation Requirements"
 
     # read yaml file
@@ -542,16 +542,26 @@ function downloadFile {
     checkReturn "$__cmd_ret_downloadFile" "wget -O $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
 }
 
+# Check system requirements
+function checkSys {
+    # Pre-installation requirements
+    preStart
+
+    # Check OS
+    logPrint "STEP" "Checking OS"
+    checkOs 
+
+    # Check Dependencies
+    getYAMLValue "dependencies|globale|name" YAML_ARRAY DEPS_ARRAY
+    getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
+    checkDeps DEPS_ARRAY VER_ARRAY
+}
+
+
 # Print script Usage 
 function printUsage {
-    local __version="0.1.x"
-    local __description="ROCm Machine Learning Stack installer"
-    [ -z "${VERSION}" ] && VERSION="${__version}"
-    [ -z "${DESCRIPTION}" ] && DESCRIPTION="${__description}"
-    
-
     echo ""
-    echo "ROCmML Version (v${VERSION})"
+    echo "ROCmML Version v${VERSION}"
     echo ""
     echo "Description: ${DESCRIPTION}"
     echo ""
@@ -579,28 +589,31 @@ function printUsage {
 
 # Parse script args
 function parseArgs {
+    local __cmd=""
+    local __pkgs=()
+
     until [ $# = 0 ]
     do
       case "$1" in
         --version)
-          printf "VERSION\n"
+          printf "v${VERSION}\n"
           exit
          ;;
 
         update)
-          [[ $command ]] && echo "error only one command"
-          command=$1
+          [[ $__cmd ]] && echo "error only one command"
+          __cmd=$1
           shift
         ;;
 
         install)
-          [[ $command ]] && echo "error only one command"
-          command=$1
+          [[ $__cmd ]] && echo "error only one command"
+          __cmd=$1
           shift
         ;;
 
-	TF | tensorflow | PT | pytorch)
-          pkg+=("$1")
+	rocm | tf | tensorflow | pt | pytorch)
+          __pkgs+=("$1")
           shift
         ;;
 
@@ -610,4 +623,80 @@ function parseArgs {
         ;;
       esac
     done
+
+    # Run command
+    cmdEngine "${__cmd}" __pkgs
+}
+
+# Run command
+# Input $1: command
+# Input $2: args (packages)
+function cmdEngine {
+    local __cmd_cmdEngine=$1
+    local -n __args=$2
+
+    case "$__cmd_cmdEngine" in
+        update)
+          echo "update pkgs..."
+        ;;
+
+        install)
+          installCmd __args
+        ;;
+
+        *)
+          printUsage
+          exit
+        ;;
+      esac
+}
+
+# Install packages
+# Input $1: args (packages)
+function installCmd {
+    local -n __args_installCmd=$1
+    local __toInstall_installCmd=()
+    local __index=-1
+    local __withRocm=1
+
+    # Check system requirements
+    checkSys
+    
+    # Check if rocm is required
+    if ! (isInArray "__args_installCmd" "rocm" __index); then
+	for pkg in "${__args_installCmd[@]}"; do
+	    [[ "$pkg" =~ ^(tf|pt|tensorflow|pytorch)$ ]] && { __args_installCmd=("rocm-dkms" "${__args_installCmd[@]}"); __withRocm=0; break; } 
+	done
+    else
+	__args_installCmd[$__index]="rocm-dkms"
+        __withRocm=0
+    fi
+
+    # Add the ROCm apt repository
+    if [ "$__withRocm" -eq "0" ]; then
+	wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
+        echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | tee /etc/apt/sources.list.d/rocm.list >/dev/null 2>&1
+    fi
+
+    # Check if packages are installed
+    checkDeps __args_installCmd
+}
+
+function rocmPostInstallation {
+    # Add user to the video group
+    usermod -a -G video $LOGNAME
+
+    # Put the ROCm binaries in PATH
+    echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' | sudo tee -a /etc/profile.d/rocm.sh >/dev/null 2>&1
+
+    # Check if system reboot required
+    isRebootRequired
+}
+
+# Check if system reboot required
+function isRebootRequired {
+    if [ -f /var/run/reboot-required ]; then
+       logPrint "DONE" "Reboot Required! Please run this script after the reboot."
+       exit
+    fi
 }

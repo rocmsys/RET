@@ -84,9 +84,5 @@ function updateKernel {
 
 
     # Check if system reboot required
-    if [ -f /var/run/reboot-required ]; then
-        echo 'reboot required'
-       logPrint "ERR" "Reboot Required! Please run this script after the reboot." "Update Kernel" "${FAIL}"
-    fi
-
+    isRebootRequired
 }

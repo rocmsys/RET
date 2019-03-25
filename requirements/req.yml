@@ -49,6 +49,8 @@ os_support:
 # Package dependencies
 dependencies:
   - globale:
+    - name: libnuma-dev
+      version: latest
     - name: lynx
       version: latest
     - name: curl
@@ -58,8 +60,6 @@ dependencies:
     - name: sudo
       version: latest
     - name: wget
-      version: latest
-    - name: node
       version: latest
   - tensorflow:
     - name: TBD
