@@ -16,4 +16,3 @@ fi
 
 [ $# = 0 ] && { printUsage; exit; } || parseArgs "$@" 
 
-

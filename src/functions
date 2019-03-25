@@ -675,12 +675,14 @@ function installCmd {
     # Check if rocm is required
     if ! (isInArray "__args_installCmd" "rocm" __index); then
 	for pkg in "${__args_installCmd[@]}"; do
-	    [[ "$pkg" =~ ^(tf|pt|tensorflow|pytorch)$ ]] && { __args_installCmd=("rocm-dkms" "${__args_installCmd[@]}"); __withRocm=0; break; } 
+	    [[ "$pkg" =~ ^(tf|pt|tensorflow|pytorch)$ ]] && { __args_installCmd=("rocm-dkms" "${__args_installCmd[@]}"); break; } 
 	done
     else
 	__args_installCmd[$__index]="rocm-dkms"
-        __withRocm=0
     fi
+
+    # Check if rocm-dkms is installed
+    (isPrgInstalled "rocm-dkms") || __withRocm=0
 
     # Add the ROCm apt repository
     if [ "$__withRocm" -eq "0" ]; then
@@ -697,7 +699,12 @@ function installCmd {
     fi
 
     # Verify if ROCm installation was successful
-    (rocmVerification) && logPrint "DONE" "The ROCm installation was successful!"
+    if (rocmVerification); then
+	[ "$__withRocm" -eq "0" ] && __msg_rocm="The ROCm installation was successful!" || __msg_rocm="It seems as if ROCm has already been properly installed!"
+        logPrint "DONE" "${__msg_rocm}" 
+    else
+	logPrint "ERR" "The ROCm installation was not completed successfully!"
+    fi 
 }
 
 # Run rocm post installation
