@@ -575,6 +575,11 @@ function printUsage {
     echo "    [validate]               : System validation"
     echo "    [show]                   : Show system HW and SW details"
     echo ""
+    echo "packages:"
+    echo "    [rocm]                   : rocm-dkms packages"
+    echo "    [tf|tensorflow]          : tensorflow framework"
+    echo "    [pt|pytorch]             : pytorch framework"
+    echo ""
     echo "Options:"
     echo "    [-h|--help]              : Show this help message"
     echo "    [-v|--version]           : Show version of this package"
@@ -595,8 +600,13 @@ function parseArgs {
     until [ $# = 0 ]
     do
       case "$1" in
-        --version)
+        -v | --version)
           printf "v${VERSION}\n"
+          exit
+         ;;
+
+        -h | --help)
+          printUsage
           exit
          ;;
 
