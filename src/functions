@@ -440,10 +440,19 @@ function checkReturn {
     fi
 }
 
-# Install Necessary Packages
+# Install Necessary Packages and
+# read YAML file
 function preStart {
     local __necessary_packages=("git" "curl" "wget" "lynx" "sed" "gawk")
     checkDeps __necessary_packages "" "Run Pre-installation Requirements"
+
+    # read yaml file
+    yaml2arr "$REQ_FILE" YAML_ARRAY
+    #echo "${YAML_ARRAY[@]}"
+
+    # Get Version and Description of this script
+    getYAMLValue "version" YAML_ARRAY VERSION
+    getYAMLValue "description" YAML_ARRAY DESCRIPTION 
 }
 
 # Load bar while running a command
@@ -533,32 +542,42 @@ function downloadFile {
     checkReturn "$__cmd_ret_downloadFile" "wget -O $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
 }
 
+# Print script Usage 
 function printUsage {
-   echo ""
-   echo "ROCmML Version (v${MY_VERSION})"
-   echo ""
-   echo "Description: ${MY_DESCRIPTION} xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx"
-   echo ""
-   echo "Usage: setup [<option>] "
-   echo "             <command> "
-   echo ""
-   echo "command:"
-   echo "    [install] <ML Framework> : Install ML Framework TF/PT"
-   echo "    [remove]  <ML Framework> : Remove ML Framework TF/PT"
-   echo "    [update]  <ML Framework> : Update ML Framework TF/PT"
-   echo ""
-   echo "Options:"
-   echo "    [-h|--help]              : Show this help message"
-   echo "    [-v|--version]           : Show version of this package"
-   echo "    [-V|--verbose]           : Be verbose"
-   echo "    [-b|--benchmark]         : Run benchmark"
-   echo "    [-d|--dryrun]            : Run dryrun"
-   echo ""
-   echo "Note:"
-   echo "  xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx..."
-   echo
+    local __version="0.1.x"
+    local __description="ROCm Machine Learning Stack installer"
+    [ -z "${VERSION}" ] && VERSION="${__version}"
+    [ -z "${DESCRIPTION}" ] && DESCRIPTION="${__description}"
+    
+
+    echo ""
+    echo "ROCmML Version (v${VERSION})"
+    echo ""
+    echo "Description: ${DESCRIPTION}"
+    echo ""
+    echo "Usage: setup [<option>] "
+    echo "       setup <command> "
+    echo ""
+    echo "command:"
+    echo "    [install] <package>      : Install ROCm or ML Framework TF/PT"
+    echo "    [remove]  <package>      : Remove ROCm or ML Framework TF/PT"
+    echo "    [update]  <package>      : Update ROCm or ML Framework TF/PT"
+    echo "    [validate]               : System validation"
+    echo "    [show]                   : Show system HW and SW details"
+    echo ""
+    echo "Options:"
+    echo "    [-h|--help]              : Show this help message"
+    echo "    [-v|--version]           : Show version of this package"
+    echo "    [-V|--verbose]           : Be verbose"
+    echo "    [-b|--benchmark]         : Run benchmark"
+    echo "    [-d|--dryrun]            : Run dryrun"
+    echo ""
+    echo "Note:"
+    echo "  xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx..."
+    echo
 }
 
+# Parse script args
 function parseArgs {
     until [ $# = 0 ]
     do
@@ -577,6 +596,11 @@ function parseArgs {
         install)
           [[ $command ]] && echo "error only one command"
           command=$1
+          shift
+        ;;
+
+	TF | tensorflow | PT | pytorch)
+          pkg+=("$1")
           shift
         ;;
 

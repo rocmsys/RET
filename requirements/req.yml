@@ -20,7 +20,7 @@ os_support:
       - 18.04
     kernel:
       - 16.04:
-        - version: 4.13|4.17
+        - version: 4.13|4.15|4.17
         - default: 4.15
       - 18.04:
         - version: 4.15|4.18 
@@ -69,5 +69,5 @@ dependencies:
       version: TBD
 
 # Project description
-description: TBD
+description: ROCm Machine Learning Stack installer xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx 
 ...
