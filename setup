@@ -17,16 +17,3 @@ fi
 [ $# = 0 ] && { printUsage; exit; } || parseArgs "$@" 
 
 
-
-
-
-
-
-
-
-
-
-# 1.Install rocm-kernel
-
-
-
