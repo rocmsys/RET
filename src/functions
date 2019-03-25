@@ -585,7 +585,7 @@ function printUsage {
     echo -e "    [-v|--version]           ${FG_LIGHT_BLUE}: Show version of this package${END}"
     echo -e "    [-V|--verbose]           ${FG_LIGHT_BLUE}: Be verbose${END}"
     echo -e "    [-b|--benchmark]         ${FG_LIGHT_BLUE}: Run benchmark${END}"
-    echo -e "    [-d|--dryrun]            ${FG_LIGHT_BLUE}: Run dryrun${END}"
+    echo -e "    [-d|--dryrun]            ${FG_LIGHT_BLUE}: Show what would be happened${END}"
     echo -e ""
     echo -e "${BOLD}Note:${END}"
     echo -e "  ${FG_DARK_GRAY}xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx...${END}"
