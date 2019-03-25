@@ -611,13 +611,13 @@ function parseArgs {
          ;;
 
         update)
-          [[ $__cmd ]] && echo "error only one command"
+          [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
           __cmd=$1
           shift
         ;;
 
         install)
-          [[ $__cmd ]] && echo "error only one command"
+          [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
           __cmd=$1
           shift
         ;;
@@ -635,7 +635,7 @@ function parseArgs {
     done
 
     # Run command
-    cmdEngine "${__cmd}" __pkgs
+    [[ $__cmd ]] && cmdEngine "${__cmd}" __pkgs || { printUsage; exit; }
 }
 
 # Run command
@@ -645,6 +645,7 @@ function cmdEngine {
     local __cmd_cmdEngine=$1
     local -n __args=$2
 
+    if [ "${#__args[@]}" -eq 0 ]; then printUsage; exit; fi
     case "$__cmd_cmdEngine" in
         update)
           echo "update pkgs..."
