@@ -690,8 +690,14 @@ function installCmd {
 
     # Check if packages are installed
     checkDeps __args_installCmd
+
+    # Run rocm post installation
+    if [ "$__withRocm" -eq "0" ]; then
+	rocmPostInstallation
+    fi
 }
 
+# Run rocm post installation
 function rocmPostInstallation {
     # Add user to the video group
     usermod -a -G video $LOGNAME
