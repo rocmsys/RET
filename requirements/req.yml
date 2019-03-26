@@ -49,18 +49,85 @@ os_support:
 # Package dependencies
 dependencies:
   - globale:
-    - name: libnuma-dev
-      version: latest
-    - name: lynx
-      version: latest
-    - name: curl
-      version: latest
     - name: dkms
       version: latest
     - name: sudo
       version: latest
-    - name: wget
+    - name: build-essential
       version: latest
+    - name: software-properties-common
+      version: latest
+    - name: gfortran
+      version: latest
+    - name: clang
+      version: latest
+    - name: clang-format
+      version: latest
+    - name: clang-tidy
+      version: latest
+    - name: cmake
+      version: latest
+    - name: cmake-qt-gui
+      version: latest
+    - name: apt-utils
+      version: latest
+    - name: pkg-config
+      version: latest
+    - name: g++-multilib
+      version: latest
+    - name: libnuma-dev
+      version: latest
+    - name: libunwind-dev
+      version: latest
+    - name: libfftw3-dev
+      version: latest
+    - name: libelf-dev
+      version: latest
+    - name: libncurses5-dev
+      version: latest
+    - name: libpthread-stubs0-dev
+      version: latest
+    - name: libboost-program-options-dev
+      version: latest
+    - name: libssl-dev
+      version: latest
+    - name: libboost-dev
+      version: latest
+    - name: libboost-system-dev
+      version: latest
+    - name: libboost-filesystem-dev
+      version: latest
+
+  - rocm:
+    - name: rocm-dkms
+      version: latest
+    - name: rocm-dev
+      version: latest
+    - name: rocm-libs
+      version: latest
+    - name: rocm-device-libs
+      version: latest
+    - name: hsa-ext-rocr-dev
+      version: latest
+    - name: hsakmt-roct-dev
+      version: latest
+    - name: hsa-rocr-dev
+      version: latest
+    - name: rocm-opencl
+      version: latest
+    - name: rocm-opencl-dev
+      version: latest
+    - name: rocm-utils
+      version: latest
+    - name: rocm-profiler
+      version: latest
+    - name: cxlactivitylogger
+      version: latest
+    - name: miopen-hip
+      version: latest
+    - name: miopengemm
+      version: latest
+
   - tensorflow:
     - name: TBD
       version: TBD
