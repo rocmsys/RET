@@ -172,9 +172,9 @@ function checkDeps {
     if [ "${#__DEPS_TOINSTALL[@]}" -ne 0 ]; then
         logPrint "NOTE" "The above not installed packages are required to complete this setup."
         if (confirmYn "Install dependencies? [Y/n] "); then
-	    startLoadBar "Install dependencies"
+	    #startLoadBar "Install dependencies"
             installPkg __DEPS_TOINSTALL
-            stopLoadBar "Installation Completed Successfully."
+            #stopLoadBar "Installation Completed Successfully."
         else
 	    logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
 	fi
@@ -409,6 +409,7 @@ function installPkg {
     local -n __packages=$1
     local __cmd_ret_installPkg
 
+    startLoadBar "Preparing for Installation"
     # fix broken dependencies in place
     apt-get install -fqq >/dev/null 2>&1
     __cmd_ret_installPkg="$?"
@@ -416,14 +417,23 @@ function installPkg {
 
     # Updates the package lists
     apt-get update >/dev/null 2>&1
+    stopLoadBar
+
+    
 
     for dep in "${__packages[@]}"; do
+        startLoadBar "Installing Package: ${dep}"
         apt-get -qq -y --allow-unauthenticated install "${dep}" >/dev/null 2>&1
-        __cmd_ret_installPkg="$?"
+        __cmd_ret_installPkg="$?"    
         checkReturn "$__cmd_ret_installPkg" "apt-get install ${dep}" "ERR"
+        logPrint "DET" "${dep}" "Installed" "${SUCC}"
     done
+
     # Clean Archives cache
     apt-get clean
+
+    stopLoadBar "Installation Completed Successfully."
+    return 0;
 }
 
 
@@ -729,8 +739,8 @@ function rocmPostInstallation {
     # Put the ROCm binaries in PATH
     echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' | sudo tee -a /etc/profile.d/rocm.sh >/dev/null 2>&1
 
-    # Check if system reboot required
-    isRebootRequired
+    # force reboot required
+    isRebootRequired true
 }
 
 # Verify if ROCm installation was successful 
@@ -769,8 +779,9 @@ function rocmVerification {
 }
 
 # Check if system reboot required
+# Input $1: boolean value to force reboot required
 function isRebootRequired {
-    if [ -f /var/run/reboot-required ]; then
+    if [ -f /var/run/reboot-required ] || [ "$1" = true ]; then
        logPrint "DONE" "Reboot Required! Please run this script after the reboot."
        exit
     fi
