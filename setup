@@ -8,7 +8,7 @@ tput clear
 
 # Trap ctr-c
 trap exitAll SIGINT
- 
+
 # Check privileges
 if ! isSudo; then 
         logPrint "ERR" "Please run the following command instead!" "sudo $0" "${FAIL}"

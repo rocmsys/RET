@@ -172,9 +172,7 @@ function checkDeps {
     if [ "${#__DEPS_TOINSTALL[@]}" -ne 0 ]; then
         logPrint "NOTE" "The above not installed packages are required to complete this setup."
         if (confirmYn "Install dependencies? [Y/n] "); then
-	    #startLoadBar "Install dependencies"
             installPkg __DEPS_TOINSTALL
-            #stopLoadBar "Installation Completed Successfully."
         else
 	    logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
 	fi
@@ -420,11 +418,10 @@ function installPkg {
     stopLoadBar
 
     
-
     for dep in "${__packages[@]}"; do
         startLoadBar "Installing Package: ${dep}"
         apt-get -qq -y --allow-unauthenticated install "${dep}" >/dev/null 2>&1
-        __cmd_ret_installPkg="$?"    
+        __cmd_ret_installPkg="$?"
         checkReturn "$__cmd_ret_installPkg" "apt-get install ${dep}" "ERR"
         logPrint "DET" "${dep}" "Installed" "${SUCC}"
     done
@@ -432,10 +429,28 @@ function installPkg {
     # Clean Archives cache
     apt-get clean
 
-    stopLoadBar "Installation Completed Successfully."
+    stopLoadBar "The Installation Completed Successfully."
     return 0;
 }
 
+# Remove package
+# Input $1: package array
+# Return 0,1
+function removePkg {
+    local -n __packages_removePkg=$1
+    local __cmd_ret_removePkg
+
+    for dep in "${__packages_removePkg[@]}"; do
+        startLoadBar "Uninstalling Package: ${dep}"
+        apt-get autoremove -qq -y "${dep}" >/dev/null 2>&1
+        __cmd_ret_removePkg="$?"
+        checkReturn "$__cmd_ret_removePkg" "apt autoremove ${dep}" "ERR"
+        logPrint "DET" "${dep}" "Uninstalled" "${SUCC}"
+    done
+
+    stopLoadBar "The Uninstallation Completed Successfully."
+    return 0;
+}
 
 # Check if command return error
 # Input $1: Return State
@@ -635,6 +650,12 @@ function parseArgs {
           shift
         ;;
 
+        remove)
+          [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
+          __cmd=$1
+          shift
+        ;;
+
 	rocm | tf | tensorflow | pt | pytorch)
           __pkgs+=("$1")
           shift
@@ -666,6 +687,12 @@ function cmdEngine {
 
         install)
           installCmd __args
+	  exit
+        ;;
+
+        remove)
+          removeCmd __args
+	  exit
         ;;
 
         *)
@@ -679,7 +706,6 @@ function cmdEngine {
 # Input $1: args (packages)
 function installCmd {
     local -n __args_installCmd=$1
-    local __toInstall_installCmd=()
     local __index=-1
     local __withRocm=1
 
@@ -705,7 +731,7 @@ function installCmd {
 
     # Check if rocm-dkms is installed
     for dep in "${ROCM_DEPS_ARRAY[@]}"; do
-        (isPrgInstalled "rocm-dkms" ) || __withRocm=0
+        (isPrgInstalled "${dep}" ) || __withRocm=0
     done
 
     # Add the ROCm apt repository
@@ -779,7 +805,7 @@ function rocmVerification {
 }
 
 # Check if system reboot required
-# Input $1: boolean value to force reboot required
+# Input $1: boolean value to force reboot required (Optional)
 function isRebootRequired {
     if [ -f /var/run/reboot-required ] || [ "$1" = true ]; then
        logPrint "DONE" "Reboot Required! Please run this script after the reboot."
@@ -787,4 +813,30 @@ function isRebootRequired {
     fi
 }
 
+# Remove packages
+# Input $1: args (packages)
+function removeCmd {
+    local -n __args_removeCmd=$1
+    local __index=-1
+    
+    # read yaml file
+    yaml2arr "$REQ_FILE" YAML_ARRAY
 
+    # Build the packages array
+    if (isInArray "__args_removeCmd" "rocm" __index); then
+        # Get ROCm install packages
+        getYAMLValue "dependencies|rocm|name" YAML_ARRAY ROCM_DEPS_ARRAY
+        getYAMLValue "dependencies|rocm|name|version" YAML_ARRAY ROCM_VER_ARRAY
+
+        __args_removeCmd=("${ROCM_DEPS_ARRAY[@]}" "${__args_installCmd[@]/rocm}"); 
+    fi
+
+    # Remove the packages
+    TOTALSTEPS=1; logPrint "STEP" "Uninstalling Packages"
+    removePkg __args_removeCmd
+
+    # Verify if uninstall was successful
+    for dep in "${__args_removeCmd[@]}"; do
+        (isPrgInstalled "${dep}" ) && logPrint "ERR" "The uninstall process was not completed successfully!"
+    done
+}
