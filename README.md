@@ -4,8 +4,7 @@ RET is a comprehensive checking, set up, installation, testing and benchmarking 
 RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
 
 ## Usage: 
-- [x] setup <option>
-              setup <command>
+ * setup <option> <command>
 
 * command:
   *           [install] <package>          : Install ROCm or ML Framework TF/PT
