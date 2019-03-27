@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Include files
 SRC="${BASH_SOURCE%/*}"
@@ -17,4 +17,5 @@ EMPTY_ARRAY=()
 VERSION="0.1.x"
 DESCRIPTION="ROCm Machine Learning Stack installer"
 TOTALSTEPS=12
+BEQUIET=false
 

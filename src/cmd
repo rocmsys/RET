@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Print script Usage 
 function printUsage {
@@ -19,13 +19,14 @@ function printUsage {
     echo -e ""
     echo -e "${BOLD}packages:${END}"
     echo -e "    [rocm]                   ${FG_LIGHT_BLUE}: ROCm-dkms packages${END}"
-    echo -e "    [tf|tensorflow]          ${FG_LIGHT_BLUE}: Tensorflow framework${END}"
-    echo -e "    [pt|pytorch]             ${FG_LIGHT_BLUE}: Pytorch framework${END}"
+    echo -e "    [tensorflow]             ${FG_LIGHT_BLUE}: Tensorflow framework${END}"
+    echo -e "    [pytorch]                ${FG_LIGHT_BLUE}: Pytorch framework${END}"
     echo -e ""
     echo -e "${BOLD}Options:${END}"
     echo -e "    [-h|--help]              ${FG_LIGHT_BLUE}: Show this help message${END}"
     echo -e "    [-v|--version]           ${FG_LIGHT_BLUE}: Show version of this package${END}"
     echo -e "    [-V|--verbose]           ${FG_LIGHT_BLUE}: Be verbose${END}"
+    echo -e "    [-q|--quiet]             ${FG_LIGHT_BLUE}: Be quiet and omit progress indicators${END}"
     echo -e "    [-b|--benchmark]         ${FG_LIGHT_BLUE}: Run benchmark${END}"
     echo -e "    [-d|--dryrun]            ${FG_LIGHT_BLUE}: Show what would be happened${END}"
     echo -e ""
@@ -33,7 +34,7 @@ function printUsage {
     echo -e "  ${FG_DARK_GRAY}xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx...${END}"
     echo -e
 }
-
+ 
 # Parse script args
 function parseArgs {
     local __cmd=""
@@ -70,7 +71,7 @@ function parseArgs {
           shift
         ;;
 
-	rocm | tf | tensorflow | pt | pytorch)
+	rocm | tensorflow | pytorch)
           __pkgs+=("$1")
           shift
         ;;
@@ -120,55 +121,65 @@ function cmdEngine {
 # Input $1: args (packages)
 function installCmd {
     local -n __args_installCmd=$1
+    local __pkg_ver_installCmd=()
     local __index=-1
-    local __withRocm=1
+    local __isROCmInstalled_installCmd=0
+    local __isTFInstalled_installCmd=0
+    local __isPTInstalled_installCmd=0
+    local __isROCmIncluded_installCmd=1
+    local __isROCmRequired_installCmd=1
 
     # Check system requirements
     checkSys
     
-    # Get ROCm install packages
-    getYAMLValue "dependencies|rocm|name" YAML_ARRAY ROCM_DEPS_ARRAY
-    getYAMLValue "dependencies|rocm|name|version" YAML_ARRAY ROCM_VER_ARRAY
+    # Reorder the pkgs array and insert rocm
+    __args_installCmd=("rocm" "${__args_installCmd[@]/rocm}")
 
-
-    # Check if rocm is required
-    if ! (isInArray "__args_installCmd" "rocm" __index); then
+	# Build Package Array
 	for pkg in "${__args_installCmd[@]}"; do
-	    if [[ "$pkg" =~ ^(tf|pt|tensorflow|pytorch)$ ]]; then
-                __args_installCmd=("${ROCM_DEPS_ARRAY[@]}" "${__args_installCmd[@]}"); 
-                break; 
-            fi 
+	    case "$pkg" in
+	        rocm)
+		      buildPkgArray __args_installCmd __pkg_ver_installCmd "$pkg" __isROCmInstalled_installCmd
+		      __isROCmIncluded_installCmd=0
+		    ;;
+
+	        tensorflow)
+		      buildPkgArray __args_installCmd __pkg_ver_installCmd "$pkg" __isTFInstalled_installCmd
+		      __isROCmRequired_installCmd=0
+		    ;;
+
+	        pytorch)
+		      buildPkgArray __args_installCmd __pkg_ver_installCmd "$pkg" __isPTInstalled_installCmd
+		      __isROCmRequired_installCmd=0
+		    ;;
+	    esac
 	done
-    else
-        __args_installCmd=("${ROCM_DEPS_ARRAY[@]}" "${__args_installCmd[@]/rocm}"); 
-    fi
 
-    # Check if rocm-dkms is installed
-    for dep in "${ROCM_DEPS_ARRAY[@]}"; do
-        (isPrgInstalled "${dep}" ) || __withRocm=0
-    done
+    # Run pre installation
+    [ "$__isROCmInstalled_installCmd" -eq "1" ] && rocmPreInstallation
+	[ "$__isROCmInstalled_installCmd" -eq "1" ] && tfPreInstallation
 
-    # Add the ROCm apt repository
-    if [ "$__withRocm" -eq "0" ]; then
-	wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
-        echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | tee /etc/apt/sources.list.d/rocm.list >/dev/null 2>&1
-    fi
+    # Install the Packages if not already installed
+    checkDeps __args_installCmd __pkg_ver_installCmd "Verifying ROCm Dependencies"
 
-    # Check if packages are installed
-    checkDeps __args_installCmd "" "Verifying ROCm Dependencies"
+    # Run post installation
+    [ "$__isROCmInstalled_installCmd" -eq "1" ] && rocmPostInstallation
 
-    # Run rocm post installation
-    if [ "$__withRocm" -eq "0" ]; then
-	rocmPostInstallation
-    fi
 
     # Verify if ROCm installation was successful
     if (rocmVerification); then
-	[ "$__withRocm" -eq "0" ] && __msg_rocm="The ROCm installation was successful!" || __msg_rocm="It seems as if ROCm has already been properly installed!"
+		[ "$__isROCmInstalled_installCmd" -eq "0" ] && __msg_rocm="The ROCm installation was successful!" || __msg_rocm="It seems as if ROCm has already been properly installed!"
         logPrint "DONE" "${__msg_rocm}" 
     else
-	logPrint "ERR" "The ROCm installation was not completed successfully!"
+		logPrint "ERR" "The ROCm installation was not completed successfully!"
     fi 
+}
+
+# Run rocm pre installation
+function rocmPreInstallation {
+	# Add the ROCm apt repository
+    wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
+    echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | tee /etc/apt/sources.list.d/rocm.list >/dev/null 2>&1
 }
 
 # Run rocm post installation
@@ -181,6 +192,12 @@ function rocmPostInstallation {
 
     # force reboot required
     isRebootRequired true
+}
+
+# Run TF pre installation
+function tfPreInstallation {
+	# Uninstall any previously-installed tensorflow whl packages
+    pip list | grep tensorflow && pip uninstall -y tensorflow >/dev/null 2>&1
 }
 
 # Verify if ROCm installation was successful 
@@ -218,15 +235,6 @@ function rocmVerification {
     return $__ret_rocmVerification;
 }
 
-# Check if system reboot required
-# Input $1: boolean value to force reboot required (Optional)
-function isRebootRequired {
-    if [ -f /var/run/reboot-required ] || [ "$1" = true ]; then
-       logPrint "DONE" "Reboot Required! Please run this script after the reboot."
-       exit
-    fi
-}
-
 # Remove packages
 # Input $1: args (packages)
 function removeCmd {
@@ -253,4 +261,35 @@ function removeCmd {
     for dep in "${__args_removeCmd[@]}"; do
         (isPrgInstalled "${dep}" ) && logPrint "ERR" "The uninstall process was not completed successfully!"
     done
+}
+
+
+# Build Package Array by key and check if packages already installed
+# I/O $1: Package array and updated array
+# Output $2: Package Version array
+# Input  $3: Key
+# Output $4: true if packages already installed
+function buildPkgArray {
+    local -n __pkg_buildPkgArray=$1
+    local -n __ver_buildPkgArray=$2
+    local __key_buildPkgArray=$3
+    local __res_isInstalled_buildPkgArray=$4
+    local __isInstalled_buildPkgArray=0
+    local __deps_name_buildPkgArray=()
+    local __deps_vers_buildPkgArray=()
+
+    # Get ROCm install packages
+    getYAMLValue "dependencies|${__key_buildPkgArray}|name" YAML_ARRAY __deps_name_buildPkgArray
+    getYAMLValue "dependencies|${__key_buildPkgArray}|name|version" YAML_ARRAY __deps_vers_buildPkgArray
+
+    # Check if pkgs are installed
+    for dep in "${__deps_name_buildPkgArray[@]}"; do
+        (isPrgInstalled "${dep}") || { __isInstalled_buildPkgArray=1; break; }
+    done
+
+    # Update packages array
+    __pkg_buildPkgArray=("${__pkg_buildPkgArray[@]/${__key_buildPkgArray}}" "${__deps_name_buildPkgArray[@]}");
+    __ver_buildPkgArray=("${__ver_buildPkgArray[@]}" "${__deps_vers_buildPkgArray[@]}" );
+
+    eval $__res_isInstalled_buildPkgArray="'$__isInstalled_buildPkgArray'"
 }

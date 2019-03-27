@@ -13,8 +13,8 @@ function logPrint {
 
     # Step heading
     if [ "${__type}" = "STEP" ]; then
-	sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
-	echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
+    sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+    echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
     # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then
         echo -ne "${SUBSTEP}${__title}...${END}\r" 
@@ -27,23 +27,23 @@ function logPrint {
     # Success confirmation
     elif [ "${__type}" = "DONE" ]; then
         echo
-	echo -e "${DONE}${__title}${END}";
+    echo -e "${DONE}${__title}${END}";
     # Error and exit
     elif [ "${__type}" = "ERR" ]; then
         echo
-	echo -e "${ERR}${__title}...[${__value}]${END}";
+    echo -e "${ERR}${__title}...[${__value}]${END}";
         exitAll 2
     # Warning
     elif [ "${__type}" = "WARN" ]; then
         echo
-	echo -e "${WARN}${__title}...[${__value}]${END}";
+    echo -e "${WARN}${__title}...[${__value}]${END}";
     # Info
     elif [ "${__type}" = "NOTE" ]; then
         echo
-	echo -e "${NOTE}${__title}${END}";
+    echo -e "${NOTE}${__title}${END}";
     else
         echo
-	echo -e "${NOTE}${__title}${END}";
+    echo -e "${NOTE}${__title}${END}";
     fi
 }
 
@@ -62,15 +62,15 @@ function checkOs {
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
         getOSInfo __distro_checkOS __release_checkOS __kernel_checkOS __arch_checkOS
 
-	# Check distro name
+    # Check distro name
         (isSupported "os_support|os" "${__distro_checkOS}") && __state="${SUCC}" || { __state="${FAIL}"; __failed="NSDISTRO"; }
         logPrint "DET" "OS" "${__distro_checkOS}" "${__state}"
 
-	# Check Release version
+    # Check Release version
         (isSupported "os_support|${__distro_checkOS}|release" "${__release_checkOS}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSREL"; }
-	logPrint "DET" "RELEASE" "${__release_checkOS}" "${__state}"
+    logPrint "DET" "RELEASE" "${__release_checkOS}" "${__state}"
 
-	# Check just Kernel and major revision
+    # Check just Kernel and major revision
         local __kernel_version="${__kernel_checkOS%%.*}"
         local __major_revision="${__kernel_checkOS#*.}"
         __major_revision="${__major_revision%%.*}"
@@ -79,8 +79,8 @@ function checkOs {
         (isSupported "os_support|${__distro_checkOS}|kernel|${__release_checkOS}|version" "${__kernel_version}.${__major_revision}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSKERNEL"; }
         logPrint "DET" "KERNEL" "${__kernel_checkOS}" "${__state}"
 
-	# Just print the current Arch
-	logPrint "DET" "ARCH" "${__arch_checkOS}" "${SUCC}"
+    # Just print the current Arch
+    logPrint "DET" "ARCH" "${__arch_checkOS}" "${SUCC}"
     else
         logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
     fi
@@ -90,8 +90,8 @@ function checkOs {
         "NSREL")    logPrint "ERR" "OS release Not Supported!" "${__release_checkOS}" "${FAIL}" ;;
         "NSKERNEL") logPrint "WARN" "OS kernel Not Supported!" "${__kernel_checkOS}" "${FAIL}"
 
-        	    # Get the recommended kernel and Update kernel
-    		    local __default_kernel=()
+                # Get the recommended kernel and Update kernel
+                local __default_kernel=()
                     getYAMLValue "os_support|${__distro_checkOS}|kernel|${__release_checkOS}|default" YAML_ARRAY __default_kernel
                     updateKernel "${__distro_checkOS}" "${__kernel_checkOS}" "${__arch_checkOS}" "${__default_kernel[0]}" ;;
         *) # Do nothing ;;
@@ -148,24 +148,25 @@ function checkDeps {
     local __title_checkDeps=${3:-"Verifying Dependencies"}
     local __dep_toInstall
     local __DEPS_TOINSTALL=() # Array of deps
-
+    local __pkg_name_checkDeps
 
     logPrint "STEP" "${__title_checkDeps}"
     for dep in "${__name_array[@]}"; do
-	[ -z "${dep}" ] && continue;
+        [ -z "${dep}" ] && continue || __pkg_name_checkDeps=(${dep//:/ });
+
         if isPrgInstalled "${dep}"; then
-            logPrint "DET" "${dep}" "Found" "${SUCC}"
+            logPrint "DET" "${__pkg_name_checkDeps}" "Found" "${SUCC}"
         else
-	    __dep_toInstall="${dep}"
+            __dep_toInstall="${dep}"
 
             # Get Version
-	    local __version="${__ver_array[$__idx]}"
+            local __version="${__ver_array[$__idx]}"
             [ ! -z "$__version" ] && [ "$__version" != "latest" ] && __dep_toInstall="${dep}=${__version}"
 
-	    __DEPS_TOINSTALL+=("${__dep_toInstall}")
-            logPrint "DET" "${dep}" "Not Found!" "${FAIL}"
+            __DEPS_TOINSTALL+=("${__dep_toInstall}")
+            logPrint "DET" "${__pkg_name_checkDeps}" "Not Found!" "${FAIL}"
         fi
-	((__idx++))
+       ((__idx++))
     done
 
     # Install deps if needed
@@ -174,8 +175,8 @@ function checkDeps {
         if (confirmYn "Install dependencies? [Y/n] "); then
             installPkg __DEPS_TOINSTALL
         else
-	    logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
-	fi
+        logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
+    fi
     fi
 }
 
@@ -205,53 +206,53 @@ function parse_yaml {
 
     cat $__file_name | \
         sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_il_cmt -e $__rm_bl -e $__get_item_list -e $__get_map_list | \
-	
+    
     awk -F$__fs 'BEGIN{
         last_indent = 0; br_count = 0;
     }
     {
         #The suggested syntax for YAML files is to use 2 spaces for indentation
         indent = length($1)/2;
-	
+    
 
         # extract the dictionarie key 
-	if(length($2)!= 0){node[indent] = $2}
+    if(length($2)!= 0){node[indent] = $2}
 
-	# extract the value
-	value= (length($3)!= 0)? $3: "null";
+    # extract the value
+    value= (length($3)!= 0)? $3: "null";
 
-	# reinit child elements
-	if(indent < last_indent){for(i=indent+1; i <= last_indent; i++){delete node[i]; idx[i]=0;}}
-	last_indent = indent;
+    # reinit child elements
+    if(indent < last_indent){for(i=indent+1; i <= last_indent; i++){delete node[i]; idx[i]=0;}}
+    last_indent = indent;
 
-	br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
+    br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
         branch=br node[indent];
-	
+    
 
-	# remove the last char
+    # remove the last char
         if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
 
-	# Check if branch already exists
-	# update if true; else insert new value
-	isBrExists = 0;
-	for(i in br_array){
+    # Check if branch already exists
+    # update if true; else insert new value
+    isBrExists = 0;
+    for(i in br_array){
             split(br_array[i], tmp_br, '$__br_eq');
-		
+        
             if(branch == tmp_br[1]){
-	        br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
-		isBrExists = 1;
-	    }
-	}
+            br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
+        isBrExists = 1;
+        }
+    }
 
-	if(isBrExists == 0){
-	    # put valid branch in array
-	    if(value != "null"){
-	        br_array[br_count] = branch '$__br_eq' value;
-		br_count++;
-	    }
-	}
+    if(isBrExists == 0){
+        # put valid branch in array
+        if(value != "null"){
+            br_array[br_count] = branch '$__br_eq' value;
+        br_count++;
+        }
+    }
     }END{
-	for(i=0; i<=br_count; i++){print(br_array[i]);}
+    for(i=0; i<=br_count; i++){print(br_array[i]);}
     }'
 }
 
@@ -274,7 +275,7 @@ function yaml2arr {
 # Get value yaml value by key
 # Input $1: Key 
 # Input $2: YAML_Array Ref
-# Input $3: Output Array
+# Output $3: Return Array
 function getYAMLValue {
     local __key=$1
     local -n __ref_yaml_array=$2
@@ -287,7 +288,7 @@ function getYAMLValue {
     else
         logPrint "ERR" "No value Found with this key!" "$__key" "${FAIL}"
 
-	return 1;
+    return 1;
     fi
 }
 
@@ -303,8 +304,8 @@ function isInArray {
 
     for item in "${__ref_in_array[@]}"; do
         if [[ "${item}" == ${__key}* ]] ; then
-	    eval $__idx="'$__index'"
-	    return 0;
+        eval $__idx="'$__index'"
+        return 0;
         fi
         ((__index++))
     done
@@ -315,54 +316,54 @@ function isInArray {
 # Input $1: program name
 # Return 0,1
 function isPrgInstalled {
-	# Init to found eq false
-  	# 0 means no failure and non-0 means failure.
-	local __found=1
+    # Init to found eq false
+    # 0 means no failure and non-0 means failure.
+    local __found=1
 
-	# update value if found
-  	type "$1" >/dev/null 2>&1 && __found=0 || { (dpkg -l "$1" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
+    # update value if found
+    type "$1" >/dev/null 2>&1 && __found=0 || { (dpkg -l "$1" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
 
-	return $__found;
+    return $__found;
 }
 
 # Get OS and Version
 # Return OS, Version, Kernel and the Architecture
 function getOSInfo {
-	# Init output variables 
-	local __res_os=$1
-	local __res_ver=$2
-	local __res_kernel=$3
-	local __res_arch=$4
+    # Init output variables 
+    local __res_os=$1
+    local __res_ver=$2
+    local __res_kernel=$3
+    local __res_arch=$4
 
-	local __OS
-	local __VER
-	local __ARCH
-	local __KERNEL=$(uname -r)
+    local __OS
+    local __VER
+    local __ARCH
+    local __KERNEL=$(uname -r)
 
-	if [ -f /etc/os-release ]; then
-		. /etc/os-release
-		__OS=$NAME
-		__VER=$VERSION_ID
-	elif [ -f /etc/lsb-release ]; then
-		. /etc/lsb-release
-	        __OS=$DISTRIB_ID
-		__VER=$DISTRIB_RELEASE
-	else
-		__OS=$(uname -s)
-		__VER=$(uname -r)
-	fi
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        __OS=$NAME
+        __VER=$VERSION_ID
+    elif [ -f /etc/lsb-release ]; then
+        . /etc/lsb-release
+            __OS=$DISTRIB_ID
+        __VER=$DISTRIB_RELEASE
+    else
+        __OS=$(uname -s)
+        __VER=$(uname -r)
+    fi
 
-	# Get OS Architecture
-	if [ $(uname -m) == 'x86_64' ]; then
-		__ARCH="amd64"
-	else
-		__ARCH="i386"
-	fi
+    # Get OS Architecture
+    if [ $(uname -m) == 'x86_64' ]; then
+        __ARCH="amd64"
+    else
+        __ARCH="i386"
+    fi
 
-	eval $__res_os="'$__OS'"
-	eval $__res_ver="'$__VER'"
-	eval $__res_kernel="'$__KERNEL'"
-	eval $__res_arch="'$__ARCH'"
+    eval $__res_os="'$__OS'"
+    eval $__res_ver="'$__VER'"
+    eval $__res_kernel="'$__KERNEL'"
+    eval $__res_arch="'$__ARCH'"
 }
 
 
@@ -406,6 +407,10 @@ function isSudo {
 function installPkg {
     local -n __packages=$1
     local __cmd_ret_installPkg
+    local __cmd_installPkg="apt-get -qq -y --allow-unauthenticated install"
+    local __pkg_name_installPkg
+    local __pkg_vers_installPkg
+    local __phu_installPkg
 
     startLoadBar "Preparing for Installation"
     # fix broken dependencies in place
@@ -419,10 +424,18 @@ function installPkg {
 
     
     for dep in "${__packages[@]}"; do
+        # Extract the package handling utility
+        parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
+        dep="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
+
+        [ "${__phu_installPkg}" = "pip" ] && __cmd_installPkg="pip install"
+        [ "${__phu_installPkg}" = "pip3" ] && __cmd_installPkg="pip3 install"
+
         startLoadBar "Installing Package: ${dep}"
-        apt-get -qq -y --allow-unauthenticated install "${dep}" >/dev/null 2>&1
+        echo ${__cmd_installPkg} "${dep}"
+        ${__cmd_installPkg} "${dep}" >/dev/null 2>&1
         __cmd_ret_installPkg="$?"
-        checkReturn "$__cmd_ret_installPkg" "apt-get install ${dep}" "ERR"
+        checkReturn "$__cmd_ret_installPkg" "${__cmd_installPkg} ${dep}" "ERR"
         logPrint "DET" "${dep}" "Installed" "${SUCC}"
     done
 
@@ -431,6 +444,52 @@ function installPkg {
 
     stopLoadBar "The Installation Completed Successfully."
     return 0;
+}
+
+# Parse and return name, version and package handling utility from package str 
+# Input $1: package title/name e.g. name:phu=version
+# Output $2: package name
+# Output $3: package version
+# Output $4: package phu
+function parsePkg {
+    local __pkg_parsePkg=$1
+    local __res_pkg_name_parsePkg=$2
+    local __res_pkg_vers_parsePkg=$3
+    local __res_phu_parsePkg=$4
+
+    local __pkg_name_parsePkg
+    local __pkg_vers_parsePkg
+    local __phu_parsePkg
+
+    case "$__pkg_parsePkg" in 
+        *:*=*) # name:phu=version
+            __pkg_name_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\1|p')
+            __phu_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\2|p')
+            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\3|p')
+        ;;
+
+        *:*) # name:phu
+            __pkg_name_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)|\1|p')
+            __phu_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)|\2|p')
+            __pkg_vers_parsePkg="" # empty
+        ;;
+
+        *=*) # name=version
+            __pkg_name_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\)=\(.*\)|\1|p')
+            __phu_parsePkg=""      # empty
+            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\)\(=.*\)|\2|p')
+        ;;
+
+        *) # name
+            __pkg_name_parsePkg="${__pkg_parsePkg}"
+            __phu_parsePkg=""      # empty
+            __pkg_vers_parsePkg="" # empty
+            
+    esac
+
+    eval $__res_pkg_name_parsePkg="'$__pkg_name_parsePkg'"
+    eval $__res_phu_parsePkg="'$__phu_parsePkg'"
+    eval $__res_pkg_vers_parsePkg="'$__pkg_vers_parsePkg'"
 }
 
 # Remove package
@@ -495,8 +554,8 @@ function loadBar {
     while true
     do 
         for (( i=${__pos_loadbar}; i<${#LOADBAR}; i++ )); do
-	   logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
-	   sleep 0.1; 
+       logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
+       sleep 0.1; 
         done
     done
 }
@@ -504,7 +563,6 @@ function loadBar {
 # Start load bar
 # Input $1: Message text
 function startLoadBar {
-
     stopLoadBar >/dev/null 2>&1 # Stop previous process if exists
     loadBar "$1" "SUBSTEP" "$2" &
     LOADBARPID=$!
@@ -546,20 +604,20 @@ function downloadFile {
     function updatePercentage {
         local __download_per
         local __LoadBar_Pos=0
-	local __succ_updatePercentage=1
+    local __succ_updatePercentage=1
         local __previous_value_updatePercentage="${__download_per}"
 
         while read __download_per
-  	do
+    do
             if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
-	        ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
+            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
                 startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
-	        __previous_value_updatePercentage="${__download_per}"
-		__succ_updatePercentage=0
-	    fi
+            __previous_value_updatePercentage="${__download_per}"
+        __succ_updatePercentage=0
+        fi
         done
-	[ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
-	return $__succ_updatePercentage;
+    [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
+    return $__succ_updatePercentage;
     }
 
     # Download file and get the current download state
@@ -584,3 +642,13 @@ function checkSys {
     getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
     checkDeps DEPS_ARRAY VER_ARRAY
 }
+
+# Check if system reboot required
+# Input $1: boolean value to force reboot required (Optional)
+function isRebootRequired {
+    if [ -f /var/run/reboot-required ] || [ "$1" = true ]; then
+       logPrint "DONE" "Reboot Required! Please run this script after the reboot."
+       exit
+    fi
+}
+

@@ -1,10 +1,10 @@
 # Use | to split between different value of the same item
 # Use ">=4.13 <=4.15" to describe a range of value of the same item. This will be interpreted as 4.13|4.14|4.15
-
+# Use : to indicate which package handling utility to use. Options are: pip or pip3
 
 ---
 # General informations
-name: RET
+name: ROCmML
 version: 0.1.0
 author: TBD
 summary: ROCm ML Stack installer
@@ -97,6 +97,10 @@ dependencies:
       version: latest
     - name: libboost-filesystem-dev
       version: latest
+    - name: python-pip
+      version: latest
+    - name: python3-pip
+      version: latest
 
   - rocm:
     - name: rocm-dkms
@@ -129,8 +133,24 @@ dependencies:
       version: latest
 
   - tensorflow:
-    - name: TBD
-      version: TBD
+    - name: python3-dev
+      version: latest      
+    - name: python3-pip
+      version: latest
+    - name: python3-mock
+      version: latest
+    - name: python3-yaml
+      version: latest
+    - name: python3-numpy
+      version: latest
+    - name: python3-wheel
+      version: latest
+    - name: python3-future
+      version: latest
+    - name: python3-setuptools
+      version: latest
+    - name: tensorflow-rocm:pip
+      version: latest
   - pytorch:
     - name: TBD
       version: TBD
@@ -138,3 +158,4 @@ dependencies:
 # Project description
 description: ROCm Machine Learning Stack installer xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx 
 ...
+    
