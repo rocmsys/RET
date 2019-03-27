@@ -4,10 +4,10 @@
 
 ---
 # General informations
-name: ROCmML
+name: RET
 version: 0.1.0
 author: TBD
-summary: ROCm ML Stack installer
+summary: ROCm Enablement Tool
 license: TBD
 source: https://github.com/
 
