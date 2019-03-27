@@ -13,10 +13,10 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
               [validate]                       : System validation
               [show]                           : Show system HW and SW details
 
- ** packages:
-   **           [rocm]                         : ROCm-dkms packages
-                [tf|tensorflow]                : Tensorflow framework
-                [pt|pytorch]                   : Pytorch framework
+   * packages:
+     *            [rocm]                         : ROCm-dkms packages
+                  [tf|tensorflow]                : Tensorflow framework
+                  [pt|pytorch]                   : Pytorch framework
 
 * Options:
   *            [-h|--help]                     : Show this help message
