@@ -1,10 +1,10 @@
 # Welcome to RET (ROCm Enablement Tool)
 
-RET is a comprehensive checking, set up, installation, testing and benchmarking tool which does carry out the installation of ROCm suite ranging from dependencies, drivers and toolchain to framework and benchmark. 
-RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
+## RET is a comprehensive checking, set up, installation, testing and benchmarking tool which does carry out the installation of ROCm suite ranging from dependencies, drivers and toolchain to framework and benchmark. 
+## RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
 
-Usage: 
-setup [<option>]
+### Usage: 
+#### setup [<option>]
               setup <command>
 
 command:
