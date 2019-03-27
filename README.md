@@ -8,8 +8,8 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
               setup <command>
 
 * command:
-             [install] <package>          : Install ROCm or ML Framework TF/PT
-              [remove]  <package>      : Remove ROCm or ML Framework TF/PT
+  *           [install] <package>          : Install ROCm or ML Framework TF/PT
+  *           [remove]  <package>      : Remove ROCm or ML Framework TF/PT
               [update]  <package>      : Update ROCm or ML Framework TF/PT
               [validate]                           : System validation
               [show]                                : Show system HW and SW details
