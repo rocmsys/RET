@@ -28,8 +28,8 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
 
 - [x] Example:
 * sudo ./ret install rocm
- or 
- sudo ./ret install tf   # Tensorflow
+* or 
+* sudo ./ret install tf   # Tensorflow
 
 
 
