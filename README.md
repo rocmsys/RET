@@ -4,7 +4,7 @@ RET is a comprehensive checking, set up, installation, testing and benchmarking 
 RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
 
 ## Usage: 
-- [x] setup [<option>]
+- [x] setup <option>
               setup <command>
 
 * command:
@@ -15,21 +15,21 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
               [show]                                : Show system HW and SW details
 
 * packages:
-               [rocm]                                : ROCm-dkms packages
+  *            [rocm]                                : ROCm-dkms packages
                [tf|tensorflow]                 : Tensorflow framework
                [pt|pytorch]                     : Pytorch framework
 
 * Options:
-               [-h|--help]                         : Show this help message
+  *            [-h|--help]                         : Show this help message
                [-v|--version]                    : Show version of this package
                [-V|--verbose]                  : Be verbose
                [-b|--benchmark]             : Run benchmark
                [-d|--dryrun]                     : Show what would be happened
 
-Example:
-sudo ./ret install rocm
-or 
-sudo ./ret install tf   # Tensorflow
+- [x] Example:
+* sudo ./ret install rocm
+ or 
+ sudo ./ret install tf   # Tensorflow
 
 
 
