@@ -15,8 +15,8 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
 
    * packages:
      *            [rocm]                         : ROCm-dkms packages
-                  [tf|tensorflow]                : Tensorflow framework
-                  [pt|pytorch]                   : Pytorch framework
+                  [tensorflow]                : Tensorflow framework
+                  [pytorch]                   : Pytorch framework
 
 * Options:
   *            [-h|--help]                     : Show this help message
@@ -28,7 +28,17 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
 - [x] Example:
 * sudo ./ret install rocm
 * or 
-* sudo ./ret install tf   # Tensorflow
+* sudo ./ret install tensorflow
 
 
+
+## Task Lists:
+- [x] parse package arguments: name:phu=version 
+- [x] include pip install in installPkg
+- [x] include pip install 
+- [x] make decision py2 or py3
+- [ ] fix users issue with pip install
+- [ ] fix pip uninstalll issue
+- [ ] include pip check in isPrgInstalled 
+- [ ] verify tensorflow installation
 
