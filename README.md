@@ -33,6 +33,12 @@ Example:
 
 ## Prerequisites
 Formatting a hard drive along with the install of a new OS is the best option
+after the instllation you will neet git to download the RET source
+```
+    sudo apt -y install git
+```
+
+**Note:**_ DO NOT update and upgrade your system
 
 ## Hardware Support
 please refer to ROCm main repository
