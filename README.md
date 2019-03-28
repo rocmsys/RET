@@ -3,12 +3,17 @@
 RET is a comprehensive checking, set up, installation, testing and benchmarking tool which does carry out the installation of ROCm suite ranging from dependencies, drivers and toolchain to framework and benchmark. 
 RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
 
-## Hardware Support
+## Hardware Support and supported GPU
 please refer to ROCm main repository
 at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.html).
 
 # Get started
-
+## Supported OS
+  - Ubuntu: 
+      - 16.04
+      - 18.04
+  - RedHat # not yet
+  - CentOS # not yet
 ## Prerequisites
 Formatting a hard drive along with the install of a new OS is the best option
 after the instllation you will need git to download the RET source
