@@ -313,15 +313,25 @@ function isInArray {
 }
 
 # Check if program is installed
-# Input $1: program name
+# Input $1: program name e.g. name:phu=version
 # Return 0,1
 function isPrgInstalled {
     # Init to found eq false
     # 0 means no failure and non-0 means failure.
     local __found=1
+	local __pkg_name_isPrgInstalled
+    local __pkg_vers_isPrgInstalled
+    local __phu_isPrgInstalled
+
+    # Extract the package handling utility
+    parsePkg "$1" __pkg_name_isPrgInstalled __pkg_vers_isPrgInstalled __phu_isPrgInstalled
 
     # update value if found
-    type "$1" >/dev/null 2>&1 && __found=0 || { (dpkg -l "$1" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
+    if [ "${__phu_isPrgInstalled}" = "pip" ] || [ "${__phu_isPrgInstalled}" = "pip3" ]; then
+    	("${__phu_isPrgInstalled}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
+    else
+    	type "$1" >/dev/null 2>&1 && __found=0 || { (dpkg -l "$1" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
+	fi
 
     return $__found;
 }
@@ -411,6 +421,7 @@ function installPkg {
     local __pkg_name_installPkg
     local __pkg_vers_installPkg
     local __phu_installPkg
+    local __dep_installPkg
 
     startLoadBar "Preparing for Installation"
     # fix broken dependencies in place
@@ -422,21 +433,20 @@ function installPkg {
     apt-get update >/dev/null 2>&1
     stopLoadBar
 
-    
     for dep in "${__packages[@]}"; do
+
         # Extract the package handling utility
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
-        dep="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
+        __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
 
         [ "${__phu_installPkg}" = "pip" ] && __cmd_installPkg="pip install"
         [ "${__phu_installPkg}" = "pip3" ] && __cmd_installPkg="pip3 install"
 
-        startLoadBar "Installing Package: ${dep}"
-        echo ${__cmd_installPkg} "${dep}"
-        ${__cmd_installPkg} "${dep}" >/dev/null 2>&1
+        startLoadBar "Installing Package: ${__dep_installPkg}"
+        ${__cmd_installPkg} "${__dep_installPkg}" >/dev/null 2>&1
         __cmd_ret_installPkg="$?"
-        checkReturn "$__cmd_ret_installPkg" "${__cmd_installPkg} ${dep}" "ERR"
-        logPrint "DET" "${dep}" "Installed" "${SUCC}"
+        checkReturn "$__cmd_ret_installPkg" "${__cmd_installPkg} ${__dep_installPkg}" "ERR"
+        logPrint "DET" "${__dep_installPkg}" "Installed" "${SUCC}"
     done
 
     # Clean Archives cache
@@ -498,13 +508,35 @@ function parsePkg {
 function removePkg {
     local -n __packages_removePkg=$1
     local __cmd_ret_removePkg
+	local __cmd_removePkg
+	local __rm_msg_removePkg
+	local __pkg_name_removePkg
+	local __pkg_vers_removePkg
+	local __phu_removePkg
+	local __dep_removePkg
 
     for dep in "${__packages_removePkg[@]}"; do
-        startLoadBar "Uninstalling Package: ${dep}"
-        apt-get autoremove -qq -y "${dep}" >/dev/null 2>&1
+    	__cmd_removePkg="apt-get autoremove -qq -y"
+    	__rm_msg_removePkg="Uninstalled"
+
+    	# Extract the package handling utility
+        parsePkg "${dep}" __pkg_name_removePkg __pkg_vers_removePkg __phu_removePkg
+        __dep_removePkg="${__pkg_name_removePkg}${__pkg_vers_removePkg}"
+
+        [ "${__phu_removePkg}" = "pip" ] && __cmd_removePkg="pip uninstall -y"
+        [ "${__phu_removePkg}" = "pip3" ] && __cmd_removePkg="pip3 uninstall -y"
+
+        startLoadBar "Uninstalling Package: ${__dep_removePkg}"
+
+        if isPrgInstalled "${__dep_removePkg}:${__phu_removePkg}"; then 
+        	${__cmd_removePkg} "${__dep_removePkg}" >/dev/null 2>&1
+        else
+        	__rm_msg_removePkg="Already uninstalled"
+        fi
+
         __cmd_ret_removePkg="$?"
-        checkReturn "$__cmd_ret_removePkg" "apt autoremove ${dep}" "ERR"
-        logPrint "DET" "${dep}" "Uninstalled" "${SUCC}"
+        checkReturn "$__cmd_ret_removePkg" "${__cmd_removePkg} ${__dep_removePkg}" "ERR"
+        logPrint "DET" "${__dep_removePkg}" "${__rm_msg_removePkg}" "${SUCC}"
     done
 
     stopLoadBar "The Uninstallation Completed Successfully."
