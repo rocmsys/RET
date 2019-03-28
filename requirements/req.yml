@@ -149,7 +149,7 @@ dependencies:
       version: latest
     - name: python3-setuptools
       version: latest
-    - name: tensorflow-rocm:pip
+    - name: tensorflow-rocm:pip3
       version: latest
   - pytorch:
     - name: TBD

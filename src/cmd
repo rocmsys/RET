@@ -208,7 +208,7 @@ function rocmPostInstallation {
 # Run TF pre installation
 function tfPreInstallation {
     # Uninstall any previously-installed tensorflow whl packages
-    local __tf_pkg_tfPreInstallation=("tensorflow:pip")
+    local __tf_pkg_tfPreInstallation=("tensorflow:pip3")
     removePkg __tf_pkg_tfPreInstallation
 }
 
@@ -250,7 +250,7 @@ function rocmVerification {
 
 # Verify if TF installation was successful 
 function tfVerification {
-    return $(isPrgInstalled "tensorflow-rocm:pip");
+    return $(isPrgInstalled "tensorflow-rocm:pip3");
 }
 
 
