@@ -44,14 +44,11 @@ sudo ./ret  <command\> <option>
                [-V|--verbose]                  : Be verbose
                [-b|--benchmark]                : Run benchmark
                [-d|--dryrun]                   : Show what would be happened
-Example:
-```
-    sudo ./ret install rocm
-    or 
-    sudo ./ret install tensorflow
-```
+
 ## RUN RET:
 ```
    cd RET
-   sudo ./ret install rocm
+   sudo ./ret install rocm  # to install only ROCm
+   or 
+   sudo ./ret install tf    # to install ROCm + Tensorflow
 ```
