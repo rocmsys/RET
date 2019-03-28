@@ -32,6 +32,7 @@ Example:
 ```
 
 ## Prerequisites
+Formatting a hard drive along with the install of a new OS is the best option
 
 ## Hardware Support
 please refer to ROCm main repository
