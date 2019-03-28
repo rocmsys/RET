@@ -23,6 +23,7 @@ function printUsage {
     echo -e "    [pytorch]                ${FG_LIGHT_BLUE}: Pytorch framework${END}"
     echo -e ""
     echo -e "${BOLD}Options:${END}"
+    echo -e "    [-py2|-py3]              ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
     echo -e "    [-h|--help]              ${FG_LIGHT_BLUE}: Show this help message${END}"
     echo -e "    [-v|--version]           ${FG_LIGHT_BLUE}: Show version of this package${END}"
     echo -e "    [-V|--verbose]           ${FG_LIGHT_BLUE}: Be verbose${END}"
@@ -34,15 +35,30 @@ function printUsage {
     echo -e "  ${FG_DARK_GRAY}xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx...${END}"
     echo -e
 }
- 
+
+# $1: file name
+# $2: new value
+# $3: old value
+function editFile {
+    local __file_name_editFile=$1
+    local __old_value_editFile=$2
+    local __new_value_editFile=$3
+    sed -i 's|'"${__old_value_editFile}"'|'"${__new_value_editFile}"'|g' "${__file_name_editFile}" 2>/dev/null 
+    checkReturn "$?" "Cannot edit file: ${__file_name_editFile}" "ERR"
+}
+
 # Parse script args
 function parseArgs {
     local __cmd=""
+    local __arg=""
     local __pkgs=()
+    local __isPyRequired=1
+    local __hasPY=1
 
     until [ $# = 0 ]
     do
-      case "$1" in
+      __arg="$1"
+      case "$__arg" in
         -v | --version)
           printf "ROCmML version ${VERSION}\n"
           exit
@@ -53,26 +69,41 @@ function parseArgs {
           exit
          ;;
 
+        -py2)
+          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py2\""; PYPI="pip"; __hasPY=0
+          shift
+        ;;
+
+        -py3)
+          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYPI="pip3"; __hasPY=0
+          shift
+        ;;
+
         update)
           [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
-          __cmd=$1
+          __cmd=$__arg
           shift
         ;;
 
         install)
           [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
-          __cmd=$1
+          __cmd=$__arg
           shift
         ;;
 
         remove)
           [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
-          __cmd=$1
+          __cmd=$__arg
           shift
         ;;
 
-	rocm | tensorflow | pytorch)
-          __pkgs+=("$1")
+	    rocm)
+          __pkgs+=("$__arg")
+          shift
+        ;;
+
+        tensorflow | pytorch)
+          __pkgs+=("$__arg"); __isPyRequired=0
           shift
         ;;
 
@@ -82,6 +113,9 @@ function parseArgs {
         ;;
       esac
     done
+
+    # Include Python Package if required
+    [ $__cmd = "install" ] && [ "${__isPyRequired}" -eq 0 ] && [ "${__hasPY}" -eq 1 ] && __pkgs=("${PYVER}" "${__pkgs[@]}") || __pkgs=("${PYVER}" ${__pkgs[@]/"${PYVER}"})
 
     # Run command
     [[ $__cmd ]] && cmdEngine "${__cmd}" __pkgs || { printUsage; exit; }
@@ -154,6 +188,10 @@ function installCmd {
 		      buildPkgArray __args_installCmd __pkg_ver_installCmd "$pkg" __isPTInstalled_installCmd
 		      __isROCmRequired_installCmd=0; __isPTRequired_installCmd=0
 		    ;;
+
+            py2 | py3)
+              buildPkgArray __args_installCmd __pkg_ver_installCmd "$pkg" __isPTInstalled_installCmd
+            ;;
 	    esac
 	done
 
@@ -208,7 +246,7 @@ function rocmPostInstallation {
 # Run TF pre installation
 function tfPreInstallation {
     # Uninstall any previously-installed tensorflow whl packages
-    local __tf_pkg_tfPreInstallation=("tensorflow:pip3")
+    local __tf_pkg_tfPreInstallation=("tensorflow:${PYPI}")
     removePkg __tf_pkg_tfPreInstallation
 }
 
@@ -251,7 +289,7 @@ function rocmVerification {
 
 # Verify if TF installation was successful 
 function tfVerification {
-    return $(isPrgInstalled "tensorflow-rocm:pip3");
+    return $(isPrgInstalled "tensorflow-rocm:${PYPI}");
 }
 
 

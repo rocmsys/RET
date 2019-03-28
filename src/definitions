@@ -9,13 +9,22 @@ if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 . $SRC/functions
 . $SRC/update_kernel
 
-
+# File Paths
 REQ_FILE=requirements/req.yml
-UBUNTU_KERNEL_URL=kernel.ubuntu.com/~kernel-ppa/mainline/
+DEF_FILE=src/definitions
 TEMP_DIRECTRORY=$(mktemp -d)
+
+# Url's
+UBUNTU_KERNEL_URL=kernel.ubuntu.com/~kernel-ppa/mainline/
+
+# Scop
 EMPTY_ARRAY=()
 VERSION="0.1.x"
 DESCRIPTION="ROCm Machine Learning Stack installer"
+
+
+# Run-time params
 TOTALSTEPS=12
 BEQUIET=false
-
+PYVER="py3"
+PYPI="pip3"

@@ -325,10 +325,10 @@ function isPrgInstalled {
 
     # Extract the package handling utility
     parsePkg "$1" __pkg_name_isPrgInstalled __pkg_vers_isPrgInstalled __phu_isPrgInstalled
-
+    
     # update value if found
-    if [ "${__phu_isPrgInstalled}" = "pip" ] || [ "${__phu_isPrgInstalled}" = "pip3" ]; then
-    	("${__phu_isPrgInstalled}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
+    if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
+    	("${PYPI}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
     else
     	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { (dpkg -l "${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
 	fi
@@ -439,8 +439,7 @@ function installPkg {
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
         __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
 
-        [ "${__phu_installPkg}" = "pip" ] && __cmd_installPkg="pip install"
-        [ "${__phu_installPkg}" = "pip3" ] && __cmd_installPkg="pip3 install"
+        [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="${PYPI} install"
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
         ${__cmd_installPkg} "${__dep_installPkg}" >/dev/null 2>&1
@@ -523,8 +522,7 @@ function removePkg {
         parsePkg "${dep}" __pkg_name_removePkg __pkg_vers_removePkg __phu_removePkg
         __dep_removePkg="${__pkg_name_removePkg}${__pkg_vers_removePkg}"
 
-        [ "${__phu_removePkg}" = "pip" ] && __cmd_removePkg="pip uninstall -y"
-        [ "${__phu_removePkg}" = "pip3" ] && __cmd_removePkg="pip3 uninstall -y"
+        [[ "${__phu_removePkg}" =~ "pip" ]] && __cmd_removePkg="${PYPI} uninstall -y"
 
         startLoadBar "Uninstalling Package: ${__dep_removePkg}"
 

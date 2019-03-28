@@ -132,10 +132,24 @@ dependencies:
     - name: miopengemm
       version: latest
 
-  - tensorflow:
+  - py2:
+    - name: python-dev
+      version: latest
+    - name: python-mock
+      version: latest
+    - name: python-yaml
+      version: latest
+    - name: python-numpy
+      version: latest
+    - name: python-wheel
+      version: latest
+    - name: python-future
+      version: latest
+    - name: python-setuptools
+      version: latest
+
+  - py3:
     - name: python3-dev
-      version: latest      
-    - name: python3-pip
       version: latest
     - name: python3-mock
       version: latest
@@ -149,8 +163,11 @@ dependencies:
       version: latest
     - name: python3-setuptools
       version: latest
+
+  - tensorflow:
     - name: tensorflow-rocm:pip3
       version: latest
+
   - pytorch:
     - name: TBD
       version: TBD
