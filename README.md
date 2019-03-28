@@ -24,7 +24,10 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
                [-V|--verbose]                  : Be verbose
                [-b|--benchmark]                : Run benchmark
                [-d|--dryrun]                   : Show what would be happened
-
+Example:
+```
+    cmake -DRVS_ROCMSMI=0 -DRVS_ROCBLAS=1 ./ -B../build
+```
 Example:
 ```
 sudo ./ret install rocm
