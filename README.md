@@ -30,3 +30,15 @@ Example:
 sudo ./ret install rocm
 or 
 sudo ./ret install tensorflow
+## Prerequisites
+
+please refer to ROCm main repository
+at [link](https://rocm.github.io/ROCmInstall.html).
+
+### Clone repository
+
+    git clone https://github.com/rocmsys/RET.git
+
+### Configure and build RVS:
+
+    cd RET
