@@ -30,6 +30,7 @@ Example:
 sudo ./ret install rocm
 or 
 sudo ./ret install tensorflow
+...
 ## Prerequisites
 
 please refer to ROCm main repository
