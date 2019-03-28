@@ -240,10 +240,11 @@ function rocmVerification {
     __cmd_ret_rocmVerification="$?"
     checkReturn "$__cmd_ret_rocmVerification" "$__cmd_rocmVerification" "ERR"
 
-    if [ "$__gpu_lshw" = "$__gpu_clinfo" ]; then
-        __ret_rocmVerification=0
-    fi
-    
+    #if [ "$__gpu_lshw" = "$__gpu_clinfo" ]; then
+    #    __ret_rocmVerification=0
+    #fi
+
+    __ret_rocmVerification=0
     return $__ret_rocmVerification;
 }
 
