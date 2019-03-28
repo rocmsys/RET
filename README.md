@@ -5,7 +5,7 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
 
 ## Usage: 
 ```
-sudo ./ret  \<command\> \<option\>
+sudo ./ret  <command\> <option>
 ```
 * command:
   *           [install] <package>              : Install ROCm or ML Framework TF/PT
