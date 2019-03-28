@@ -330,7 +330,7 @@ function isPrgInstalled {
     if [ "${__phu_isPrgInstalled}" = "pip" ] || [ "${__phu_isPrgInstalled}" = "pip3" ]; then
     	("${__phu_isPrgInstalled}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
     else
-    	type "$1" >/dev/null 2>&1 && __found=0 || { (dpkg -l "$1" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
+    	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { (dpkg -l "${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
 	fi
 
     return $__found;
