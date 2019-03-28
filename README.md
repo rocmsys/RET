@@ -51,7 +51,7 @@ after the instllation you will need git to download the RET source
 ```
    git clone https://github.com/rocmsys/RET.git
 ```
-### run RET:
+### RUN RET:
 ```
    cd RET
    sudo ./ret install rocm
