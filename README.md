@@ -26,14 +26,11 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
                [-d|--dryrun]                   : Show what would be happened
 Example:
 ```
-    cmake -DRVS_ROCMSMI=0 -DRVS_ROCBLAS=1 ./ -B../build
+    sudo ./ret install rocm
+    or 
+    sudo ./ret install tensorflow
 ```
-Example:
-```
-sudo ./ret install rocm
-or 
-sudo ./ret install tensorflow
-...
+
 ## Prerequisites
 
 please refer to ROCm main repository
