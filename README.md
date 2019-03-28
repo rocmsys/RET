@@ -40,7 +40,7 @@ at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.
 
 ## Prerequisites
 Formatting a hard drive along with the install of a new OS is the best option
-after the instllation you will neet git to download the RET source
+after the instllation you will need git to download the RET source
 ```
   sudo apt -y install git
 ```
