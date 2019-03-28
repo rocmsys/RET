@@ -3,6 +3,25 @@
 RET is a comprehensive checking, set up, installation, testing and benchmarking tool which does carry out the installation of ROCm suite ranging from dependencies, drivers and toolchain to framework and benchmark. 
 RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
 
+## Hardware Support
+please refer to ROCm main repository
+at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.html).
+
+# Get started
+
+## Prerequisites
+Formatting a hard drive along with the install of a new OS is the best option
+after the instllation you will need git to download the RET source
+```
+  sudo apt -y install git
+```
+
+**Note:** DO NOT update and upgrade your system
+
+## Clone repository
+```
+   git clone https://github.com/rocmsys/RET.git
+```
 ## Usage: 
 ```
 sudo ./ret  <command\> <option>
@@ -31,27 +50,7 @@ Example:
     or 
     sudo ./ret install tensorflow
 ```
-
-## Hardware Support
-please refer to ROCm main repository
-at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.html).
-
-# Get started
-
-## Prerequisites
-Formatting a hard drive along with the install of a new OS is the best option
-after the instllation you will need git to download the RET source
-```
-  sudo apt -y install git
-```
-
-**Note:** DO NOT update and upgrade your system
-
-### Clone repository
-```
-   git clone https://github.com/rocmsys/RET.git
-```
-### RUN RET:
+## RUN RET:
 ```
    cd RET
    sudo ./ret install rocm
