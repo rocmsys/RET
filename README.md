@@ -7,7 +7,7 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
 please refer to ROCm main repository
 at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.html).
 
-# Get started
+# Getting started
 ## Supported OS
   - Ubuntu: 
       - 16.04
