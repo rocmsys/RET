@@ -33,13 +33,13 @@ Example:
 
 ## Prerequisites
 
+## Hardware Support
 please refer to ROCm main repository
-at [link](https://rocm.github.io/ROCmInstall.html).
+at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.html).
 
 ### Clone repository
-
     git clone https://github.com/rocmsys/RET.git
-
-### Configure and build RVS:
+### run RET:
 
     cd RET
+    sudo ./ret install rocm
