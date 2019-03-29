@@ -14,7 +14,9 @@ function logPrint {
     # Step heading
     if [ "${__type}" = "STEP" ]; then
     sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+    echo "---------------------------------------------------------------------------"
     echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
+    echo "---------------------------------------------------------------------------"
     # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then
         echo -ne "${SUBSTEP}${__title}...${END}\r" 
