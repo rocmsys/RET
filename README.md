@@ -19,6 +19,8 @@ at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.
   - RedHat # not yet
   - CentOS # not yet
 ## Prerequisites
+*Note*: it is required to start with a clean system
+
 Formatting a hard drive along with the install of a new OS is the best option
 after the instllation you will need git to download the RET source
 ```
