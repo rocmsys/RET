@@ -19,6 +19,8 @@ at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.
   - RedHat # not yet
   - CentOS # not yet
 ## Prerequisites
+*Note*: it is required to start with a clean system
+
 Formatting a hard drive along with the install of a new OS is the best option
 after the instllation you will need git to download the RET source
 ```
@@ -34,6 +36,10 @@ after the instllation you will need git to download the RET source
 ## Usage: 
 ```
 sudo ./ret  <command\> <option>
+e.g.
+sudo ./ret install rocm
+sudo reboot
+sudo ./ret install tensorflow
 ```
 * command:
   *           [install] <package>              : Install ROCm or ML Framework TF/PT
@@ -43,7 +49,7 @@ sudo ./ret  <command\> <option>
               [show]                           : Show system HW and SW details
 
    * packages:
-     *            [rocm]                         : ROCm-dkms packages
+     *            [rocm]                      : ROCm-dkms packages
                   [tensorflow]                : Tensorflow framework
                   [pytorch]                   : Pytorch framework
 
@@ -57,13 +63,13 @@ sudo ./ret  <command\> <option>
 ## RUN RET:
 ```
    cd RET
-   sudo ./ret install rocm  # to install only ROCm
-   or 
-   sudo ./ret install tf    # to install ROCm + Tensorflow
+   sudo ./ret install rocm        # install ROCm stack
+   sudo reboot
+   sudo ./ret install tensorflow  # install Tensorflow
 ```
 
 ### Tensorflow's tf_cnn_benchmarks
-Details on the tf_cnn_benchmarks can be found at this [link](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/README.md).  
+Details on the tf_cnn_benchmarks can be found at this [Link](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/README.md).  
 
 Here are the basic instructions:
 ```
