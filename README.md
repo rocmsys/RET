@@ -61,3 +61,17 @@ sudo ./ret  <command\> <option>
    or 
    sudo ./ret install tf    # to install ROCm + Tensorflow
 ```
+
+### Tensorflow's tf_cnn_benchmarks
+Details on the tf_cnn_benchmarks can be found at this [link](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/README.md).  
+
+Here are the basic instructions:
+```
+# Grab the repo
+cd $HOME
+git clone -b cnn_tf_v1.12_compatible https://github.com/tensorflow/benchmarks.git
+cd benchmarks
+
+# Run the training benchmark (e.g. ResNet-50)
+python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50 --num_gpus=1
+```
