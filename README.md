@@ -39,7 +39,7 @@ sudo ./ret  <command\> <option>
 e.g.
 sudo ./ret install rocm
 sudo reboot
-sudo ./ret install tensoflow
+sudo ./ret install tensorflow
 ```
 * command:
   *           [install] <package>              : Install ROCm or ML Framework TF/PT
