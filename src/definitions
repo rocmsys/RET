@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Include files
+THISPATH="$PWD"
 SRC="${BASH_SOURCE%/*}"
 if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 
@@ -26,5 +27,5 @@ DESCRIPTION="ROCm Machine Learning Stack installer"
 # Run-time params
 TOTALSTEPS=12
 BEQUIET=false
-PYVER="py3"
+PYVER="py2"
 [ PYVER = "py2" ] && PYPI="pip" || PYPI="pip3"

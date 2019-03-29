@@ -49,8 +49,6 @@ os_support:
 # Package dependencies
 dependencies:
   - globale:
-    - name: dkms
-      version: latest
     - name: sudo
       version: latest
     - name: build-essential
