@@ -9,7 +9,7 @@ function printUsage {
     echo -e ""
     echo -e "${BOLD}Usage: ${FG_GREEN}./ret${END} [<option>] "
     echo -e "       ${BOLD}${FG_GREEN}./ret${END} <command> "
-    echo -e "${FG_RED}e.g.${END}"
+    echo -e "${FG_YELLOW}e.g.${END}"
     echo -e "${FG_GREEN}./ret${END} install tensorflow"
     echo -e ""
     echo -e "${BOLD}command:${END}"
