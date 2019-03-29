@@ -10,7 +10,7 @@ function printUsage {
     echo -e "${BOLD}Usage: ${FG_GREEN}./ret${END} [<option>] "
     echo -e "       ${BOLD}${FG_GREEN}./ret${END} <command> "
     echo -e "e.g."
-    echo -e ""${BOLD}Usage: ${FG_GREEN}./ret${END} tensorflow"
+    echo -e "${BOLD}Usage: ${FG_GREEN}./ret${END} tensorflow"
     echo -e ""
     echo -e "${BOLD}command:${END}"
     echo -e "    [install] <package>      ${FG_LIGHT_BLUE}: Install ROCm or ML Framework TF/PT${END}"
