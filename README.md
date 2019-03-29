@@ -38,7 +38,7 @@ after the instllation you will need git to download the RET source
 sudo ./ret  <command\> <option>
 e.g.
 sudo ./ret install rocm
-reboot
+sudo reboot
 sudo ./ret install tensoflow
 ```
 * command:
@@ -63,8 +63,8 @@ sudo ./ret install tensoflow
 ## RUN RET:
 ```
    cd RET
-   sudo ./ret install rocm  # install ROCm stack
-   reboot
+   sudo ./ret install rocm        # install ROCm stack
+   sudo reboot
    sudo ./ret install tensorflow  # install Tensorflow
 ```
 
