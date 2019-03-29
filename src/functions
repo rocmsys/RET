@@ -325,7 +325,7 @@ function isPrgInstalled {
 
     # Extract the package handling utility
     parsePkg "$1" __pkg_name_isPrgInstalled __pkg_vers_isPrgInstalled __phu_isPrgInstalled
-    
+
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
     	("${PYPI}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
@@ -682,3 +682,14 @@ function isRebootRequired {
     fi
 }
 
+# Edit File in place
+# Input $1: file name
+# Input $2: new value
+# Input $3: old value
+function editFile {
+    local __file_name_editFile=$1
+    local __old_value_editFile=$2
+    local __new_value_editFile=$3
+    sed -i 's|'"${__old_value_editFile}"'|'"${__new_value_editFile}"'|g' "${__file_name_editFile}" 2>/dev/null 
+    checkReturn "$?" "Cannot edit file: ${__file_name_editFile}" "ERR"
+}

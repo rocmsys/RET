@@ -36,17 +36,6 @@ function printUsage {
     echo -e
 }
 
-# $1: file name
-# $2: new value
-# $3: old value
-function editFile {
-    local __file_name_editFile=$1
-    local __old_value_editFile=$2
-    local __new_value_editFile=$3
-    sed -i 's|'"${__old_value_editFile}"'|'"${__new_value_editFile}"'|g' "${__file_name_editFile}" 2>/dev/null 
-    checkReturn "$?" "Cannot edit file: ${__file_name_editFile}" "ERR"
-}
-
 # Parse script args
 function parseArgs {
     local __cmd=""
@@ -70,12 +59,12 @@ function parseArgs {
          ;;
 
         -py2)
-          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py2\""; PYPI="pip"; __hasPY=0
+          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py2\""; __hasPY=0
           shift
         ;;
 
         -py3)
-          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYPI="pip3"; __hasPY=0
+          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; __hasPY=0
           shift
         ;;
 
