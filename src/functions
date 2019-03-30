@@ -13,10 +13,10 @@ function logPrint {
 
     # Step heading
     if [ "${__type}" = "STEP" ]; then
-    sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
-    echo "---------------------------------------------------------------------------"
-    echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
-    echo "---------------------------------------------------------------------------"
+	    sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; 
+	    printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+	    echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
+	    printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
     # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then
         echo -ne "${SUBSTEP}${__title}...${END}\r" 
@@ -432,7 +432,7 @@ function installPkg {
     checkReturn "$__cmd_ret_installPkg" "apt-get install -f" "WARN"
 
     # Updates the package lists
-    apt-get update >/dev/null 2>&1
+    #apt-get update >/dev/null 2>&1
     stopLoadBar
 
     for dep in "${__packages[@]}"; do
