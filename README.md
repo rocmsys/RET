@@ -5,7 +5,7 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
 
 * INSTALL OS
 * RUN ret
-* RUN your Tensorflow benchmark OR TRAIN your own model tensorflow OR run tensorflow benchmark
+* RUN your Tensorflow benchmark OR TRAIN your own model with tensorflow
 
 ## Hardware Support and supported GPU
 please refer to ROCm main repository
