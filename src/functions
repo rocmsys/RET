@@ -432,7 +432,7 @@ function installPkg {
     checkReturn "$__cmd_ret_installPkg" "apt-get install -f" "WARN"
 
     # Updates the package lists
-    #apt-get update >/dev/null 2>&1
+    apt-get update >/dev/null 2>&1
     stopLoadBar
 
     for dep in "${__packages[@]}"; do
