@@ -54,7 +54,8 @@ sudo ./ret install tensorflow
                   [pytorch]                   : Pytorch framework
 
 * Options:
-  *            [-h|--help]                     : Show this help message
+  *            [-py2|-py3]                     : ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
+               [-h|--help]                     : Show this help message
                [-v|--version]                  : Show version of this package
                [-V|--verbose]                  : Be verbose
                [-b|--benchmark]                : Run benchmark
