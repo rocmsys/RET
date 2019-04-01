@@ -141,6 +141,9 @@ function cmdEngine {
     local -n __args_cmdEngine=$2
     local -n __models_cmdEngine=$3
 
+__args_cmdEngine=(${__args_cmdEngine[@]/"rocm"})
+
+[ "${#__args_cmdEngine[@]}" -eq 1 ]
     if [ "${#__args_cmdEngine[@]}" -eq 0 ]; then printUsage; exit; fi
     case "$__cmd_cmdEngine" in
         update)
@@ -233,12 +236,11 @@ function runInstall {
     # Run post installation
     [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
 
-    startLoadBar "Run ${__pkg_name_runInstall} Verification"; printf '\n'
     if (runVerification "$__pkg_name_runInstall"); then
         [ "$__isInstalled_runInstall" -eq "1" ] && __msg_rocm="The ${__pkg_name_runInstall} installation was successful!" || __msg_rocm="It seems as if ${__pkg_name_runInstall} has already been properly installed!"
-        stopLoadBar "${__msg_rocm}"
+        logPrint "DONE" "${__msg_rocm}"
     else
-        stopLoadBar "The ${__pkg_name_runInstall} installation was not completed successfully!" "ERR" 
+        logPrint "ERR" "The ${__pkg_name_runInstall} installation was not completed successfully!"
     fi
 }
 
@@ -316,11 +318,12 @@ function runVerification {
     case "$__pkg_name_runVerification" in
         ROCm)
             rocmVerification
+            return "$?";
         ;;
 
         Tensorflow)
-            echo "tensorflow Verification"
-            #tfVerification
+            tfVerification
+            return "$?";
         ;;
 
         Pytorch)
@@ -344,7 +347,7 @@ function rocmVerification {
     local __ret_rocmVerification=1
 
     logPrint "STEP" "Verifing ROCm installation"
-    
+    startLoadBar "Run ROCm Verification"; printf '\n'
     # Get GPU info with lshw
     __key="product:"
     __gpu_lshw=$(lshw -C display| grep "${__key}" | sed -n 's|'$__s"${__key}"$__s'||p')
@@ -366,16 +369,22 @@ function rocmVerification {
     #fi
 
     __ret_rocmVerification=0
+    stopLoadBar
+
     return $__ret_rocmVerification;
 }
 
 
 # Verify if TF installation was successful 
 function tfVerification {
+    logPrint "STEP" "Verifing Tensorflow installation"
     if (isPrgInstalled "tensorflow-rocm:${PYPI}"); then
-        if (confirmYn "Run benchmark? [Y/n] "); then
+        if (confirmYn "Run Tensorflow benchmark? [Y/n] "); then
+            startLoadBar "Run Tensorflow Verification"; printf '\n'
             local __models_runPostInstallation=("$TF_MODEL")
-            return runBenchmark "tensorflow" __models_runPostInstallation
+            runBenchmark "tensorflow" __models_runPostInstallation
+            stopLoadBar
+            return "$?"
         fi
         return 0;
     else
@@ -491,7 +500,7 @@ function benchmarkCmd {
     local __isTFInstalled_benchmarkCmd=0
     local __isPTInstalled_benchmarkCmd=0
 
-    startLoadBar "Check ROCm Installation"; printf '\n';
+    startLoadBar "Check ROCm Installation"; printf '\n'; echo
     # read yaml file
     yaml2arr "$REQ_FILE" YAML_ARRAY
     TOTALSTEPS="${#__models_benchmarkCmd[@]}";
@@ -504,6 +513,7 @@ function benchmarkCmd {
     for ml in "${__args_benchmarkCmd[@]}"; do
         case "$ml" in
             tensorflow)
+              logPrint "STEP" "Run ${ml} benchmark"
               buildPkgArray "$ml" __pkg_name_benchmarkCmd __pkg_ver_benchmarkCmd __isTFInstalled_benchmarkCmd
               [ "$__isTFInstalled_benchmarkCmd" -eq "1" ] && logPrint "ERR" "Tensorflow is not installed!" "Tensorflow"
               runBenchmark "$ml" __models_benchmarkCmd
@@ -517,6 +527,7 @@ function benchmarkCmd {
     done
 }
 
+# Run benchmark 
 #Input $1 ML framework
 #Input $2 Models array
 function runBenchmark {
