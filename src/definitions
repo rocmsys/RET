@@ -27,5 +27,5 @@ DESCRIPTION="ROCm Machine Learning Stack installer"
 # Run-time params
 TOTALSTEPS=12
 BEQUIET=false
-PYVER="py2"
+PYVER="py3"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
