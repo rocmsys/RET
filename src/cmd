@@ -225,8 +225,13 @@ function runPreInstallation {
     case "$__pkg_name_runPreInstallation" in
         ROCm)
             # Add the ROCm apt repository
+	    echo  "---------------------------"
+	    echo  "Add the ROCm apt repository"
+	    echo  "---------------------------"
+
             wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
             echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | tee /etc/apt/sources.list.d/rocm.list >/dev/null 2>&1
+	    apt-get update
         ;;
 
         Tensorflow)
@@ -255,6 +260,9 @@ function runPostInstallation {
     case "$__pkg_name_runPostInstallation" in
         ROCm)
             # Add user to the video group
+	    echo  "---------------------------"
+	    echo "Add user to the video group"
+	    echo  "---------------------------"
             usermod -aG video $SUDO_USER
             # Put the ROCm binaries in PATH
             echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' | sudo tee -a /etc/profile.d/rocm.sh >/dev/null 2>&1
