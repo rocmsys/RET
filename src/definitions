@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # Include files
-THISPATH="$PWD"
 SRC="${BASH_SOURCE%/*}"
 if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 
@@ -13,16 +12,23 @@ if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 # File Paths
 REQ_FILE=requirements/req.yml
 DEF_FILE=src/definitions
+
+# DIRECTORY Paths
 TEMP_DIRECTRORY=$(mktemp -d)
+WORK_DIRECTRORY="./benchmarks"
+
 
 # Url's
 UBUNTU_KERNEL_URL=kernel.ubuntu.com/~kernel-ppa/mainline/
+TF_BENCHMARKS_URL="https://github.com/tensorflow/benchmarks.git"
 
 # Scop
 EMPTY_ARRAY=()
 VERSION="0.1.x"
 DESCRIPTION="ROCm Machine Learning Stack installer"
-
+TF_BNCH_VER="cnn_tf_v1.13_compatible"
+TF_MODEL="resnet50"
+NUM_GPUS=1
 
 # Run-time params
 TOTALSTEPS=12

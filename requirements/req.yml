@@ -163,7 +163,7 @@ dependencies:
       version: latest
 
   - tensorflow:
-    - name: tensorflow-rocm:pip3
+    - name: tensorflow-rocm:pip
       version: latest
 
   - pytorch:

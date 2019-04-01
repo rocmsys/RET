@@ -441,14 +441,12 @@ function installPkg {
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
         __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
 
-        if [[ "${__phu_installPkg}" =~ "pip" ]]; then
-            echo "su $SUDO_USER -c ${PYPI} install tensorflow-rocm"
-            su $SUDO_USER -c "${PYPI} install tensorflow-rocm"
-        else
-            #startLoadBar "Installing Package: ${__dep_installPkg}"
-            ${__cmd_installPkg} "${__dep_installPkg}" >/dev/null 2>&1
-            __cmd_ret_installPkg="$?"
-        fi
+        [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install" #sudo pip isn't encouraged
+
+        startLoadBar "Installing Package: ${__dep_installPkg}"
+        ${__cmd_installPkg} "${__dep_installPkg}" >/dev/null 2>&1
+        __cmd_ret_installPkg="$?"
+
 
         checkReturn "$__cmd_ret_installPkg" "${__cmd_installPkg} ${__dep_installPkg}" "ERR"
         logPrint "DET" "${__dep_installPkg}" "Installed" "${SUCC}"

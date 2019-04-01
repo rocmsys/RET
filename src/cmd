@@ -13,25 +13,31 @@ function printUsage {
     echo -e "       ${BOLD}${FG_GREEN}./ret${END} install tensorflow"
     echo -e ""
     echo -e "${BOLD}command:${END}"
-    echo -e "    [install] <package>      ${FG_LIGHT_BLUE}: Install ROCm or ML Framework TF/PT${END}"
-    echo -e "    [remove]  <package>      ${FG_LIGHT_BLUE}: Remove ROCm or ML Framework TF/PT${END}"
-    echo -e "    [update]  <package>      ${FG_LIGHT_BLUE}: Update ROCm or ML Framework TF/PT${END}"
-    echo -e "    [validate]               ${FG_LIGHT_BLUE}: System validation${END}"
-    echo -e "    [show]                   ${FG_LIGHT_BLUE}: Show system HW and SW details${END}"
+    echo -e "    [install]   <Package>              ${FG_LIGHT_BLUE}: Install ROCm or ML Framework TF/PT${END}"
+    echo -e "    [remove]    <Package>              ${FG_LIGHT_BLUE}: Remove ROCm or ML Framework TF/PT${END}"
+    echo -e "    [update]    <Package>              ${FG_LIGHT_BLUE}: Update ROCm or ML Framework TF/PT${END}"
+    echo -e "    [validate]                         ${FG_LIGHT_BLUE}: System validation${END}"
+    echo -e "    [benchmark] <Packages> <Model>     ${FG_LIGHT_BLUE}: Run benchmark for specific ML Framework${END}"
+    echo -e "    [show]                             ${FG_LIGHT_BLUE}: Show system HW and SW details${END}"
     echo -e ""
-    echo -e "${BOLD}packages:${END}"
-    echo -e "    [rocm]                   ${FG_LIGHT_BLUE}: ROCm-dkms packages${END}"
-    echo -e "    [tensorflow]             ${FG_LIGHT_BLUE}: Tensorflow framework${END}"
-    echo -e "    [pytorch]                ${FG_LIGHT_BLUE}: Pytorch framework${END}"
+    echo -e "${BOLD}Package:${END}"
+    echo -e "    [rocm]                             ${FG_LIGHT_BLUE}: ROCm-dkms packages${END}"
+    echo -e "    [tensorflow]                       ${FG_LIGHT_BLUE}: Tensorflow framework${END}"
+    echo -e "    [pytorch]                          ${FG_LIGHT_BLUE}: Pytorch framework${END}"
+    echo -e ""
+    echo -e "${BOLD}Model:${END}"
+    echo -e "    [vgg16]                            ${FG_LIGHT_BLUE}: vgg16 model${END}"
+    echo -e "    [alexnet]                          ${FG_LIGHT_BLUE}: alexnet model${END}"
+    echo -e "    [resnet50]                         ${FG_LIGHT_BLUE}: resnet50 model. Default Model${END}"
     echo -e ""
     echo -e "${BOLD}Options:${END}"
-    echo -e "    [-py2|-py3]              ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
-    echo -e "    [-h|--help]              ${FG_LIGHT_BLUE}: Show this help message${END}"
-    echo -e "    [-v|--version]           ${FG_LIGHT_BLUE}: Show version of this package${END}"
-    echo -e "    [-V|--verbose]           ${FG_LIGHT_BLUE}: Be verbose${END}"
-    echo -e "    [-q|--quiet]             ${FG_LIGHT_BLUE}: Be quiet and omit progress indicators${END}"
-    echo -e "    [-b|--benchmark]         ${FG_LIGHT_BLUE}: Run benchmark${END}"
-    echo -e "    [-d|--dryrun]            ${FG_LIGHT_BLUE}: Show what would be happened${END}"
+    echo -e "    [-py2|-py3]                        ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
+    echo -e "    [-h|--help]                        ${FG_LIGHT_BLUE}: Show this help message${END}"
+    echo -e "    [-v|--version]                     ${FG_LIGHT_BLUE}: Show version of this package${END}"
+    echo -e "    [-V|--verbose]                     ${FG_LIGHT_BLUE}: Be verbose${END}"
+    echo -e "    [-q|--quiet]                       ${FG_LIGHT_BLUE}: Be quiet and omit progress indicators${END}"
+    echo -e "    [-b|--benchmark]                   ${FG_LIGHT_BLUE}: Run benchmark${END}"
+    echo -e "    [-d|--dryrun]                      ${FG_LIGHT_BLUE}: Show what would be happened${END}"
     echo -e ""
     echo -e "${BOLD}Note:${END}"
     echo -e "  ${FG_DARK_GRAY}xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx...${END}"
@@ -40,16 +46,17 @@ function printUsage {
 
 # Parse script args
 function parseArgs {
-    local __cmd=""
-    local __arg=""
-    local __pkgs=()
-    local __isPyRequired=1
-    local __hasPY=1
+    local __cmd_parseArgs=""
+    local __arg_parseArgs=""
+    local __pkgs_parseArgs=()
+    local __models_parseArgs=()
+    local __isPyRequired_parseArgs=1
+    local __hasPY_parseArgs=1
 
     until [ $# = 0 ]
     do
-      __arg="$1"
-      case "$__arg" in
+      __arg_parseArgs="$1"
+      case "$__arg_parseArgs" in
         -v | --version)
           printf "ROCmML version ${VERSION}\n"
           exit
@@ -61,40 +68,51 @@ function parseArgs {
          ;;
 
         -py2)
-          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py2\""; PYVER="py2"; __hasPY=0
+          __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py2\""; PYVER="py2"; __hasPY_parseArgs=0
           shift
         ;;
 
         -py3)
-          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYVER="py3"; __hasPY=0
+          __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYVER_parseArgs="py3"; __hasPY_parseArgs=0
           shift
         ;;
 
         update)
-          [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
-          __cmd=$__arg
+          [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
+          __cmd_parseArgs=$__arg_parseArgs
           shift
         ;;
 
         install)
-          [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
-          __cmd=$__arg
+          [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
+          __cmd_parseArgs=$__arg_parseArgs
           shift
         ;;
 
         remove)
-          [[ $__cmd ]] && logPrint "ERR" "Only one command at time!"
-          __cmd=$__arg
+          [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
+          __cmd_parseArgs=$__arg_parseArgs
+          shift
+        ;;
+
+        benchmark)
+          [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
+          __cmd_parseArgs=$__arg_parseArgs
           shift
         ;;
 
 	    rocm)
-          __pkgs+=("$__arg")
+          __pkgs_parseArgs+=("$__arg_parseArgs")
           shift
         ;;
 
         tensorflow | pytorch)
-          __pkgs+=("$__arg"); __isPyRequired=0
+          __pkgs_parseArgs+=("$__arg_parseArgs"); __isPyRequired_parseArgs=0
+          shift
+        ;;
+
+        vgg16 | alexnet | resnet50)
+          __models_parseArgs+=("$__arg_parseArgs")
           shift
         ;;
 
@@ -106,34 +124,42 @@ function parseArgs {
     done
 
     # Include Python Package if required
-    if [ $__cmd = "install" ] && [ "${__isPyRequired}" -eq 0 ]; then 
-        [ "${__hasPY}" -eq 1 ] && __pkgs=("${PYVER}" "${__pkgs[@]}") || __pkgs=("${PYVER}" ${__pkgs[@]/"${PYVER}"})
+    if [ $__cmd_parseArgs = "install" ] && [ "${__isPyRequired_parseArgs}" -eq 0 ]; then 
+        [ "${__hasPY_parseArgs}" -eq 1 ] && __pkgs_parseArgs=("${PYVER}" "${__pkgs_parseArgs[@]}") || __pkgs_parseArgs=("${PYVER}" ${__pkgs_parseArgs[@]/"${PYVER}"})
     fi
 
     # Run command
-    [[ $__cmd ]] && cmdEngine "${__cmd}" __pkgs || { printUsage; exit; }
+    [[ $__cmd_parseArgs ]] && cmdEngine "${__cmd_parseArgs}" __pkgs_parseArgs __models_parseArgs || { printUsage; exit; }
 }
 
 # Run command
 # Input $1: command
 # Input $2: args (packages)
+# Input $3: models
 function cmdEngine {
     local __cmd_cmdEngine=$1
-    local -n __args=$2
+    local -n __args_cmdEngine=$2
+    local -n __models_cmdEngine=$3
 
-    if [ "${#__args[@]}" -eq 0 ]; then printUsage; exit; fi
+    if [ "${#__args_cmdEngine[@]}" -eq 0 ]; then printUsage; exit; fi
     case "$__cmd_cmdEngine" in
         update)
           echo "update pkgs..."
         ;;
 
         install)
-            installCmd __args
+            installCmd __args_cmdEngine
             exit
         ;;
 
         remove)
-            removeCmd __args
+            removeCmd __args_cmdEngine
+            exit
+        ;;
+
+        benchmark)
+            if [ "${#__models_cmdEngine[@]}" -eq 0 ]; then __models_cmdEngine=("$TF_MODEL"); fi
+            benchmarkCmd __args_cmdEngine __models_cmdEngine
             exit
         ;;
 
@@ -173,13 +199,6 @@ function installCmd {
 	        tensorflow)
 		      buildPkgArray "$pkg" __pkg_name_installCmd __pkg_ver_installCmd __isTFInstalled_installCmd
               	runInstall "Tensorflow" __pkg_name_installCmd __pkg_ver_installCmd "$__isTFInstalled_installCmd"
-		#################
-		 git clone -b cnn_tf_v1.12_compatible https://github.com/tensorflow/benchmarks.git
-		# cd benchmarks
-
-		# Run the training benchmark (e.g. ResNet-50)
-		# python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50 --num_gpus=1 --batch_size=256 --num_batches=50 --use_fp16=True --datasets_use_prefetch=False --display_every=10
-		#################
 		    ;;
 
 	        pytorch)
@@ -215,7 +234,7 @@ function runInstall {
     [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
 
     startLoadBar "Run ${__pkg_name_runInstall} Verification"; printf '\n'
-    if (runVerification); then
+    if (runVerification "$__pkg_name_runInstall"); then
         [ "$__isInstalled_runInstall" -eq "1" ] && __msg_rocm="The ${__pkg_name_runInstall} installation was successful!" || __msg_rocm="It seems as if ${__pkg_name_runInstall} has already been properly installed!"
         stopLoadBar "${__msg_rocm}"
     else
@@ -228,22 +247,22 @@ function runInstall {
 function runPreInstallation {
     local __pkg_name_runPreInstallation="$1"
 
-    startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation"; printf '\n'
+    
     case "$__pkg_name_runPreInstallation" in
         ROCm)
             # Add the ROCm apt repository
-	    echo  "---------------------------"
-	    echo  "Add the ROCm apt repository"
-	    echo  "---------------------------"
-
+            startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Add the ROCm apt repository"; printf '\n'
             wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
             echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | tee /etc/apt/sources.list.d/rocm.list >/dev/null 2>&1
+            stopLoadBar
         ;;
 
         Tensorflow)
             # Uninstall any previously-installed tensorflow whl packages
+            startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Uninstall previously-installed tensorflow"; printf '\n'
             local __tf_pkg_runPreInstallation=("tensorflow:${PYPI}")
             removePkg __tf_pkg_runPreInstallation
+            stopLoadBar
         ;;
 
         Pytorch)
@@ -254,7 +273,7 @@ function runPreInstallation {
             echo "Python Pre-Installation"
         ;;
     esac
-    stopLoadBar
+    
 }
 
 # Run post installation
@@ -262,32 +281,31 @@ function runPreInstallation {
 function runPostInstallation {
     local __pkg_name_runPostInstallation="$1"
 
-    startLoadBar "Run ${__pkg_name_runPostInstallation} Post-Installation"; printf '\n'
+    
     case "$__pkg_name_runPostInstallation" in
         ROCm)
             # Add user to the video group
-	    echo  "---------------------------"
-	    echo "Add user to the video group"
-	    echo  "---------------------------"
+            startLoadBar "Run ${__pkg_name_runPostInstallation} Post-Installation: Add user to the video group & put ROCm in PATH "; printf '\n'
             usermod -aG video $SUDO_USER
+
             # Put the ROCm binaries in PATH
             echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' | sudo tee -a /etc/profile.d/rocm.sh >/dev/null 2>&1
-            su - $SUDO_USER -c 'exit'; #echo; echo "$THISPATH"; echo "$SUDO_USER"; groups
+            source /etc/profile.d/rocm.sh >/dev/null 2>&1
+            stopLoadBar
         ;;
 
         Tensorflow)
-            echo "Tensorflow Pre-Installation"
+            echo "Tensorflow Post-Installation"
         ;;
 
         Pytorch)
-            echo "Pytorch Pre-Installation"
+            echo "Pytorch Post-Installation"
         ;;
 
         Python)
-            echo "Python Pre-Installation"
+            echo "Python Post-Installation"
         ;;
     esac
-    stopLoadBar
 }
 
 # Run install verification
@@ -297,19 +315,20 @@ function runVerification {
 
     case "$__pkg_name_runVerification" in
         ROCm)
-            return rocmVerification
+            rocmVerification
         ;;
 
         Tensorflow)
-            return tfVerification
+            echo "tensorflow Verification"
+            #tfVerification
         ;;
 
         Pytorch)
-            echo "Pytorch Pre-Installation"
+            echo "Pytorch Verification"
         ;;
 
         Python)
-            echo "Python Pre-Installation"
+            echo "Python Verification"
         ;;
     esac
 }
@@ -353,7 +372,15 @@ function rocmVerification {
 
 # Verify if TF installation was successful 
 function tfVerification {
-    return $(isPrgInstalled "tensorflow-rocm:${PYPI}");
+    if (isPrgInstalled "tensorflow-rocm:${PYPI}"); then
+        if (confirmYn "Run benchmark? [Y/n] "); then
+            local __models_runPostInstallation=("$TF_MODEL")
+            return runBenchmark "tensorflow" __models_runPostInstallation
+        fi
+        return 0;
+    else
+        return 1;
+    fi
 }
 
 
@@ -449,4 +476,79 @@ function buildPkgArray {
     eval $__res_pkg_buildPkgArray="(${__deps_name_buildPkgArray[@]})"
     eval __res_ver_buildPkgArray="(${__deps_vers_buildPkgArray[@]})"
     eval $__res_isInstalled_buildPkgArray="'$__isInstalled_buildPkgArray'"    
+}
+
+# ML benchmark
+# Input $1: args (packages)
+# Input $2: models
+function benchmarkCmd {
+    local -n __args_benchmarkCmd=$1
+    local -n __models_benchmarkCmd=$2
+
+    local __pkg_name_benchmarkCmd=()
+    local __pkg_ver_benchmarkCmd=()
+    local __isROCmInstalled_removeCmd=0
+    local __isTFInstalled_benchmarkCmd=0
+    local __isPTInstalled_benchmarkCmd=0
+
+    startLoadBar "Check ROCm Installation"; printf '\n';
+    # read yaml file
+    yaml2arr "$REQ_FILE" YAML_ARRAY
+    TOTALSTEPS="${#__models_benchmarkCmd[@]}";
+    buildPkgArray "rocm" __pkg_name_benchmarkCmd __pkg_ver_benchmarkCmd __isROCmInstalled_benchmarkCmd
+    stopLoadBar
+
+    [ "$__isROCmInstalled_benchmarkCmd" -eq "1" ] && logPrint "ERR" "ROCm is not installed!" "ROCm"
+
+    # Build Package Array
+    for ml in "${__args_benchmarkCmd[@]}"; do
+        case "$ml" in
+            tensorflow)
+              buildPkgArray "$ml" __pkg_name_benchmarkCmd __pkg_ver_benchmarkCmd __isTFInstalled_benchmarkCmd
+              [ "$__isTFInstalled_benchmarkCmd" -eq "1" ] && logPrint "ERR" "Tensorflow is not installed!" "Tensorflow"
+              runBenchmark "$ml" __models_benchmarkCmd
+            ;;
+
+            pytorch)
+              buildPkgArray "$ml" __pkg_name_benchmarkCmd __pkg_ver_benchmarkCmd __isPTInstalled_benchmarkCmd
+              [ "$__isPTInstalled_benchmarkCmd" -eq "1" ] && logPrint "ERR" "Pytorch is not installed!" "Pytorch"
+            ;;
+        esac
+    done
+}
+
+#Input $1 ML framework
+#Input $2 Models array
+function runBenchmark {
+    local __ml_framework_runBenchmark=$1
+    local -n __models_runBenchmark=$2
+    local __cmd_ret_runBenchmark
+    local __ret_value_runBenchmark=0
+
+    case "$__ml_framework_runBenchmark" in
+            tensorflow)
+                if [ ! -d "$WORK_DIRECTRORY/tf" ]; then
+                    local __cmd_python_runBenchmark
+
+                    git clone -b "$TF_BNCH_VER" "$TF_BENCHMARKS_URL" "$WORK_DIRECTRORY/tf/" >/dev/null 2>&1
+                    checkReturn "$?" "git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTRORY/tf/" "WARN"
+                fi
+
+                # Run the training benchmark (e.g. ResNet-50)
+                [ "$PYVER" = "py2" ] && __cmd_python_runBenchmark="python" || __cmd_python_runBenchmark="python3"
+                for model in "${__models_runBenchmark[@]}"; do
+                    TF_MODEL=$model
+                    startLoadBar "Run ${TF_MODEL} benchmark"; printf '\n'
+                    $__cmd_python_runBenchmark "$WORK_DIRECTRORY/tf/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py" --model="$TF_MODEL" --num_gpus="$NUM_GPUS"
+                    __cmd_ret_runBenchmark="$?"
+                    [ "$__cmd_ret_runBenchmark" -eq 0 ] && stopLoadBar "${TF_MODEL} benchmark Done" || { stopLoadBar "${TF_MODEL} benchmark Failed" "ERR"; __ret_value_runBenchmark=1; }
+                done
+                return $__ret_value_runBenchmark;
+            ;;
+
+            pytorch)
+                echo "Pytorch benchmarking..."
+            ;;
+        esac
+
 }
