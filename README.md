@@ -74,9 +74,6 @@ Details on the tf_cnn_benchmarks can be found at this [Link](https://github.com/
 
 Here are the basic instructions:
 ```
-# Grab the repo
-cd $HOME
-git clone -b cnn_tf_v1.12_compatible https://github.com/tensorflow/benchmarks.git
 cd benchmarks
 
 # Run the training benchmark (e.g. ResNet-50)
