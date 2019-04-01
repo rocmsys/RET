@@ -61,12 +61,12 @@ function parseArgs {
          ;;
 
         -py2)
-          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py2\""; PYVER="py2"; __hasPY=0
+          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py2\""; PYVER="py2"; __hasPY=0
           shift
         ;;
 
         -py3)
-          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYVER="py3"; __hasPY=0
+          __pkgs+=("${__arg:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py3\""; PYVER="py3"; __hasPY=0
           shift
         ;;
 
