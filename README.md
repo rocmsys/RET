@@ -37,9 +37,9 @@ after the instllation you will need git to download the RET source
 ```
 sudo ./ret  <command\> <option>
 e.g.
-sudo ./ret install rocm
+sudo ./ret install rocm or sudo ./ret install tensorflow
 sudo reboot
-sudo ./ret install tensorflow
+rocminfo
 ```
 * command:
   *           [install] <package>              : Install ROCm or ML Framework TF/PT
