@@ -231,7 +231,6 @@ function runPreInstallation {
 
             wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
             echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | tee /etc/apt/sources.list.d/rocm.list >/dev/null 2>&1
-	    apt-get update
         ;;
 
         Tensorflow)
