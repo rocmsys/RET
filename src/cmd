@@ -551,7 +551,7 @@ function runBenchmark {
                 for model in "${__models_runBenchmark[@]}"; do
                     TF_MODEL=$model
                     startLoadBar "Run ${TF_MODEL} benchmark"; printf '\n'
-                    $__cmd_python_runBenchmark "$WORK_DIRECTRORY/tf/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py" --model="$TF_MODEL" --num_gpus="$NUM_GPUS"
+                    $__cmd_python_runBenchmark "$WORK_DIRECTRORY/tf/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py" --model="$TF_MODEL" --num_gpus="$NUM_GPUS" --batch_size="$BATCH_SIZE" --use_fp16=True
                     __cmd_ret_runBenchmark="$?"
                     [ "$__cmd_ret_runBenchmark" -eq 0 ] && stopLoadBar "${TF_MODEL} benchmark Done" || { stopLoadBar "${TF_MODEL} benchmark Failed" "ERR"; __ret_value_runBenchmark=1; }
                 done
