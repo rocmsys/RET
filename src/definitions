@@ -29,6 +29,7 @@ DESCRIPTION="ROCm Machine Learning Stack installer"
 TF_BNCH_VER="cnn_tf_v1.13_compatible"
 TF_MODEL="resnet50"
 NUM_GPUS=1
+BATCH_SIZE=256
 
 # Run-time params
 TOTALSTEPS=12
