@@ -128,6 +128,9 @@ function parseArgs {
         [ "${__hasPY_parseArgs}" -eq 1 ] && __pkgs_parseArgs=("${PYVER}" "${__pkgs_parseArgs[@]}") || __pkgs_parseArgs=("${PYVER}" ${__pkgs_parseArgs[@]/"${PYVER}"})
     fi
 
+    # Push rocm if benchamrk
+    [ $__cmd_parseArgs = "benchmark" ] && __pkgs_parseArgs=(${__pkgs_parseArgs[@]/"rocm"})
+    
     # Run command
     [[ $__cmd_parseArgs ]] && cmdEngine "${__cmd_parseArgs}" __pkgs_parseArgs __models_parseArgs || { printUsage; exit; }
 }
@@ -140,8 +143,6 @@ function cmdEngine {
     local __cmd_cmdEngine=$1
     local -n __args_cmdEngine=$2
     local -n __models_cmdEngine=$3
-
-__args_cmdEngine=(${__args_cmdEngine[@]/"rocm"})
 
 [ "${#__args_cmdEngine[@]}" -eq 1 ]
     if [ "${#__args_cmdEngine[@]}" -eq 0 ]; then printUsage; exit; fi
