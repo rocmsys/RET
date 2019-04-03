@@ -80,7 +80,7 @@ Details on the tf_cnn_benchmarks can be found at this [Link](https://github.com/
 
 Here are the basic instructions:
 ```
-sudo ./ret install benchmark tensorflow resnet50  # run it direct
+sudo ./ret benchmark tensorflow resnet50  # run it direct
 
 OR
 # Download your Benchmark
