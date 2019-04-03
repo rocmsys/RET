@@ -50,14 +50,14 @@ rocminfo
               [show]                           : Show system HW and SW details
 
    * packages:
-     *            [rocm]                      : ROCm-dkms packages
-                  [tensorflow]                : Tensorflow framework
-                  [pytorch]                   : Pytorch framework
+     *        [rocm]                      : ROCm-dkms packages
+              [tensorflow]                : Tensorflow framework
+              [pytorch]                   : Pytorch framework
 
    * Model:
-                  [vgg16]                      : vgg16 model${END}"
-                  [alexnet]                    : alexnet model${END}"
-                  resnet50]                    : resnet50 model. Default Model${END}"
+        *     [vgg16]                      : vgg16 model${END}"
+              [alexnet]                    : alexnet model${END}"
+              resnet50]                    : resnet50 model. Default Model${END}"
  
 * Options:
   *            [-py2|-py3]                     : ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
