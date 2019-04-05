@@ -46,13 +46,19 @@ rocminfo
               [remove]  <package>              : Remove ROCm or ML Framework TF/PT
               [update]  <package>              : Update ROCm or ML Framework TF/PT
               [validate]                       : System validation
+              [benchmark] <Packages> <Model>   : Run benchmark for specific ML Framework${END}"
               [show]                           : Show system HW and SW details
 
    * packages:
-     *            [rocm]                      : ROCm-dkms packages
-                  [tensorflow]                : Tensorflow framework
-                  [pytorch]                   : Pytorch framework
+     *        [rocm]                      : ROCm-dkms packages
+              [tensorflow]                : Tensorflow framework
+              [pytorch]                   : Pytorch framework
 
+   * Model:
+        *     [vgg16]                      : vgg16 model${END}"
+              [alexnet]                    : alexnet model${END}"
+              resnet50]                    : resnet50 model. Default Model${END}"
+ 
 * Options:
   *            [-py2|-py3]                     : ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
                [-h|--help]                     : Show this help message
@@ -64,9 +70,9 @@ rocminfo
 ## RUN RET:
 ```
    cd RET
-   sudo ./ret install rocm        # install ROCm stack
+   sudo ./ret install rocm         # install ROCm stack
    sudo reboot
-   sudo ./ret install tensorflow  # install Tensorflow
+   sudo ./ret install tensorflow   # install Tensorflow
 ```
 
 ### Tensorflow's tf_cnn_benchmarks
@@ -74,11 +80,14 @@ Details on the tf_cnn_benchmarks can be found at this [Link](https://github.com/
 
 Here are the basic instructions:
 ```
+sudo ./ret benchmark tensorflow resnet50  # run it direct
+
+OR
+# Download your Benchmark
 # Grab the repo
 cd $HOME
 git clone -b cnn_tf_v1.12_compatible https://github.com/tensorflow/benchmarks.git
 cd benchmarks
-
 # Run the training benchmark (e.g. ResNet-50)
 python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50 --num_gpus=1 --batch_size=256 --num_batches=50 --use_fp16=True --datasets_use_prefetch=False --display_every=10
 
