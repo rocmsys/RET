@@ -53,6 +53,7 @@ function parseArgs {
     local __isPyRequired_parseArgs=1
     local __hasPY_parseArgs=1
 
+
     until [ $# = 0 ]
     do
       __arg_parseArgs="$1"
@@ -128,7 +129,7 @@ function parseArgs {
         [ "${__hasPY_parseArgs}" -eq 1 ] && __pkgs_parseArgs=("${PYVER}" "${__pkgs_parseArgs[@]}") || __pkgs_parseArgs=("${PYVER}" ${__pkgs_parseArgs[@]/"${PYVER}"})
     fi
 
-    # Push rocm if benchamrk
+    # Exclude rocm if benchamrk
     [ $__cmd_parseArgs = "benchmark" ] && __pkgs_parseArgs=(${__pkgs_parseArgs[@]/"rocm"})
     
     # Run command
@@ -144,7 +145,6 @@ function cmdEngine {
     local -n __args_cmdEngine=$2
     local -n __models_cmdEngine=$3
 
-[ "${#__args_cmdEngine[@]}" -eq 1 ]
     if [ "${#__args_cmdEngine[@]}" -eq 0 ]; then printUsage; exit; fi
     case "$__cmd_cmdEngine" in
         update)
@@ -250,7 +250,6 @@ function runInstall {
 function runPreInstallation {
     local __pkg_name_runPreInstallation="$1"
 
-    
     case "$__pkg_name_runPreInstallation" in
         ROCm)
             # Add the ROCm apt repository
@@ -276,7 +275,6 @@ function runPreInstallation {
             echo "Python Pre-Installation"
         ;;
     esac
-    
 }
 
 # Run post installation
@@ -375,7 +373,6 @@ function rocmVerification {
     return $__ret_rocmVerification;
 }
 
-
 # Verify if TF installation was successful 
 function tfVerification {
     logPrint "STEP" "Verifing Tensorflow installation"
@@ -392,7 +389,6 @@ function tfVerification {
         return 1;
     fi
 }
-
 
 # Remove packages
 # Input $1: args (packages)
@@ -455,7 +451,6 @@ function runRemove {
         (isPrgInstalled "${dep}" ) && logPrint "ERR" "The uninstall process was not completed successfully!"
     done
 }
-
 
 # Build Package Array by key and check if packages already installed
 # I/O $1: Package array and updated array
@@ -562,5 +557,4 @@ function runBenchmark {
                 echo "Pytorch benchmarking..."
             ;;
         esac
-
 }

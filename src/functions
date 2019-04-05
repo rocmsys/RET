@@ -29,26 +29,29 @@ function logPrint {
     # Success confirmation
     elif [ "${__type}" = "DONE" ]; then
         echo
-    echo -e "${DONE}${__title}${END}";
+    	echo -e "${DONE}${__title}${END}";
     # Error and exit
     elif [ "${__type}" = "ERR" ]; then
         echo
-    echo -e "${ERR}${__title}...[${__value}]${END}";
+    	echo -e "${ERR}${__title}...[${__value}]${END}";
+    	toLog "${__type}" "${__title} [${__value}]"
         exitAll 2
     # Warning
     elif [ "${__type}" = "WARN" ]; then
         echo
-    echo -e "${WARN}${__title}...[${__value}]${END}";
+    	echo -e "${WARN}${__title}...[${__value}]${END}";
     # Info
     elif [ "${__type}" = "NOTE" ]; then
         echo
-    echo -e "${NOTE}${__title}${END}";
+    	echo -e "${NOTE}${__title}${END}";
     else
         echo
-    echo -e "${NOTE}${__title}${END}";
+    	echo -e "${NOTE}${__title}${END}";
     fi
-}
 
+    # Insert to log file
+    toLog "${__type}" "${__title} [${__value}]"
+}
 
 # Check OS, Distro and kernel
 # Input $1: array with the Distro
@@ -64,15 +67,15 @@ function checkOs {
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
         getOSInfo __distro_checkOS __release_checkOS __kernel_checkOS __arch_checkOS
 
-    # Check distro name
+    	# Check distro name
         (isSupported "os_support|os" "${__distro_checkOS}") && __state="${SUCC}" || { __state="${FAIL}"; __failed="NSDISTRO"; }
         logPrint "DET" "OS" "${__distro_checkOS}" "${__state}"
 
-    # Check Release version
+    	# Check Release version
         (isSupported "os_support|${__distro_checkOS}|release" "${__release_checkOS}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSREL"; }
-    logPrint "DET" "RELEASE" "${__release_checkOS}" "${__state}"
+    	logPrint "DET" "RELEASE" "${__release_checkOS}" "${__state}"
 
-    # Check just Kernel and major revision
+    	# Check just Kernel and major revision
         local __kernel_version="${__kernel_checkOS%%.*}"
         local __major_revision="${__kernel_checkOS#*.}"
         __major_revision="${__major_revision%%.*}"
@@ -81,8 +84,8 @@ function checkOs {
         (isSupported "os_support|${__distro_checkOS}|kernel|${__release_checkOS}|version" "${__kernel_version}.${__major_revision}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSKERNEL"; }
         logPrint "DET" "KERNEL" "${__kernel_checkOS}" "${__state}"
 
-    # Just print the current Arch
-    logPrint "DET" "ARCH" "${__arch_checkOS}" "${SUCC}"
+    	# Just print the current Arch
+    	logPrint "DET" "ARCH" "${__arch_checkOS}" "${SUCC}"
     else
         logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
     fi
@@ -97,7 +100,7 @@ function checkOs {
                     getYAMLValue "os_support|${__distro_checkOS}|kernel|${__release_checkOS}|default" YAML_ARRAY __default_kernel
                     updateKernel "${__distro_checkOS}" "${__kernel_checkOS}" "${__arch_checkOS}" "${__default_kernel[0]}" ;;
         *) # Do nothing ;;
-    esac    
+    esac
 }
 
 # Convert string from ">=4.13 <=4.18" to array like [4.13, 4.14, 4.15, 4.16, 4.17, 4.18]
@@ -182,7 +185,6 @@ function checkDeps {
     fi
 }
 
-
 # Read and parse yaml file 
 # Input $1: yaml file name
 # Note: this parser support only the syntax needed. Flow Styles are not supported
@@ -257,7 +259,6 @@ function parse_yaml {
     for(i=0; i<=br_count; i++){print(br_array[i]);}
     }'
 }
-
 
 # Parser yaml file into array
 # Input $1: yaml file name
@@ -358,7 +359,7 @@ function getOSInfo {
         __VER=$VERSION_ID
     elif [ -f /etc/lsb-release ]; then
         . /etc/lsb-release
-            __OS=$DISTRIB_ID
+        __OS=$DISTRIB_ID
         __VER=$DISTRIB_RELEASE
     else
         __OS=$(uname -s)
@@ -377,7 +378,6 @@ function getOSInfo {
     eval $__res_kernel="'$__KERNEL'"
     eval $__res_arch="'$__ARCH'"
 }
-
 
 # Check if file exists and not empty
 # Input $1: file name
@@ -564,6 +564,9 @@ function checkReturn {
 # Install Necessary Packages and
 # read YAML file
 function preStart {
+    # init the log file
+    initLog
+
     local __necessary_packages=("git" "tee" "curl" "wget" "lynx" "sed" "gawk" "rpm" "ssh")
     checkDeps __necessary_packages "" "Run Pre-installation Requirements"
 
@@ -573,7 +576,7 @@ function preStart {
 
     # Get Version and Description of this script
     getYAMLValue "version" YAML_ARRAY VERSION
-    getYAMLValue "description" YAML_ARRAY DESCRIPTION 
+    getYAMLValue "description" YAML_ARRAY DESCRIPTION    
 }
 
 # Load bar while running a command
@@ -588,8 +591,8 @@ function loadBar {
     while true
     do 
         for (( i=${__pos_loadbar}; i<${#LOADBAR}; i++ )); do
-       logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
-       sleep 0.1; 
+	       logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
+	       sleep 0.1; 
         done
     done
 }
@@ -638,20 +641,20 @@ function downloadFile {
     function updatePercentage {
         local __download_per
         local __LoadBar_Pos=0
-    local __succ_updatePercentage=1
+    	local __succ_updatePercentage=1
         local __previous_value_updatePercentage="${__download_per}"
 
         while read __download_per
-    do
+    	do
             if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
-            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
-                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
-            __previous_value_updatePercentage="${__download_per}"
-        __succ_updatePercentage=0
-        fi
+	            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
+	                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
+	            __previous_value_updatePercentage="${__download_per}"
+		        __succ_updatePercentage=0
+	        fi
         done
-    [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
-    return $__succ_updatePercentage;
+	    [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
+	    return $__succ_updatePercentage;
     }
 
     # Download file and get the current download state
@@ -696,4 +699,35 @@ function editFile {
     local __new_value_editFile=$3
     sed -i 's|'"${__old_value_editFile}"'|'"${__new_value_editFile}"'|g' "${__file_name_editFile}" 2>/dev/null 
     checkReturn "$?" "Cannot edit file: ${__file_name_editFile}" "ERR"
+}
+
+# Init the log file
+function initLog {
+	local __msg_initLog="${1:-START SCRIPT}"
+
+	# Creat log directory
+	[ ! -d "${LOG_DIRECTRORY}" ] && mkdir "${LOG_DIRECTRORY}"
+	
+	# re-create the log file
+	rm -f $LOG_FILE >/dev/null 2>&1
+	touch $LOG_FILE >/dev/null 2>&1
+
+	# Init Header
+	echo '=========================================================================' > $LOG_FILE
+	echo "                          ROCm Enablement Tool Log                       " >> $LOG_FILE
+	echo '=========================================================================' >> $LOG_FILE
+	echo "" 																		 >> $LOG_FILE
+
+	# Add the first msg after header
+	toLog "INFO" "${__msg_initLog} [USER: $SUDO_USER]"
+}
+
+# Insert log message to the log file
+# Input $1: log state INFO, ERROR, WARNING, etc.
+# Input $2: log message
+function toLog {
+	local __state_toLog="$1"
+	local __msg_toLog="$2"
+
+	echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> $LOG_FILE
 }

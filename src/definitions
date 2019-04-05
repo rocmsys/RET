@@ -9,14 +9,15 @@ if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 . $SRC/functions
 . $SRC/update_kernel
 
-# File Paths
-REQ_FILE=requirements/req.yml
-DEF_FILE=src/definitions
-
 # DIRECTORY Paths
 TEMP_DIRECTRORY=$(mktemp -d)
 WORK_DIRECTRORY="./benchmarks"
+LOG_DIRECTRORY="./log"
 
+# File Paths
+REQ_FILE="requirements/req.yml"
+DEF_FILE="src/definitions"
+LOG_FILE="${LOG_DIRECTRORY}/ret.log"
 
 # Url's
 UBUNTU_KERNEL_URL=kernel.ubuntu.com/~kernel-ppa/mainline/
@@ -36,3 +37,20 @@ TOTALSTEPS=12
 BEQUIET=false
 PYVER="py3"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
+
+# Commands
+# Debian cmds
+DEB_INSTALL_CMD="apt-get -qq -y --allow-unauthenticated install"
+DEB_REMOVE_CMD="apt-get autoremove -qq -y"
+DEB_UPDATE_CMD="apt-get update"
+DEB_SEARCH_CMD="dpkg -l"
+DEB_FIXBROKEN_CMD="apt-get install -fqq"
+DEB_CLEAN_CMD="apt-get clean"
+
+# CentOS cmds
+COS_INSTALL_CMD="apt-get -qq -y --allow-unauthenticated install"
+COS_REMOVE_CMD="apt-get autoremove -qq -y"
+COS_UPDATE_CMD="apt-get update"
+COS_SEARCH_CMD="dpkg -l"
+COS_FIXBROKEN_CMD="apt-get install -fqq"
+COS_CLEAN_CMD="apt-get clean"
