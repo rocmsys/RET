@@ -347,13 +347,17 @@ function getOSInfo {
     local __res_ver=$2
     local __res_kernel=$3
     local __res_arch=$4
+    local __digit='[0-9]*'
 
     local __OS
     local __VER
     local __ARCH
     local __KERNEL=$(uname -r)
 
-    if [ -f /etc/os-release ]; then
+    if[ -f /etc/centos-release ]; then
+    	__OS="CentOS"
+        __VER=$(cat /etc/centos-release | sed 's|^.*[^0-9]\('$__digit'\.'$__digit'\)\(\.[0-9]*\).*$|\1|g')
+	elif [ -f /etc/os-release ]; then
         . /etc/os-release
         __OS=$NAME
         __VER=$VERSION_ID
@@ -730,4 +734,21 @@ function toLog {
 	local __msg_toLog="$2"
 
 	echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> $LOG_FILE
+}
+
+# Check Bash Version and Update it if requiered
+function checkBashVersion {
+	local __bash_ver
+	local __path_checkBashVersion
+
+	__bash_ver=$(echo $BASH_VERSION | sed 's/^\([0-9]*.[0-9]*\).*/\1/g')
+	[ $(echo "$__bash_ver >= $REQ_BASH_VERSION"|bc) -eq 1 ] && return 0
+
+	# Create bash Backup
+	# Get bash location
+	__path_checkBashVersion=$(which bash)
+	cp $__path_checkBashVersion $__path_checkBashVersion.old
+
+	# Update the bash package
+
 }

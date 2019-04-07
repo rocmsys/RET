@@ -9,6 +9,10 @@ if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 . $SRC/functions
 . $SRC/update_kernel
 
+# Requirement
+REQ_BASH_VERSION=4.3
+
+
 # DIRECTORY Paths
 TEMP_DIRECTRORY=$(mktemp -d)
 WORK_DIRECTRORY="./benchmarks"
