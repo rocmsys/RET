@@ -22,10 +22,12 @@ LOG_DIRECTRORY="./log"
 REQ_FILE="requirements/req.yml"
 DEF_FILE="src/definitions"
 LOG_FILE="${LOG_DIRECTRORY}/ret.log"
+BASH_FILENAME="bash-4.4.18"
 
 # Url's
-UBUNTU_KERNEL_URL=kernel.ubuntu.com/~kernel-ppa/mainline/
+UBUNTU_KERNEL_URL="kernel.ubuntu.com/~kernel-ppa/mainline/"
 TF_BENCHMARKS_URL="https://github.com/tensorflow/benchmarks.git"
+BASH_URL="https://ftp.gnu.org/gnu/bash/"
 
 # Scop
 EMPTY_ARRAY=()
@@ -42,9 +44,9 @@ BEQUIET=false
 PYVER="py3"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
 
-# Commands
 # Debian cmds
 DEB_INSTALL_CMD="apt-get -qq -y --allow-unauthenticated install"
+DEB_INSTALL_PKG_CMD="dpkg -i"
 DEB_REMOVE_CMD="apt-get autoremove -qq -y"
 DEB_UPDATE_CMD="apt-get update"
 DEB_SEARCH_CMD="dpkg -l"
@@ -52,9 +54,22 @@ DEB_FIXBROKEN_CMD="apt-get install -fqq"
 DEB_CLEAN_CMD="apt-get clean"
 
 # CentOS cmds
-COS_INSTALL_CMD="apt-get -qq -y --allow-unauthenticated install"
-COS_REMOVE_CMD="apt-get autoremove -qq -y"
-COS_UPDATE_CMD="apt-get update"
-COS_SEARCH_CMD="dpkg -l"
-COS_FIXBROKEN_CMD="apt-get install -fqq"
-COS_CLEAN_CMD="apt-get clean"
+COS_INSTALL_CMD="yum -q -y install"
+COS_INSTALL_PKG_CMD="rpm -i"
+COS_REMOVE_CMD="yum remove -q -y"
+COS_UPDATE_CMD="yum check-update"
+COS_SEARCH_CMD="yum list installed"
+COS_FIXBROKEN_CMD=""
+COS_CLEAN_CMD="yum clean packages"
+
+# Commands
+RET_INSTALL_CMD=0
+RET_INSTALL_PKG_CMD=1
+RET_REMOVE_CMD=2
+RET_UPDATE_CMD=3
+RET_SEARCH_CMD=4
+RET_FIXBROKEN_CMD=5
+RET_CLEAN_CMD=6
+
+# Init commands array with debian cmds
+RET_CMDS_ARRAY=("DEB_INSTALL_CMD" "DEB_INSTALL_PKG_CMD" "DEB_REMOVE_CMD" "DEB_UPDATE_CMD" "DEB_SEARCH_CMD" "DEB_FIXBROKEN_CMD" "DEB_CLEAN_CMD")

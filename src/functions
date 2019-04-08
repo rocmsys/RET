@@ -333,7 +333,14 @@ function isPrgInstalled {
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
     	("${PYPI}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
     else
-    	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { (dpkg -l "${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0; } 
+    	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { 
+    		case $RET_DISTRO in
+				CentOS)
+					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1) && __found=0;;
+				Ubuntu)
+					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0;;
+			esac
+    	} 
 	fi
 
     return $__found;
@@ -354,7 +361,7 @@ function getOSInfo {
     local __ARCH
     local __KERNEL=$(uname -r)
 
-    if[ -f /etc/centos-release ]; then
+    if [ -f /etc/centos-release ]; then
     	__OS="CentOS"
         __VER=$(cat /etc/centos-release | sed 's|^.*[^0-9]\('$__digit'\.'$__digit'\)\(\.[0-9]*\).*$|\1|g')
 	elif [ -f /etc/os-release ]; then
@@ -423,7 +430,8 @@ function isSudo {
 function installPkg {
     local -n __packages=$1
     local __cmd_ret_installPkg
-    local __cmd_installPkg="apt-get -qq -y --allow-unauthenticated install"
+    local __cmd_installPkg=${!RET_CMDS_ARRAY[RET_INSTALL_CMD]}
+
     local __pkg_name_installPkg
     local __pkg_vers_installPkg
     local __phu_installPkg
@@ -431,12 +439,10 @@ function installPkg {
 
     startLoadBar "Preparing for Installation"
     # fix broken dependencies in place
-    apt-get install -fqq >/dev/null 2>&1
-    __cmd_ret_installPkg="$?"
-    checkReturn "$__cmd_ret_installPkg" "apt-get install -f" "WARN"
+    runCmd "${!RET_CMDS_ARRAY[RET_FIXBROKEN_CMD]}" "WARN"
 
     # Updates the package lists
-    apt-get update >/dev/null 2>&1
+    runCmd "${!RET_CMDS_ARRAY[RET_UPDATE_CMD]}" "WARN"
     stopLoadBar
 
     for dep in "${__packages[@]}"; do
@@ -448,16 +454,12 @@ function installPkg {
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install" #sudo pip isn't encouraged
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
-        ${__cmd_installPkg} "${__dep_installPkg}" >/dev/null 2>&1
-        __cmd_ret_installPkg="$?"
-
-
-        checkReturn "$__cmd_ret_installPkg" "${__cmd_installPkg} ${__dep_installPkg}" "ERR"
+        runCmd "${__cmd_installPkg} ${__dep_installPkg}" "ERR"
         logPrint "DET" "${__dep_installPkg}" "Installed" "${SUCC}"
     done
 
     # Clean Archives cache
-    apt-get clean
+    runCmd "${!RET_CMDS_ARRAY[RET_CLEAN_CMD]}" "WARN"
 
     stopLoadBar "The Installation Completed Successfully."
     return 0;
@@ -562,7 +564,9 @@ function checkReturn {
 
     if [ "$__state" -ne 0 ]; then
         logPrint "$__err_type_checkReturn" "$__err_msg" "$__cmd"
+        return "$__state";
     fi
+    return 0;
 }
 
 # Install Necessary Packages and
@@ -740,15 +744,85 @@ function toLog {
 function checkBashVersion {
 	local __bash_ver
 	local __path_checkBashVersion
+	local __file_extension="tar.gz"
+	local __cmd_ret_checkBashVersion
 
-	__bash_ver=$(echo $BASH_VERSION | sed 's/^\([0-9]*.[0-9]*\).*/\1/g')
+	#__bash_ver=$(echo $BASH_VERSION | sed 's/^\([0-9]*.[0-9]*\).*/\1/g')
+	__bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
 	[ $(echo "$__bash_ver >= $REQ_BASH_VERSION"|bc) -eq 1 ] && return 0
 
-	# Create bash Backup
-	# Get bash location
+	# Get bash location and Create bash Backup
 	__path_checkBashVersion=$(which bash)
-	cp $__path_checkBashVersion $__path_checkBashVersion.old
+	runCmd "cp $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old" "ERR"
 
-	# Update the bash package
+	logPrint "STEP" "Update Bash Version"
 
+	# Confirmation message
+	confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
+
+	# Download and extract the bash package
+	downloadFile "$BASH_URL" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
+	runCmd "tar zxvf $TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension" "ERR"
+
+	# Install the new bash version
+	startLoadBar "Install $BASH_FILENAME"
+	runCmd "./$TEMP_DIRECTRORY/$BASH_FILENAME/configure" "ERR"
+	runCmd "make -C $TEMP_DIRECTRORY/$BASH_FILENAME" "ERR"
+	runCmd "cp -f $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old" "ERR"
+
+	# Check the installation
+	ls -la bash >/dev/null 2>&1
+	__cmd_ret_checkBashVersion="$?"
+    [ $__cmd_ret_checkBashVersion -ne 0 ] && stopLoadBar "There was a problem installing $BASH_FILENAME!" "ERR" "make -C $TEMP_DIRECTRORY/$BASH_FILENAME" \
+                                      || stopLoadBar "Update Completed Successfully."
+
+	# Feedback info: The location of the old version, the current version
+	logPrint "NOTE" "A Backup of the previous version can be found here: $__path_checkBashVersion.$__bash_ver.old"
+	__bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
+	logPrint "NOTE" "The current Bash Version is: $__bash_ver"
+
+	return 0;
+}
+
+# Run Command and check the return value
+# Input $1: Command
+# Input $2: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
+function runCmd {
+	local __cmd_runCmd="$1"
+	local __err_type_runCmd="$2"
+	local __cmd_ret_runCmd
+
+	if [ ! -z "${__cmd_runCmd}" ]; then
+		$__cmd_runCmd >/dev/null 2>&1
+		__cmd_ret_runCmd="$?"
+		checkReturn "$__cmd_ret_runCmd" "$__cmd_runCmd" "$__err_type_runCmd"
+	fi
+}
+
+function whatDistro {
+	local __distro_updateCmd
+	local __release_updateCmd
+	local __kernel_updateCmd
+	local __arch_updateCmd
+
+	getOSInfo RET_DISTRO __release_updateCmd __kernel_updateCmd __arch_updateCmd
+
+	case $RET_DISTRO in
+		CentOS)
+			updateCmdArray "COS";;
+		Ubuntu)
+			;; # per default initialized
+		*) echo "err"; exit 2;;
+	esac
+}
+
+# Input $1: Distro Prefix
+function updateCmdArray {
+	local __distro_updateCmdArray="$1"
+	local __cmd_name_updateCmdArray
+
+	for ((i=0; i<"${#RET_CMDS_ARRAY[@]}"; i++)); do
+		__cmd_name_updateCmdArray="${RET_CMDS_ARRAY[i]}"
+		RET_CMDS_ARRAY[i]="$__distro_updateCmdArray""_${__cmd_name_updateCmdArray#*_}"
+	done
 }

@@ -70,7 +70,7 @@ function updateKernel {
 	          getKernel "$UBUNTU_KERNEL_URL" "${__default_kernel[0]}" "$__sys_arch_updateKernel" "$__kernel_type_updateKernel" "$TEMP_DIRECTRORY" ;;
 
         "RedHat") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
-	"CentOS") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
+	    "CentOS") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
         *) 	  logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
     esac   
 

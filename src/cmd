@@ -53,7 +53,6 @@ function parseArgs {
     local __isPyRequired_parseArgs=1
     local __hasPY_parseArgs=1
 
-
     until [ $# = 0 ]
     do
       __arg_parseArgs="$1"

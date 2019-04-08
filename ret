@@ -14,4 +14,9 @@ if ! isSudo; then
     logPrint "ERR" "Please run the following command instead!" "sudo $0" "${FAIL}"
 fi
 
+# Update commands by distro
+whatDistro
+
+
 [ $# = 0 ] && { printUsage; exit; } || parseArgs "$@" 
+
