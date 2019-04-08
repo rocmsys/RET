@@ -809,6 +809,7 @@ function whatDistro {
 
 	case $RET_DISTRO in
 		CentOS)
+			runCmd "yum install epel-release" "ERR"
 			updateCmdArray "COS";;
 		Ubuntu)
 			;; # per default initialized
