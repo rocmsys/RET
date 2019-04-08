@@ -56,7 +56,7 @@ DEB_CLEAN_CMD="apt-get clean"
 # CentOS cmds
 COS_INSTALL_CMD="yum -q -y install"
 COS_INSTALL_PKG_CMD="rpm -i"
-COS_REMOVE_CMD="yum remove -q -y"
+COS_REMOVE_CMD="yum autoremove -q -y"
 COS_UPDATE_CMD="yum check-update"
 COS_SEARCH_CMD="yum list installed"
 COS_FIXBROKEN_CMD=""

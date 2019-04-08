@@ -106,39 +106,13 @@ dependencies:
   - CentOS:
     - name: epel-release
       version: latest
-    - name: python-pip
+    - name: python2-pip
       version: latest
     - name: python36-pip
       version: latest
       
   - rocm:
     - name: rocm-dkms
-      version: latest
-    - name: rocm-dev
-      version: latest
-    - name: rocm-libs
-      version: latest
-    - name: rocm-device-libs
-      version: latest
-    - name: hsa-ext-rocr-dev
-      version: latest
-    - name: hsakmt-roct-dev
-      version: latest
-    - name: hsa-rocr-dev
-      version: latest
-    - name: rocm-opencl
-      version: latest
-    - name: rocm-opencl-dev
-      version: latest
-    - name: rocm-utils
-      version: latest
-    - name: rocm-profiler
-      version: latest
-    - name: cxlactivitylogger
-      version: latest
-    - name: miopen-hip
-      version: latest
-    - name: miopengemm
       version: latest
 
   - py2:

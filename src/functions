@@ -684,16 +684,16 @@ function checkSys {
     # Check OS
     logPrint "STEP" "Checking OS"
     checkOs 
+    
+    # Check Global Dependencies
+    getYAMLValue "dependencies|globale|name" YAML_ARRAY DEPS_ARRAY
+    getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
+    __deps_array_checkSys=(${DEPS_ARRAY[@]})
+	__vers_array_checkSys=(${VER_ARRAY[@]})
 
     # Check Distro Dependencies
     getYAMLValue "dependencies|$RET_DISTRO|name" YAML_ARRAY DEPS_ARRAY
     getYAMLValue "dependencies|$RET_DISTRO|name|version" YAML_ARRAY VER_ARRAY
-    __deps_array_checkSys=(${DEPS_ARRAY[@]})
-	__vers_array_checkSys=(${VER_ARRAY[@]})
-
-    # Check Global Dependencies
-    getYAMLValue "dependencies|globale|name" YAML_ARRAY DEPS_ARRAY
-    getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
     __deps_array_checkSys+=(${DEPS_ARRAY[@]})
     __vers_array_checkSys+=(${VER_ARRAY[@]})
 
