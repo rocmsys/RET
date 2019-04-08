@@ -766,6 +766,7 @@ function checkBashVersion {
 	runCmd "cp $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old" "ERR"
 
 	logPrint "STEP" "Update Bash Version"
+	logPrint "NOTE" "This Script Require Bash Version -ge $REQ_BASH_VERSION. The Current Version is $__bash_ver"
 
 	# Confirmation message
 	confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
@@ -776,9 +777,10 @@ function checkBashVersion {
 
 	# Install the new bash version
 	startLoadBar "Install $BASH_FILENAME"
-	runCmd "./$TEMP_DIRECTRORY/$BASH_FILENAME/configure" "ERR"
-	runCmd "make -C $TEMP_DIRECTRORY/$BASH_FILENAME" "ERR"
-	runCmd "cp -f $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old" "ERR"
+	runCmd "cd $TEMP_DIRECTRORY/$BASH_FILENAME" "ERR"
+    runCmd "./configure" "ERR"
+    runCmd "make" "ERR"
+	runCmd "cp -f bash $__path_checkBashVersion" "ERR"
 
 	# Check the installation
 	ls -la bash >/dev/null 2>&1
@@ -787,9 +789,9 @@ function checkBashVersion {
                                       || stopLoadBar "Update Completed Successfully."
 
 	# Feedback info: The location of the old version, the current version
-	logPrint "NOTE" "A Backup of the previous version can be found here: $__path_checkBashVersion.$__bash_ver.old"
+	logPrint "NOTE" "A Backup Of The Previous Version Van Be Found Here: $__path_checkBashVersion.$__bash_ver.old"
 	__bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
-	logPrint "NOTE" "The current Bash Version is: $__bash_ver"
+	logPrint "NOTE" "The Current Bash Version is: $__bash_ver"
 
 	return 0;
 }
