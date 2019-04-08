@@ -56,10 +56,6 @@ dependencies:
       version: latest
     - name: cmake
       version: latest
-    - name: python-pip
-      version: latest
-    - name: python3-pip
-      version: latest
 
   - Ubuntu:
     - name: build-essential
@@ -102,11 +98,19 @@ dependencies:
       version: latest
     - name: libboost-filesystem-dev
       version: latest
+    - name: python-pip
+      version: latest
+    - name: python3-pip
+      version: latest
 
   - CentOS:
     - name: epel-release
       version: latest
-
+    - name: python-pip
+      version: latest
+    - name: python36-pip
+      version: latest
+      
   - rocm:
     - name: rocm-dkms
       version: latest
