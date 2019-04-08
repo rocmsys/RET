@@ -52,19 +52,25 @@ dependencies:
   - globale:
     - name: sudo
       version: latest
+    - name: clang
+      version: latest
+    - name: cmake
+      version: latest
+    - name: python-pip
+      version: latest
+    - name: python3-pip
+      version: latest
+
+  - Ubuntu:
     - name: build-essential
       version: latest
     - name: software-properties-common
       version: latest
     - name: gfortran
       version: latest
-    - name: clang
-      version: latest
     - name: clang-format
       version: latest
     - name: clang-tidy
-      version: latest
-    - name: cmake
       version: latest
     - name: cmake-qt-gui
       version: latest
@@ -96,9 +102,9 @@ dependencies:
       version: latest
     - name: libboost-filesystem-dev
       version: latest
-    - name: python-pip
-      version: latest
-    - name: python3-pip
+
+  - CentOS:
+    - name: epel-release
       version: latest
 
   - rocm:

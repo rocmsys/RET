@@ -675,6 +675,9 @@ function downloadFile {
 
 # Check system requirements
 function checkSys {
+	local __deps_array_checkSys=()
+	local __vers_array_checkSys=()
+
     # Pre-installation requirements
     preStart
 
@@ -682,10 +685,19 @@ function checkSys {
     logPrint "STEP" "Checking OS"
     checkOs 
 
-    # Check Dependencies
+    # Check Global Dependencies
     getYAMLValue "dependencies|globale|name" YAML_ARRAY DEPS_ARRAY
     getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
-    checkDeps DEPS_ARRAY VER_ARRAY
+    __deps_array_checkSys=(${DEPS_ARRAY[@]})
+	__vers_array_checkSys=(${VER_ARRAY[@]})
+
+    # Check Distro Dependencies
+    getYAMLValue "dependencies|$RET_DISTRO|name" YAML_ARRAY DEPS_ARRAY
+    getYAMLValue "dependencies|$RET_DISTRO|name|version" YAML_ARRAY VER_ARRAY
+    __deps_array_checkSys+=(${DEPS_ARRAY[@]})
+    __vers_array_checkSys+=(${VER_ARRAY[@]})
+
+    checkDeps __deps_array_checkSys __vers_array_checkSys
 }
 
 # Check if system reboot required
@@ -809,7 +821,6 @@ function whatDistro {
 
 	case $RET_DISTRO in
 		CentOS)
-			runCmd "yum install epel-release" "ERR"
 			updateCmdArray "COS";;
 		Ubuntu)
 			;; # per default initialized
