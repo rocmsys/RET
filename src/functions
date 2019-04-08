@@ -525,7 +525,7 @@ function removePkg {
 	local __dep_removePkg
 
     for dep in "${__packages_removePkg[@]}"; do
-    	__cmd_removePkg="apt-get autoremove -qq -y"
+    	__cmd_removePkg=${!RET_CMDS_ARRAY[RET_REMOVE_CMD]}
     	__rm_msg_removePkg="Uninstalled"
 
     	# Extract the package handling utility
@@ -536,14 +536,12 @@ function removePkg {
 
         startLoadBar "Uninstalling Package: ${__dep_removePkg}"
 
-        if isPrgInstalled "${__dep_removePkg}:${__phu_removePkg}"; then 
-        	${__cmd_removePkg} "${__dep_removePkg}" >/dev/null 2>&1
+        if isPrgInstalled "${__dep_removePkg}:${__phu_removePkg}"; then
+        	runCmd "${__cmd_removePkg} ${__dep_removePkg}" "ERR"
         else
         	__rm_msg_removePkg="Already uninstalled"
         fi
 
-        __cmd_ret_removePkg="$?"
-        checkReturn "$__cmd_ret_removePkg" "${__cmd_removePkg} ${__dep_removePkg}" "ERR"
         logPrint "DET" "${__dep_removePkg}" "${__rm_msg_removePkg}" "${SUCC}"
     done
 
@@ -773,7 +771,7 @@ function checkBashVersion {
 	confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
 
 	# Download and extract the bash package
-	downloadFile "$BASH_URL" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
+	downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
 	runCmd "tar zxvf $TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension" "ERR"
 
 	# Install the new bash version
