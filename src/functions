@@ -765,7 +765,6 @@ function checkBashVersion {
 	local __path_checkBashVersion
 	local __file_extension="tar.gz"
 	local __cmd_ret_checkBashVersion
-	local __cmd_array_checkBashVersion
 
 	#__bash_ver=$(echo $BASH_VERSION | sed 's/^\([0-9]*.[0-9]*\).*/\1/g')
 	__bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
@@ -773,24 +772,35 @@ function checkBashVersion {
 
 	# Get bash location and Create bash Backup
 	__path_checkBashVersion=$(which bash)
-	__cmd_array_checkBashVersion=("cp $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old"); runCmd __cmd_array_checkBashVersion "ERR"
-
-	logPrint "STEP" "Update Bash Version"
-	logPrint "NOTE" "This Script Require Bash Version -ge $REQ_BASH_VERSION. The Current Version is $__bash_ver"
+	cp "$__path_checkBashVersion" "$__path_checkBashVersion.$__bash_ver.old"
+	__cmd_ret_checkBashVersion="$?"
+    checkReturn "$__cmd_ret_checkBashVersion" "cp $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old" "ERR"
 
 	# Confirmation message
+	logPrint "STEP" "Update Bash Version"
+	logPrint "NOTE" "This Script Require Bash Version -ge $REQ_BASH_VERSION. The Current Version is $__bash_ver"
 	confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
 
 	# Download and extract the bash package
 	downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
-	__cmd_array_checkBashVersion=("tar zxvf $TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension"); runCmd __cmd_array_checkBashVersion "ERR"
+	tar zxvf "$TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension"
+	__cmd_ret_checkBashVersion="$?"
+    checkReturn "$__cmd_ret_checkBashVersion" "tar zxvf $TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension" "ERR"
 
 	# Install the new bash version
 	startLoadBar "Install $BASH_FILENAME"
-	__cmd_array_checkBashVersion=("cd $TEMP_DIRECTRORY/$BASH_FILENAME"); runCmd __cmd_array_checkBashVersion "ERR"
-    __cmd_array_checkBashVersion=("./configure"); runCmd __cmd_array_checkBashVersion "ERR"
-    __cmd_array_checkBashVersion=("make"); runCmd __cmd_array_checkBashVersion "ERR"
-	__cmd_array_checkBashVersion=("cp -f bash $__path_checkBashVersion"); runCmd __cmd_array_checkBashVersion "ERR"
+	cd "$TEMP_DIRECTRORY/$BASH_FILENAME"
+    ./configure >/dev/null 2>&1
+    __cmd_ret_checkBashVersion="$?"
+    checkReturn "$__cmd_ret_checkBashVersion" "./configure" "ERR"
+
+    make >/dev/null 2>&1
+    __cmd_ret_checkBashVersion="$?"
+    checkReturn "$__cmd_ret_checkBashVersion" "make" "ERR"
+
+	cp -f "bash" "$__path_checkBashVersion" >/dev/null 2>&1
+	__cmd_ret_checkBashVersion="$?"
+	checkReturn "$__cmd_ret_checkBashVersion" "cp -f bash $__path_checkBashVersion" "ERR"
 
 	# Check the installation
 	ls -la bash >/dev/null 2>&1
@@ -804,6 +814,8 @@ function checkBashVersion {
 	logPrint "NOTE" "The Current Bash Version is: $__bash_ver"
 	logPrint "DONE" "Reboot Script Required! Please re-run this script."
 
+	# Restart this script
+	$0 "$@"; exit 0;
 	return 0;
 }
 
