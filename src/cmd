@@ -253,8 +253,8 @@ function runPreInstallation {
         ROCm)
             # Add the ROCm apt repository
             startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Add the ROCm apt repository"; printf '\n'
-            wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
-            echo 'deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main' | tee /etc/apt/sources.list.d/rocm.list >/dev/null 2>&1
+            [ "$RET_DISTRO" = "Ubuntu" ] && wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
+            echo "$RET_DISTRO_ROCM_REPO_TEXT" > "$RET_DISTRO_ROCM_REPO" >/dev/null 2>&1
             stopLoadBar
         ;;
 
@@ -289,7 +289,7 @@ function runPostInstallation {
             usermod -aG video $SUDO_USER
 
             # Put the ROCm binaries in PATH
-            echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' | sudo tee -a /etc/profile.d/rocm.sh >/dev/null 2>&1
+            echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' >> /etc/profile.d/rocm.sh >/dev/null 2>&1
             source /etc/profile.d/rocm.sh >/dev/null 2>&1
             stopLoadBar
         ;;

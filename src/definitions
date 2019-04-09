@@ -30,6 +30,12 @@ UBUNTU_KERNEL_URL="kernel.ubuntu.com/~kernel-ppa/mainline/"
 TF_BENCHMARKS_URL="https://github.com/tensorflow/benchmarks.git"
 BASH_URL="https://ftp.gnu.org/gnu/bash/"
 
+Ubuntu_ROCM_REPO="/etc/apt/sources.list.d/rocm.list"
+CentOS_ROCM_REPO="/etc/yum.repos.d/rocm.repo"
+Ubuntu_ROCM_REPO_TEXT="deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main"
+CentOS_ROCM_REPO_TEXT="[ROCm] name=ROCm baseurl=http://repo.radeon.com/rocm/yum/rpm enabled=1 gpgcheck=0"
+
+
 # Scop
 EMPTY_ARRAY=()
 VERSION="0.1.x"
