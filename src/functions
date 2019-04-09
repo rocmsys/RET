@@ -875,9 +875,6 @@ function preStart {
 	# Clear the terminal
 	tput clear
 
-	# init the log file
-	initLog
-
 	# Update Bash version if required
 	checkBashVersion
 

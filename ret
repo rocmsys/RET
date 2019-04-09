@@ -6,13 +6,17 @@
 # Trap ctr-c
 trap exitAll SIGINT
 
+# init the log file
+initLog
+ret_args="$@"
+
 # Check privileges
 if ! isSudo; then 
-    logPrint "ERR" "Please run the following command instead!" "sudo $0 $@" "${FAIL}"
+    logPrint "ERR" "Please run the following command instead!" "sudo $0 $ret_args" "${FAIL}"
 fi
 
 # run pre-start setup
 preStart
 
-[ $# = 0 ] && { printUsage; exit; } || parseArgs "$@" 
+[ $# = 0 ] && { printUsage; exit; } || parseArgs "$ret_args" 
 
