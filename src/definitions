@@ -33,7 +33,7 @@ BASH_URL="https://ftp.gnu.org/gnu/bash/"
 Ubuntu_ROCM_REPO="/etc/apt/sources.list.d/rocm.list"
 CentOS_ROCM_REPO="/etc/yum.repos.d/rocm.repo"
 Ubuntu_ROCM_REPO_TEXT="deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main"
-CentOS_ROCM_REPO_TEXT="[ROCm] name=ROCm baseurl=http://repo.radeon.com/rocm/yum/rpm enabled=1 gpgcheck=0"
+CentOS_ROCM_REPO_TEXT="[ROCm]\nname=ROCm\nbaseurl=http://repo.radeon.com/rocm/yum/rpm\nenabled=1\ngpgcheck=0"
 
 
 # Scop

@@ -140,6 +140,12 @@ dependencies:
       version: latest
     - name: miopengemm
       version: latest
+    - Ubuntu:
+      - name: rocm-opencl-dev
+        version: latest
+    - CentOS:
+      - name: rocm-opencl-devel
+        version: latest
 
   - py2:
     - name: python-dev
