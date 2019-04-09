@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Include files
+PWD=$(pwd)
 SRC="${BASH_SOURCE%/*}"
 if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 

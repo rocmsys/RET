@@ -761,62 +761,67 @@ function toLog {
 
 # Check Bash Version and Update it if requiered
 function checkBashVersion {
-	local __bash_ver
-	local __path_checkBashVersion
-	local __file_extension="tar.gz"
-	local __cmd_ret_checkBashVersion
+    local __bash_ver
+    local __path_checkBashVersion
+    local __file_extension="tar.gz"
+    local __cmd_ret_checkBashVersion
+    local __retPath_checkBashVersion=$(pwd)
 
-	#__bash_ver=$(echo $BASH_VERSION | sed 's/^\([0-9]*.[0-9]*\).*/\1/g')
-	__bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
-	[ $(echo "$__bash_ver >= $REQ_BASH_VERSION"|bc) -eq 1 ] && return 0
+    #__bash_ver=$(echo $BASH_VERSION | sed 's/^\([0-9]*.[0-9]*\).*/\1/g')
+    __bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
+    [ $(echo "$__bash_ver >= $REQ_BASH_VERSION"|bc) -eq 1 ] && return 0
 
-	# Get bash location and Create bash Backup
-	__path_checkBashVersion=$(which bash)
-	cp "$__path_checkBashVersion" "$__path_checkBashVersion.$__bash_ver.old"
-	__cmd_ret_checkBashVersion="$?"
+    # Get bash location and Create bash Backup
+    __path_checkBashVersion=$(which bash)
+    cp "$__path_checkBashVersion" "$__path_checkBashVersion.$__bash_ver.old" >/dev/null 2>&1
+    __cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "cp $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old" "ERR"
 
-	# Confirmation message
-	logPrint "STEP" "Update Bash Version"
-	logPrint "NOTE" "This Script Require Bash Version >= $REQ_BASH_VERSION. The Current Version is $__bash_ver"
-	confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
+    # Confirmation message
+    logPrint "STEP" "Update Bash Version"
+    logPrint "NOTE" "This Script Require Bash Version >= $REQ_BASH_VERSION. The Current Version is $__bash_ver"
+    confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
 
-	# Download and extract the bash package
-	downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
-	tar zxvf "$TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension"
-	__cmd_ret_checkBashVersion="$?"
-    checkReturn "$__cmd_ret_checkBashVersion" "tar zxvf $TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension" "ERR"
+    # Download and extract the bash package
+    downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
 
-	# Install the new bash version
-	startLoadBar "Install $BASH_FILENAME"
+    tar zxvf "$TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension" -C "$TEMP_DIRECTRORY" >/dev/null 2>&1
+    __cmd_ret_checkBashVersion="$?"
+    checkReturn "$__cmd_ret_checkBashVersion" "tar zxvf $TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension -C $TEMP_DIRECTRORY" "ERR"
+
+    # Install the new bash version
+    startLoadBar "Install $BASH_FILENAME"
+
 	cd "$TEMP_DIRECTRORY/$BASH_FILENAME"
     ./configure >/dev/null 2>&1
     __cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "./configure" "ERR"
 
     make >/dev/null 2>&1
-    __cmd_ret_checkBashVersion="$?"
+	__cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "make" "ERR"
 
-	cp -f "bash" "$__path_checkBashVersion" >/dev/null 2>&1
-	__cmd_ret_checkBashVersion="$?"
-	checkReturn "$__cmd_ret_checkBashVersion" "cp -f bash $__path_checkBashVersion" "ERR"
+    cp -f "bash" "$__path_checkBashVersion" >/dev/null 2>&1
+    __cmd_ret_checkBashVersion="$?"
+    checkReturn "$__cmd_ret_checkBashVersion" "cp -f bash $__path_checkBashVersion" "ERR"
 
-	# Check the installation
-	ls -la bash >/dev/null 2>&1
-	__cmd_ret_checkBashVersion="$?"
+    # Check the installation
+    ls -la bash >/dev/null 2>&1
+    __cmd_ret_checkBashVersion="$?"
+
+    # Back to the RET folder
+    cd "$__retPath_checkBashVersion"
+
     [ $__cmd_ret_checkBashVersion -ne 0 ] && stopLoadBar "There was a problem installing $BASH_FILENAME!" "ERR" "make -C $TEMP_DIRECTRORY/$BASH_FILENAME" \
                                       || stopLoadBar "Update Completed Successfully."
 
-	# Feedback info: The location of the old version, the current version
-	logPrint "NOTE" "A Backup Of The Previous Version Van Be Found Here: $__path_checkBashVersion.$__bash_ver.old"
-	__bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
-	logPrint "NOTE" "The Current Bash Version is: $__bash_ver"
-	logPrint "DONE" "Reboot Script Required! Please re-run this script."
+    # Feedback info: The location of the old version, the current version
+    logPrint "NOTE" "A Backup Of The Previous Version Van Be Found Here: $__path_checkBashVersion.$__bash_ver.old"
+    __bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
+    logPrint "NOTE" "The Current Bash Version is: $__bash_ver"
 
-	# Restart this script
-	$0 "$@"; exit 0;
-	return 0;
+    # Restart this script
+    $0 $ret_args; exit 0;
 }
 
 # Run Command and check the return value
