@@ -128,8 +128,6 @@ dependencies:
       version: latest
     - name: rocm-opencl
       version: latest
-    - name: rocm-opencl-dev
-      version: latest
     - name: rocm-utils
       version: latest
     - name: rocm-profiler
