@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Clear the terminal
-tput clear
-
 # Include files
 . src/definitions
 
@@ -14,9 +11,8 @@ if ! isSudo; then
     logPrint "ERR" "Please run the following command instead!" "sudo $0" "${FAIL}"
 fi
 
-# Update commands by distro
-whatDistro
-
+# run pre-start setup
+preStart
 
 [ $# = 0 ] && { printUsage; exit; } || parseArgs "$@" 
 

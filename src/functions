@@ -17,33 +17,41 @@ function logPrint {
 	    printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
 	    echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
 	    printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+
     # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then
         echo -ne "${SUBSTEP}${__title}...${END}\r" 
+
     # Detailed info
     elif [ "${__type}" = "DET" ]; then
         local __state=$4
         local __msg=$(printf '\t%-28s' "${__title}")
         printf '%-42s' "$__msg .........."
         echo -e "${__state}${__value}${END}";
+
     # Success confirmation
     elif [ "${__type}" = "DONE" ]; then
         echo
     	echo -e "${DONE}${__title}${END}";
+
     # Error and exit
     elif [ "${__type}" = "ERR" ]; then
         echo
     	echo -e "${ERR}${__title}...[${__value}]${END}";
     	toLog "${__type}" "${__title} [${__value}]"
         exitAll 2
+
     # Warning
     elif [ "${__type}" = "WARN" ]; then
         echo
     	echo -e "${WARN}${__title}...[${__value}]${END}";
+
     # Info
     elif [ "${__type}" = "NOTE" ]; then
         echo
     	echo -e "${NOTE}${__title}${END}";
+
+    # Default
     else
         echo
     	echo -e "${NOTE}${__title}${END}";
@@ -431,6 +439,7 @@ function installPkg {
     local -n __packages=$1
     local __cmd_ret_installPkg
     local __cmd_installPkg=${!RET_CMDS_ARRAY[RET_INSTALL_CMD]}
+	local __cmd_array_installPkg=()
 
     local __pkg_name_installPkg
     local __pkg_vers_installPkg
@@ -439,10 +448,10 @@ function installPkg {
 
     startLoadBar "Preparing for Installation"
     # fix broken dependencies in place
-    runCmd "${!RET_CMDS_ARRAY[RET_FIXBROKEN_CMD]}" "WARN"
+    __cmd_array_installPkg=("${!RET_CMDS_ARRAY[RET_FIXBROKEN_CMD]}"); runCmd __cmd_array_installPkg "WARN"
 
     # Updates the package lists
-    runCmd "${!RET_CMDS_ARRAY[RET_UPDATE_CMD]}" "WARN"
+    __cmd_array_installPkg=("${!RET_CMDS_ARRAY[RET_UPDATE_CMD]}"); runCmd __cmd_array_installPkg "WARN"
     stopLoadBar
 
     for dep in "${__packages[@]}"; do
@@ -454,12 +463,12 @@ function installPkg {
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install" #sudo pip isn't encouraged
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
-        runCmd "${__cmd_installPkg} ${__dep_installPkg}" "ERR"
+        __cmd_array_installPkg=("${__cmd_installPkg} ${__dep_installPkg}"); runCmd __cmd_array_installPkg "ERR"
         logPrint "DET" "${__dep_installPkg}" "Installed" "${SUCC}"
     done
 
     # Clean Archives cache
-    runCmd "${!RET_CMDS_ARRAY[RET_CLEAN_CMD]}" "WARN"
+    __cmd_array_installPkg=("${!RET_CMDS_ARRAY[RET_CLEAN_CMD]}"); runCmd __cmd_array_installPkg "WARN"
 
     stopLoadBar "The Installation Completed Successfully."
     return 0;
@@ -518,6 +527,7 @@ function removePkg {
     local -n __packages_removePkg=$1
     local __cmd_ret_removePkg
 	local __cmd_removePkg
+	local __cmd_array_removePkg=()
 	local __rm_msg_removePkg
 	local __pkg_name_removePkg
 	local __pkg_vers_removePkg
@@ -537,7 +547,8 @@ function removePkg {
         startLoadBar "Uninstalling Package: ${__dep_removePkg}"
 
         if isPrgInstalled "${__dep_removePkg}:${__phu_removePkg}"; then
-        	runCmd "${__cmd_removePkg} ${__dep_removePkg}" "ERR"
+        	__cmd_array_removePkg=("${__cmd_removePkg} ${__dep_removePkg}")
+        	runCmd __cmd_array_removePkg "ERR"
         else
         	__rm_msg_removePkg="Already uninstalled"
         fi
@@ -569,10 +580,7 @@ function checkReturn {
 
 # Install Necessary Packages and
 # read YAML file
-function preStart {
-    # init the log file
-    initLog
-
+function preRequirement {
     local __necessary_packages=("git" "tee" "curl" "wget" "lynx" "sed" "gawk" "rpm" "ssh")
     checkDeps __necessary_packages "" "Run Pre-installation Requirements"
 
@@ -677,7 +685,7 @@ function checkSys {
 	local __vers_array_checkSys=()
 
     # Pre-installation requirements
-    preStart
+    preRequirement
 
     # Check OS
     logPrint "STEP" "Checking OS"
@@ -715,8 +723,9 @@ function editFile {
     local __file_name_editFile=$1
     local __old_value_editFile=$2
     local __new_value_editFile=$3
-    sed -i 's|'"${__old_value_editFile}"'|'"${__new_value_editFile}"'|g' "${__file_name_editFile}" 2>/dev/null 
-    checkReturn "$?" "Cannot edit file: ${__file_name_editFile}" "ERR"
+
+    local __cmd_array_editFile=(sed -i 's|'"${__old_value_editFile}"'|'"${__new_value_editFile}"'|g' "${__file_name_editFile}")
+    runCmd __cmd_editFile "ERR" "Cannot edit file: ${__file_name_editFile}"
 }
 
 # Init the log file
@@ -756,6 +765,7 @@ function checkBashVersion {
 	local __path_checkBashVersion
 	local __file_extension="tar.gz"
 	local __cmd_ret_checkBashVersion
+	local __cmd_array_checkBashVersion
 
 	#__bash_ver=$(echo $BASH_VERSION | sed 's/^\([0-9]*.[0-9]*\).*/\1/g')
 	__bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
@@ -763,7 +773,7 @@ function checkBashVersion {
 
 	# Get bash location and Create bash Backup
 	__path_checkBashVersion=$(which bash)
-	runCmd "cp $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old" "ERR"
+	__cmd_array_checkBashVersion=("cp $__path_checkBashVersion $__path_checkBashVersion.$__bash_ver.old"); runCmd __cmd_array_checkBashVersion "ERR"
 
 	logPrint "STEP" "Update Bash Version"
 	logPrint "NOTE" "This Script Require Bash Version -ge $REQ_BASH_VERSION. The Current Version is $__bash_ver"
@@ -773,14 +783,14 @@ function checkBashVersion {
 
 	# Download and extract the bash package
 	downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
-	runCmd "tar zxvf $TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension" "ERR"
+	__cmd_array_checkBashVersion=("tar zxvf $TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension"); runCmd __cmd_array_checkBashVersion "ERR"
 
 	# Install the new bash version
 	startLoadBar "Install $BASH_FILENAME"
-	runCmd "cd $TEMP_DIRECTRORY/$BASH_FILENAME" "ERR"
-    runCmd "./configure" "ERR"
-    runCmd "make" "ERR"
-	runCmd "cp -f bash $__path_checkBashVersion" "ERR"
+	__cmd_array_checkBashVersion=("cd $TEMP_DIRECTRORY/$BASH_FILENAME"); runCmd __cmd_array_checkBashVersion "ERR"
+    __cmd_array_checkBashVersion=("./configure"); runCmd __cmd_array_checkBashVersion "ERR"
+    __cmd_array_checkBashVersion=("make"); runCmd __cmd_array_checkBashVersion "ERR"
+	__cmd_array_checkBashVersion=("cp -f bash $__path_checkBashVersion"); runCmd __cmd_array_checkBashVersion "ERR"
 
 	# Check the installation
 	ls -la bash >/dev/null 2>&1
@@ -792,42 +802,51 @@ function checkBashVersion {
 	logPrint "NOTE" "A Backup Of The Previous Version Van Be Found Here: $__path_checkBashVersion.$__bash_ver.old"
 	__bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
 	logPrint "NOTE" "The Current Bash Version is: $__bash_ver"
+	logPrint "DONE" "Reboot Script Required! Please re-run this script."
 
 	return 0;
 }
 
 # Run Command and check the return value
-# Input $1: Command
+# Input $1: Command Array (cmd + args)
 # Input $2: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
+# Input $3: Message (Optional)
 function runCmd {
-	local __cmd_runCmd="$1"
+	local -n __cmd_runCmd="$1"
 	local __err_type_runCmd="$2"
+	local __msg_runCmd="${3:-$__cmd_runCmd}"
 	local __cmd_ret_runCmd
 
-	if [ ! -z "${__cmd_runCmd}" ]; then
-		$__cmd_runCmd >/dev/null 2>&1
+	if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
+		${__cmd_runCmd[@]} >/dev/null 2>&1
 		__cmd_ret_runCmd="$?"
-		checkReturn "$__cmd_ret_runCmd" "$__cmd_runCmd" "$__err_type_runCmd"
+		checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd"
 	fi
 }
 
-function whatDistro {
+# Check what distro
+function updateCmd {
 	local __distro_updateCmd
 	local __release_updateCmd
 	local __kernel_updateCmd
 	local __arch_updateCmd
 
-	getOSInfo RET_DISTRO __release_updateCmd __kernel_updateCmd __arch_updateCmd
+	if [[ "$OSTYPE" == "linux-gnu" ]]; then
+    	getOSInfo RET_DISTRO __release_updateCmd __kernel_updateCmd __arch_updateCmd
 
-	case $RET_DISTRO in
-		CentOS)
-			updateCmdArray "COS";;
-		Ubuntu)
-			;; # per default initialized
-		*) echo "err"; exit 2;;
-	esac
+    	case $RET_DISTRO in
+			CentOS)
+				updateCmdArray "COS";;
+			Ubuntu)
+				;; # per default initialized
+			*) logPrint "ERR" "Distro Not Supported!" "$RET_DISTRO" "${FAIL}";;
+		esac
+    else
+        logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
+    fi
 }
 
+# Update the command by distro
 # Input $1: Distro Prefix
 function updateCmdArray {
 	local __distro_updateCmdArray="$1"
@@ -837,4 +856,19 @@ function updateCmdArray {
 		__cmd_name_updateCmdArray="${RET_CMDS_ARRAY[i]}"
 		RET_CMDS_ARRAY[i]="$__distro_updateCmdArray""_${__cmd_name_updateCmdArray#*_}"
 	done
+}
+
+# Run pre-Start setup
+function preStart {
+	# Clear the terminal
+	tput clear
+
+	# Update Bash version if required
+	checkBashVersion
+
+	# Update commands by distro
+	updateCmd
+
+	# init the log file
+	initLog
 }

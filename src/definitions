@@ -41,7 +41,7 @@ BATCH_SIZE=128
 # Run-time params
 TOTALSTEPS=12
 BEQUIET=false
-PYVER="py3"
+PYVER="py2"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
 
 # Debian cmds
@@ -59,10 +59,11 @@ COS_INSTALL_PKG_CMD="rpm -i"
 COS_REMOVE_CMD="yum autoremove -q -y"
 COS_UPDATE_CMD="yum check-update"
 COS_SEARCH_CMD="yum list installed"
-COS_FIXBROKEN_CMD=""
+COS_FIXBROKEN_CMD="$RET_IGNORE_CMD"
 COS_CLEAN_CMD="yum clean packages"
 
 # Commands
+RET_IGNORE_CMD="ret_ignore"
 RET_INSTALL_CMD=0
 RET_INSTALL_PKG_CMD=1
 RET_REMOVE_CMD=2

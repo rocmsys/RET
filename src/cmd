@@ -338,6 +338,7 @@ function runVerification {
 function rocmVerification {
     local __cmd_ret_rocmVerification
     local __cmd_rocmVerification="/opt/rocm/bin/rocminfo"
+    local __cmd_array_rocmVerification=()
     local __gpu_lshw
     local __gpu_clinfo
     local __key
@@ -351,14 +352,12 @@ function rocmVerification {
     __gpu_lshw=$(lshw -C display| grep "${__key}" | sed -n 's|'$__s"${__key}"$__s'||p')
 
     # Get GPU info with rocminfo
-    $__cmd_rocmVerification >/dev/null 2>&1
-    __cmd_ret_rocmVerification="$?"
-    checkReturn "$__cmd_ret_rocmVerification" "$__cmd_rocmVerification" "ERR"
+    __cmd_array_rocmVerification=("$__cmd_rocmVerification"); runCmd __cmd_array_rocmVerification "ERR"
 
     # Get GPU info with clinfo
     __cmd_rocmVerification="/opt/rocm/opencl/bin/x86_64/clinfo" 
     __key="Board name:"
-    __gpu_clinfo=$($__cmd_rocmVerification | grep "${__key}" | sed -n 's|'$__s"${__key}"$__s'||p')
+    __gpu_clinfo=$($__cmd_rocmVerification 2>/dev/null| grep "${__key}" | sed -n 's|'$__s"${__key}"$__s'||p')
     __cmd_ret_rocmVerification="$?"
     checkReturn "$__cmd_ret_rocmVerification" "$__cmd_rocmVerification" "ERR"
 
