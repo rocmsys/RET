@@ -778,7 +778,7 @@ function checkBashVersion {
 
 	# Confirmation message
 	logPrint "STEP" "Update Bash Version"
-	logPrint "NOTE" "This Script Require Bash Version -ge $REQ_BASH_VERSION. The Current Version is $__bash_ver"
+	logPrint "NOTE" "This Script Require Bash Version >= $REQ_BASH_VERSION. The Current Version is $__bash_ver"
 	confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
 
 	# Download and extract the bash package
@@ -875,12 +875,12 @@ function preStart {
 	# Clear the terminal
 	tput clear
 
+	# init the log file
+	initLog
+
 	# Update Bash version if required
 	checkBashVersion
 
 	# Update commands by distro
 	updateCmd
-
-	# init the log file
-	initLog
 }
