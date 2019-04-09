@@ -257,17 +257,17 @@ function runInstall {
 # Input $1: pkg name
 function runPreInstallation {
     local __pkg_name_runPreInstallation="$1"
-    local __repo_path_runPreInstallation                                                                                                          │············
+    local __repo_path_runPreInstallation
     local __repo_text_runPreInstallation
 
     case "$__pkg_name_runPreInstallation" in
         ROCm)
-            # Add the ROCm apt repository                                                                                                         │············
-            startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Add the ROCm apt repository"; printf '\n'                        │············
-            [ "$RET_DISTRO" = "Ubuntu" ] && wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1        │············
-            __repo_path_runPreInstallation="$RET_DISTRO""_ROCM_REPO"                                                                              │············
-            __repo_text_runPreInstallation="$RET_DISTRO""_ROCM_REPO_TEXT"                                                                         │············
-            echo -e "${!__repo_text_runPreInstallation}" | tee "${!__repo_path_runPreInstallation}" >/dev/null 2>&1                               │············
+            # Add the ROCm apt repository
+            startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Add the ROCm apt repository"; printf '\n'
+            [ "$RET_DISTRO" = "Ubuntu" ] && wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
+            __repo_path_runPreInstallation="$RET_DISTRO""_ROCM_REPO"
+            __repo_text_runPreInstallation="$RET_DISTRO""_ROCM_REPO_TEXT"
+            echo -e "${!__repo_text_runPreInstallation}" | tee "${!__repo_path_runPreInstallation}" >/dev/null 2>&1
             stopLoadBar
         ;;
 
