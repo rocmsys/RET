@@ -179,8 +179,6 @@ function installCmd {
     local -n __args_installCmd=$1
     local __pkg_name_installCmd=()
     local __pkg_ver_installCmd=()
-    local __pkg_name_concat_installCmd=()
-    local __pkg_ver_concat_installCmd=()
     local __index=-1
     local __isROCmInstalled_installCmd=0
     local __isTFInstalled_installCmd=0
@@ -198,14 +196,7 @@ function installCmd {
 	    case "$pkg" in
 	        rocm)
 		      buildPkgArray "$pkg" __pkg_name_installCmd __pkg_ver_installCmd __isROCmInstalled_installCmd
-              __pkg_name_concat_installCmd=("${__pkg_name_installCmd[@]}")
-              __pkg_ver_concat_installCmd=("${__pkg_ver_installCmd[@]}")
-
-              buildPkgArray "$pkg|$RET_DISTRO" __pkg_name_installCmd __pkg_ver_installCmd __isROCmInstalled_installCmd
-              __pkg_name_concat_installCmd=("${__pkg_name_concat_installCmd[@]}" "${__pkg_name_installCmd[@]}")
-              __pkg_ver_concat_installCmd=("${__pkg_ver_concat_installCmd[@]}" "${__pkg_ver_installCmd[@]}")
-
-              runInstall "ROCm" __pkg_name_concat_installCmd __pkg_ver_concat_installCmd "$__isROCmInstalled_installCmd"
+              runInstall "ROCm" __pkg_name_installCmd __pkg_ver_installCmd "$__isROCmInstalled_installCmd"
 		    ;;
 
 	        tensorflow)
@@ -407,8 +398,6 @@ function removeCmd {
     local -n __args_removeCmd=$1
     local __pkg_name_removeCmd=()
     local __pkg_ver_removeCmd=()
-    local __pkg_name_concat_removeCmd=()
-    local __pkg_ver_concat_removeCmd=()
     local __isROCmInstalled_removeCmd=0
     local __isTFInstalled_removeCmd=0
     local __isPTInstalled_removeCmd=0
@@ -424,14 +413,7 @@ function removeCmd {
         case "$pkg" in
             rocm)
               buildPkgArray "$pkg" __pkg_name_removeCmd __pkg_ver_removeCmd __isROCmInstalled_removeCmd
-              __pkg_name_concat_removeCmd=("${__pkg_name_removeCmd[@]}")
-              __pkg_ver_concat_removeCmd=("${__pkg_ver_removeCmd[@]}")
-
-              buildPkgArray "$pkg|$RET_DISTRO" __pkg_name_removeCmd __pkg_ver_removeCmd __isROCmInstalled_removeCmd
-              __pkg_name_concat_removeCmd=("${__pkg_name_concat_removeCmd[@]}" "${__pkg_name_removeCmd[@]}")
-              __pkg_ver_concat_removeCmd=("${__pkg_ver_concat_removeCmd[@]}" "${__pkg_ver_removeCmd[@]}")
-
-              runRemove "ROCm" __pkg_name_concat_removeCmd __pkg_ver_concat_removeCmd "$__isROCmInstalled_removeCmd"
+              runRemove "ROCm" __pkg_name_removeCmd __pkg_ver_removeCmd "$__isROCmInstalled_removeCmd"
             ;;
 
             tensorflow)

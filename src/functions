@@ -880,9 +880,9 @@ function preStart {
 	# Clear the terminal
 	tput clear
 
-	# Update Bash version if required
-	checkBashVersion
-
 	# Update commands by distro
 	updateCmd
+
+	# Update Bash version if required
+	checkBashVersion
 }
