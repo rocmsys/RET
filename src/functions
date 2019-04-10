@@ -707,11 +707,16 @@ function checkSys {
 }
 
 # Check if system reboot required
-# Input $1: boolean value to force reboot required (Optional)
+# Input $1: 0/1 value to force reboot required (Optional)
 function isRebootRequired {
-    if [ -f /var/run/reboot-required ] || [ "$1" = true ]; then
+    if [ -f /var/run/reboot-required ]; then
        logPrint "DONE" "Reboot Required! Please run this script after the reboot."
-       exit
+       exitAll 2
+
+    elif [ "$1" = 1 ]; then
+    	echo "ret_rocm" | tee -a /var/run/reboot-required >/dev/null 2>&1
+		logPrint "DONE" "Reboot Required! Please run this script after the reboot."
+       	exitAll 2
     fi
 }
 
@@ -827,11 +832,13 @@ function checkBashVersion {
 # Run Command and check the return value
 # Input $1: Command Array (cmd + args)
 # Input $2: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-# Input $3: Message (Optional)
+# Input $3: Ignore Check Process (Default flase)
+# Input $4: Message (Optional)
 function runCmd {
 	local -n __cmd_runCmd="$1"
 	local __err_type_runCmd="$2"
-	local __msg_runCmd="${3:-$__cmd_runCmd}"
+	local __ignore_check_runCmd="$3"
+	local __msg_runCmd="${4:-$__cmd_runCmd}"
 	local __cmd_ret_runCmd
 
 	if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then

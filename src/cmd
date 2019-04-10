@@ -236,9 +236,13 @@ function runInstall {
     # Run post installation
     [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
 
-    if (runVerification "$__pkg_name_runInstall"); then
+    runVerification "$__pkg_name_runInstall"
+
+    if [ $? -eq 0 ]; then
         [ "$__isInstalled_runInstall" -eq "1" ] && __msg_rocm="The ${__pkg_name_runInstall} installation was successful!" || __msg_rocm="It seems as if ${__pkg_name_runInstall} has already been properly installed!"
         logPrint "DONE" "${__msg_rocm}"
+    elif [ $? -eq 7 ]; then
+        exitAll 2
     else
         logPrint "ERR" "The ${__pkg_name_runInstall} installation was not completed successfully!"
     fi
@@ -350,20 +354,22 @@ function rocmVerification {
     local __ret_rocmVerification=1
 
     logPrint "STEP" "Verifing ROCm installation"
-    startLoadBar "Run ROCm Verification"; printf '\n'
+    startLoadBar "Run ROCm Verification"; printf '\n'; 
     # Get GPU info with lshw
     __key="product:"
     __gpu_lshw=$(lshw -C display| grep "${__key}" | sed -n 's|'$__s"${__key}"$__s'||p')
 
     # Get GPU info with rocminfo
-    __cmd_array_rocmVerification=("$__cmd_rocmVerification"); runCmd __cmd_array_rocmVerification "ERR"
+    $__cmd_rocmVerification >/dev/null 2>&1
+    __cmd_ret_rocmVerification="$?"
+    [ "$__cmd_ret_rocmVerification" -ne 0 ] && { isRebootRequired 1; return 7; }
 
     # Get GPU info with clinfo
     __cmd_rocmVerification="/opt/rocm/opencl/bin/x86_64/clinfo" 
     __key="Board name:"
     __gpu_clinfo=$($__cmd_rocmVerification 2>/dev/null| grep "${__key}" | sed -n 's|'$__s"${__key}"$__s'||p')
     __cmd_ret_rocmVerification="$?"
-    checkReturn "$__cmd_ret_rocmVerification" "$__cmd_rocmVerification" "ERR"
+    [ "$__cmd_ret_rocmVerification" -ne 0 ] && { isRebootRequired 1; return 7; }
 
     #if [ "$__gpu_lshw" = "$__gpu_clinfo" ]; then
     #    __ret_rocmVerification=0
