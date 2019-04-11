@@ -216,7 +216,7 @@ function parse_yaml {
     local __get_item_list='s|^\('$__s'\)-'$__s'\('$__w'\)'$__s':'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # - key: value
     local __get_map_list='s|^\('$__s'\)\('$__w'\)'$__s'[:-]'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # map detection key: value, key: 'value', key: "value"
 
-    cat $__file_name | \
+	cat $__file_name | \
         sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_il_cmt -e $__rm_bl -e $__get_item_list -e $__get_map_list | \
     
     awk -F$__fs 'BEGIN{
@@ -242,7 +242,7 @@ function parse_yaml {
     
 
     # remove the last char
-        if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
+    if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
 
     # Check if branch already exists
     # update if true; else insert new value
@@ -280,7 +280,7 @@ function yaml2arr {
 
     local __array=$(parse_yaml $__yaml_file)
     IFS=$'\r\n' eval  $__res_array='(${__array})'
-    #echo "${__res_array[3]}"
+    #echo "${__res_array[@]}"
 }
 
 # Get value yaml value by key
@@ -336,7 +336,7 @@ function isPrgInstalled {
 
     # Extract the package handling utility
     parsePkg "$1" __pkg_name_isPrgInstalled __pkg_vers_isPrgInstalled __phu_isPrgInstalled
-
+echo "${__pkg_name_isPrgInstalled}"
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
     	("${PYPI}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
@@ -694,14 +694,15 @@ function checkSys {
     # Check Global Dependencies
     getYAMLValue "dependencies|globale|name" YAML_ARRAY DEPS_ARRAY
     getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
-    __deps_array_checkSys=(${DEPS_ARRAY[@]})
-	__vers_array_checkSys=(${VER_ARRAY[@]})
+    __deps_array_checkSys=("${DEPS_ARRAY[@]}")
+	__vers_array_checkSys=("${VER_ARRAY[@]}")
 
     # Check Distro Dependencies
     getYAMLValue "dependencies|$RET_DISTRO|name" YAML_ARRAY DEPS_ARRAY
     getYAMLValue "dependencies|$RET_DISTRO|name|version" YAML_ARRAY VER_ARRAY
-    __deps_array_checkSys+=(${DEPS_ARRAY[@]})
-    __vers_array_checkSys+=(${VER_ARRAY[@]})
+
+    __deps_array_checkSys+=("${DEPS_ARRAY[@]}")
+    __vers_array_checkSys+=("${VER_ARRAY[@]}")
 
     checkDeps __deps_array_checkSys __vers_array_checkSys
 }

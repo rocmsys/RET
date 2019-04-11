@@ -104,13 +104,17 @@ dependencies:
       version: latest
     - name: python3-pip
       version: latest
+    - name: kernel-headers-`uname -r`
+      version: latest
+    - name: kernel-devel-`uname -r`
+      version: latest  
 
   - CentOS:
     - name: epel-release
       version: latest
-    - name: kernel-headers-`uname -r`
+    - name: kernel-headers-
       version: latest
-    - name: kernel-devel-`uname -r`
+    - name: kernel-devel-
       version: latest  
     - name: python2-pip
       version: latest

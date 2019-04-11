@@ -222,10 +222,10 @@ function installCmd {
 # Input $3: ver array
 # Input $4: is pkgs already installed
 function runInstall {
-    local __pkg_name_runInstall=$1
-    local -n __pkg_name_array_runInstall=$2
-    local -n __pkg_vers_array_runInstall=$3
-    local __isInstalled_runInstall=$4
+    local __pkg_name_runInstall="$1"
+    local -n __pkg_name_array_runInstall="$2"
+    local -n __pkg_vers_array_runInstall="$3"
+    local __isInstalled_runInstall="$4"
 
     # Run pre installation
     [ "$__isInstalled_runInstall" -eq "1" ] && runPreInstallation "${__pkg_name_runInstall}"
