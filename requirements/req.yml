@@ -51,6 +51,8 @@ os_support:
 dependencies:
   - globale:
     - name: sudo
+      version: latest    
+    - name: dkms
       version: latest
     - name: clang
       version: latest
@@ -106,6 +108,10 @@ dependencies:
   - CentOS:
     - name: epel-release
       version: latest
+    - name: kernel-headers-`uname -r`
+      version: latest
+    - name: kernel-devel-`uname -r`
+      version: latest  
     - name: python2-pip
       version: latest
     - name: python36-pip
