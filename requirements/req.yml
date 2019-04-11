@@ -1,7 +1,7 @@
 # Use | to split between different value of the same item
 # Use ">=4.13 <=4.15" to describe a range of value of the same item. This will be interpreted as 4.13|4.14|4.15
 # Use : to indicate which package handling utility to use. Option is: pip
-
+# Value between `` will be interpreted as shell command. e.g. `uname -r`
 ---
 # General informations
 name: RET
@@ -51,8 +51,6 @@ os_support:
 dependencies:
   - globale:
     - name: sudo
-      version: latest    
-    - name: dkms
       version: latest
     - name: clang
       version: latest
@@ -103,19 +101,17 @@ dependencies:
     - name: python-pip
       version: latest
     - name: python3-pip
-      version: latest
-    - name: kernel-headers-`uname -r`
-      version: latest
-    - name: kernel-devel-`uname -r`
       version: latest  
 
   - CentOS:
     - name: epel-release
       version: latest
-    - name: kernel-headers-
+    - name: kernel-headers-`uname -r`
       version: latest
-    - name: kernel-devel-
-      version: latest  
+    - name: kernel-devel-`uname -r`
+      version: latest 
+    - name: dkms
+      version: latest
     - name: python2-pip
       version: latest
     - name: python36-pip

@@ -24,8 +24,9 @@ function logPrint {
 
     # Detailed info
     elif [ "${__type}" = "DET" ]; then
-        local __state=$4
-        local __msg=$(printf '\t%-28s' "${__title}")
+    	local __new__title="${__title}"
+        local __state=$4; [ ${#__title} -gt 28 ] && __new__title="${__title:0:25}..."
+        local __msg=$(printf '\t%-28s' "${__new__title}")
         printf '%-42s' "$__msg .........."
         echo -e "${__state}${__value}${END}";
 
@@ -165,7 +166,7 @@ function checkDeps {
 
     logPrint "STEP" "${__title_checkDeps}"
     for dep in "${__name_array[@]}"; do
-        [ -z "${dep}" ] && continue || __pkg_name_checkDeps=(${dep//:/ });
+        [ -z "${dep}" ] && continue || __pkg_name_checkDeps=("${dep//:/ }");
 
         if isPrgInstalled "${dep}"; then
             logPrint "DET" "${__pkg_name_checkDeps}" "Found" "${SUCC}"
@@ -188,8 +189,8 @@ function checkDeps {
         if (confirmYn "Install dependencies? [Y/n] "); then
             installPkg __DEPS_TOINSTALL
         else
-        logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
-    fi
+	        logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
+	    fi
     fi
 }
 
@@ -280,7 +281,7 @@ function yaml2arr {
 
     local __array=$(parse_yaml $__yaml_file)
     IFS=$'\r\n' eval  $__res_array='(${__array})'
-    #echo "${__res_array[@]}"
+    #echo "${__array[@]}"
 }
 
 # Get value yaml value by key
@@ -290,16 +291,26 @@ function yaml2arr {
 function getYAMLValue {
     local __key=$1
     local -n __ref_yaml_array=$2
-    local __ref_yaml_val_array=$3
-    
+    local __ref_yaml_val_array="$3"
+    local __yaml_array=()
+
     if isInArray "__ref_yaml_array" "${__key}:=" INDEX; then
         local __value="${__ref_yaml_array[$INDEX]#*:=}" # get the value part
-        IFS=$';' eval  $__ref_yaml_val_array='(${__value})'
+        local __yaml_array_item
+
+        IFS=$';' eval __yaml_array='(${__value})'
+
+        # interpret value if required
+        for ((i=0; i<"${#__yaml_array[@]}"; i++)); do
+    		__yaml_array_item="${__yaml_array[i]}"
+    		[[ "${__yaml_array_item}" == *'`'* ]] && eval __yaml_array[i]="${__yaml_array_item}" || __yaml_array[i]="${__yaml_array_item}"
+		done
+        eval $__ref_yaml_val_array='(${__yaml_array[@]})'
+
         return 0;
     else
         logPrint "ERR" "No value Found with this key!" "$__key" "${FAIL}"
-
-    return 1;
+		return 1;
     fi
 }
 
@@ -336,7 +347,7 @@ function isPrgInstalled {
 
     # Extract the package handling utility
     parsePkg "$1" __pkg_name_isPrgInstalled __pkg_vers_isPrgInstalled __phu_isPrgInstalled
-echo "${__pkg_name_isPrgInstalled}"
+
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
     	("${PYPI}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
@@ -700,7 +711,6 @@ function checkSys {
     # Check Distro Dependencies
     getYAMLValue "dependencies|$RET_DISTRO|name" YAML_ARRAY DEPS_ARRAY
     getYAMLValue "dependencies|$RET_DISTRO|name|version" YAML_ARRAY VER_ARRAY
-
     __deps_array_checkSys+=("${DEPS_ARRAY[@]}")
     __vers_array_checkSys+=("${VER_ARRAY[@]}")
 
@@ -843,7 +853,7 @@ function runCmd {
 	local __cmd_ret_runCmd
 
 	if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
-		${__cmd_runCmd[@]} >/dev/null 2>&1
+		eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
 		__cmd_ret_runCmd="$?"
 		checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd"
 	fi
