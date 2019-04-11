@@ -16,8 +16,7 @@ at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.
   - Ubuntu: 
       - 16.04
       - 18.04
-  - RedHat # not yet
-  - CentOS # not yet
+  - CentOS 7.6   # Tensorflow run on Docker 
 ## Prerequisites
 *Note*: it is required to start with a clean system
 
