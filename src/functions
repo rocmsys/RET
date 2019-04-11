@@ -462,7 +462,7 @@ function installPkg {
     __cmd_array_installPkg=("${!RET_CMDS_ARRAY[RET_FIXBROKEN_CMD]}"); runCmd __cmd_array_installPkg "WARN"
 
     # Updates the package lists
-    __cmd_array_installPkg=("${!RET_CMDS_ARRAY[RET_UPDATE_CMD]}"); runCmd __cmd_array_installPkg "WARN"
+    __cmd_array_installPkg=("${!RET_CMDS_ARRAY[RET_UPDATE_CMD]}"); runCmd __cmd_array_installPkg "WARN" "0"
     stopLoadBar
 
     for dep in "${__packages[@]}"; do
@@ -843,19 +843,19 @@ function checkBashVersion {
 # Run Command and check the return value
 # Input $1: Command Array (cmd + args)
 # Input $2: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-# Input $3: Ignore Check Process (Default flase)
+# Input $3: Ignore Check Process (Default 1)
 # Input $4: Message (Optional)
 function runCmd {
 	local -n __cmd_runCmd="$1"
 	local __err_type_runCmd="$2"
-	local __ignore_check_runCmd="$3"
+	local __ignore_check_runCmd="${3:-0}"
 	local __msg_runCmd="${4:-$__cmd_runCmd}"
 	local __cmd_ret_runCmd
 
 	if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
 		eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
 		__cmd_ret_runCmd="$?"
-		checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd"
+		[ "${__ignore_check_runCmd}" -eq 0 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd"
 	fi
 }
 
