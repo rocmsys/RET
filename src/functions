@@ -785,8 +785,10 @@ function checkBashVersion {
     local __file_extension="tar.gz"
     local __cmd_ret_checkBashVersion
     local __retPath_checkBashVersion=$(pwd)
+    local __cmd_array_checkBashVersion=()
 
-    #__bash_ver=$(echo $BASH_VERSION | sed 's/^\([0-9]*.[0-9]*\).*/\1/g')
+    # Compare version need command line calculator
+    __cmd_array_checkBashVersion=("${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc"); runCmd __cmd_array_checkBashVersion "ERR"
     __bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
     [ $(echo "$__bash_ver >= $REQ_BASH_VERSION"|bc) -eq 1 ] && return 0
 
