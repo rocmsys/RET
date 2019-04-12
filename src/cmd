@@ -36,6 +36,7 @@ function printUsage {
     echo -e "    [-v|--version]                     ${FG_LIGHT_BLUE}: Show version of this package${END}"
     echo -e "    [-V|--verbose]                     ${FG_LIGHT_BLUE}: Be verbose${END}"
     echo -e "    [-q|--quiet]                       ${FG_LIGHT_BLUE}: Be quiet and omit progress indicators${END}"
+    echo -e "    [-y|--yes]                         ${FG_LIGHT_BLUE}: Skip confirmation message${END}"
     echo -e "    [-b|--benchmark]                   ${FG_LIGHT_BLUE}: Run benchmark${END}"
     echo -e "    [-d|--dryrun]                      ${FG_LIGHT_BLUE}: Show what would be happened${END}"
     echo -e ""
@@ -65,7 +66,12 @@ function parseArgs {
         -h | --help)
           printUsage
           exit
-         ;;
+        ;;
+
+        -y | --yes)
+          FORCEYES=true
+          shift
+        ;;
 
         -py2)
           __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py2\""; PYVER="py2"; __hasPY_parseArgs=0

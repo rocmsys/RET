@@ -427,11 +427,14 @@ function fileSanityCheck {
 # Input $1: message (optional)
 # Return 0,1
 function confirmYn {
-    read -r -p "${1:-Do you want to continue? [Y/n] }" REPLY
+	local __return_confirmYn=1
+
+    [ "${FORCEYES}" = "false" ] && read -r -p "${1:-Do you want to continue? [Y/n] }" REPLY || REPLY="Y"
     if [[ ${REPLY} =~ ^[Yy] ]] || [[ -z "${REPLY}" ]]; then
-        return 0;
+        __return_confirmYn=0
     fi
-    return 1;
+    toLog "INFO" "${1:-Do you want to continue? [Y/n] }[${REPLY}]" 
+    return "$__return_confirmYn";
 }
 
 # Check if user has sudo or root privileges

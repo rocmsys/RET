@@ -48,6 +48,7 @@ BATCH_SIZE=128
 # Run-time params
 TOTALSTEPS=12
 BEQUIET=false
+FORCEYES=false
 PYVER="py2"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
 
