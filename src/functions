@@ -788,9 +788,11 @@ function checkBashVersion {
     local __cmd_array_checkBashVersion=()
 
     # Compare version need command line calculator
+    startLoadBar "Check Bash Version"
     __cmd_array_checkBashVersion=("${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc"); runCmd __cmd_array_checkBashVersion "ERR"
     __bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
     [ $(echo "$__bash_ver >= $REQ_BASH_VERSION"|bc) -eq 1 ] && return 0
+    stopLoadBar
 
     # Get bash location and Create bash Backup
     __path_checkBashVersion=$(which bash)
