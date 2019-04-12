@@ -796,6 +796,7 @@ function checkBashVersion {
     # Confirmation message
     logPrint "STEP" "Update Bash Version"
     logPrint "NOTE" "This Script Require Bash Version >= $REQ_BASH_VERSION. The Current Version is $__bash_ver"
+    logPrint "NOTE" "A Backup is Created From The Current Version $__bash_ver"
     confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
 
     # Download and extract the bash package
@@ -832,7 +833,7 @@ function checkBashVersion {
                                       || stopLoadBar "Update Completed Successfully."
 
     # Feedback info: The location of the old version, the current version
-    logPrint "NOTE" "A Backup Of The Previous Version Van Be Found Here: $__path_checkBashVersion.$__bash_ver.old"
+    logPrint "NOTE" "A Backup Of The Previous Version Can Be Found Here: $__path_checkBashVersion.$__bash_ver.old"
     __bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
     logPrint "NOTE" "The Current Bash Version is: $__bash_ver"
 
