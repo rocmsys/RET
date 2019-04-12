@@ -7,12 +7,17 @@
 # Input $4: kernel type
 # Input $5: Output Path
 function getKernel {
+    local __kernel_type_getKernel="$4" 
+    # Set generic kernel as default
+    [ "$__kernel_type_getKernel" != "generic" ] || [ "$__kernel_type_getKernel" != "lowlatency" ] && __kernel_type_getKernel="generic"
+    
+
     # Get the last kernel version
     startLoadBar "Fetch the kernel URL"
     local __valid_chars='[a-zA-Z0-9.-]*'
     local __cmd_ret_getkernel=($(curl -sL "$1?C=M;O=D" | grep v"$2" | sed -n 's/.*href="\('$__valid_chars'\).*/\1/p' | awk '{print($0)}'))
     local __kernel_version="${__cmd_ret_getkernel[0]}"
-    
+
     [[ -z "${__kernel_version}" ]] && logPrint "ERR" "No kernel found with this version!" "$2" "${FAIL}"
 
     # Get download URLs
@@ -20,25 +25,23 @@ function getKernel {
     [[ -z "${__cmd_ret_getkernel}" ]] && logPrint "ERR" "No kernel found with this version!" "${__kernel_version}" "${FAIL}"
     stopLoadBar
 
-
-
     # Download the shared headers
     local __kernel_headers_all="$(echo "$__cmd_ret_getkernel" | grep ""headers"" | grep -m 1 ""all"")"
     [[ -z "${__kernel_headers_all}" ]] && logPrint "ERR" "No kernel shared headers found with this version!" "${__kernel_version}" "${FAIL}"
     downloadFile "$__kernel_headers_all" "$5" "ERR" "Download kernel shared headers" 
 
     # Download the kernel headers
-    local __kernel_headers="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""headers"")"
+    local __kernel_headers="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$__kernel_type_getKernel" | grep -m 1 ""headers"")"
     [[ -z "${__kernel_headers}" ]] && logPrint "ERR" "No kernel headers found with this version!" "${__kernel_version}" "${FAIL}"
     downloadFile "$__kernel_headers" "$5" "ERR" "Download kernel headers" 
 
     # Download the kernel image
-    local __kernel_image="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""image"")"
+    local __kernel_image="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$__kernel_type_getKernel" | grep -m 1 ""image"")"
     [[ -z "${__kernel_image}" ]] && logPrint "ERR" "No kernel image found with this version!" "${__kernel_version}" "${FAIL}"
     downloadFile "$__kernel_image" "$5" "ERR" "Download kernel image"
 
     # Download the kernel modules
-    local __kernel_modules="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$4" | grep -m 1 ""modules"")"
+    local __kernel_modules="$(echo "$__cmd_ret_getkernel" | grep "$3" | grep "$__kernel_type_getKernel" | grep -m 1 ""modules"")"
     [[ -z "${__kernel_modules}" ]] && __kernel_modules="kernel_modules"
     downloadFile "$__kernel_modules" "$5" "WARN" "Download kernel modules"
     stopLoadBar "Download Completed Successfully." "DONE" 
@@ -80,7 +83,7 @@ function updateKernel {
     dpkg -i "$TEMP_DIRECTRORY/"linux*.deb >/dev/null 2>&1
     __cmd_ret_updateKernel="$?"
     [ $__cmd_ret_updateKernel -ne 0 ] && stopLoadBar "There was a problem installing the kernel!" "ERR" "dpkg -i $TEMP_DIRECTRORY/linux*.deb" \
-                                      || stopLoadBar "Download Completed Successfully."
+                                      || { stopLoadBar "Download Completed Successfully."; update-grub >/dev/null 2>&1; }
 
 
     # Check if system reboot required
