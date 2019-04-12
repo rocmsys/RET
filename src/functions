@@ -20,7 +20,7 @@ function logPrint {
 
     # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then
-        echo -ne "${SUBSTEP}${__title}...${END}\r" 
+    	echo -ne "${SUBSTEP}${__title}...${END}\r"
 
     # Detailed info
     elif [ "${__type}" = "DET" ]; then
@@ -610,6 +610,7 @@ function preRequirement {
 # Load bar while running a command
 # Input $1: Message text
 # Input $2: Message type
+# Input $3: Load bar position (Optional)
 function loadBar {
     local __msg_loadbar="$1"
     local __msg_type_loadbar="${2:-SUBSTEP}"
@@ -619,14 +620,15 @@ function loadBar {
     while true
     do 
         for (( i=${__pos_loadbar}; i<${#LOADBAR}; i++ )); do
-	       logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
-	       sleep 0.1; 
+        	logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
+	        sleep 0.1; 
         done
     done
 }
 
 # Start load bar
 # Input $1: Message text
+# Input $2: Load bar position (Optional)
 function startLoadBar {
     stopLoadBar >/dev/null 2>&1 # Stop previous process if exists
     loadBar "$1" "SUBSTEP" "$2" &
@@ -676,7 +678,7 @@ function downloadFile {
     	do
             if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
 	            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
-	                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
+	            startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
 	            __previous_value_updatePercentage="${__download_per}"
 		        __succ_updatePercentage=0
 	        fi
@@ -725,12 +727,12 @@ function checkSys {
 function isRebootRequired {
     if [ -f /var/run/reboot-required ]; then
        logPrint "DONE" "Reboot Required! Please run this script after the reboot."
-       exitAll 2
+       exitAll 7
 
     elif [ "$1" = 1 ]; then
     	echo "ret_rocm" | tee -a /var/run/reboot-required >/dev/null 2>&1
 		logPrint "DONE" "Reboot Required! Please run this script after the reboot."
-       	exitAll 2
+       	exitAll 7
     fi
 }
 
