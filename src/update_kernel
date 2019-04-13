@@ -73,7 +73,7 @@ function updateKernel {
 
     # Remove linux temp
     if ls /tmp/linux-* >/dev/null 2>&1; then
-	rm /tmp/linux-*
+	   rm /tmp/linux-*
     fi
 
     logPrint "STEP" "Download the Kernel packages"
