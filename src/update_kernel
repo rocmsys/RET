@@ -67,7 +67,6 @@ function updateKernel {
     esac
 
     logPrint "NOTE" "A kernel update to version ${__kernel_version_updateKernel} is required to complete this setup."
-    ${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "linux-image-${__kernel_version_updateKernel}" 2>/dev/null | grep -e "^ii"
     [ "${__found_updateKernel}" -eq 0 ] && { logPrint "NOTE" "The Kernel ${__kernel_version_updateKernel} is Already Installed! Please Reboot The System With This Kernel" "$4"; isRebootRequired 1 "Kernel_Update"; return 7; }
 
     confirmYn "Update kernel? [Y/n] " || logPrint "ERR" "Update Kernel: OS Kernel Not Supported!" "$2" "${FAIL}"
