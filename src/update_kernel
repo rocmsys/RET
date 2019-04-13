@@ -56,9 +56,20 @@ function updateKernel {
     local __kernel_type_updateKernel="$2"
     local __sys_arch_updateKernel="$3"
     local __kernel_version_updateKernel="$4"
+    local __found_updateKernel=1
 
-    
-    logPrint "NOTE" "A kernel update to version "${__kernel_version_updateKernel}" is required to complete this setup."
+    # First check if the kernel is already installed but not used
+    case "$1" in
+        Ubuntu)
+            (${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} | grep "linux-image-${__kernel_version_updateKernel}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found_updateKernel=0;;
+        CentOS)
+            ("rpm -qa kernel | grep -i kernel-${__kernel_version_updateKernel}" >/dev/null 2>&1) && __found_updateKernel=0;;
+    esac
+
+    logPrint "NOTE" "A kernel update to version ${__kernel_version_updateKernel} is required to complete this setup."
+    ${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "linux-image-${__kernel_version_updateKernel}" 2>/dev/null | grep -e "^ii"
+    [ "${__found_updateKernel}" -eq 0 ] && { logPrint "NOTE" "The Kernel ${__kernel_version_updateKernel} is Already Installed! Please Reboot The System With This Kernel" "$4"; isRebootRequired 1 "Kernel_Update"; return 7; }
+
     confirmYn "Update kernel? [Y/n] " || logPrint "ERR" "Update Kernel: OS Kernel Not Supported!" "$2" "${FAIL}"
 
     # Remove linux temp

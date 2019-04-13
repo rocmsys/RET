@@ -36,10 +36,12 @@ Ubuntu_ROCM_REPO_TEXT="deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ 
 CentOS_ROCM_REPO_TEXT="[ROCm]\nname=ROCm\nbaseurl=http://repo.radeon.com/rocm/yum/rpm\nenabled=1\ngpgcheck=0"
 
 
-# Scop
+# Scope
 EMPTY_ARRAY=()
 VERSION="0.1.x"
 DESCRIPTION="ROCm Machine Learning Stack installer"
+
+# Benchmark
 TF_BNCH_VER="cnn_tf_v1.13_compatible"
 TF_MODEL="resnet50"
 NUM_GPUS=1

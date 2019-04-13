@@ -724,13 +724,15 @@ function checkSys {
 
 # Check if system reboot required
 # Input $1: 0/1 value to force reboot required (Optional)
+# Input $2: reboot requestor (Optional)
 function isRebootRequired {
+	local __rebot_requestor_isRebootRequired="${2:-RET}"
     if [ -f /var/run/reboot-required ]; then
        logPrint "DONE" "Reboot Required! Please run this script after the reboot."
        exitAll 7
 
     elif [ "$1" = 1 ]; then
-    	echo "ret_rocm" | tee -a /var/run/reboot-required >/dev/null 2>&1
+    	echo "${__rebot_requestor_isRebootRequired}" | tee -a /var/run/reboot-required >/dev/null 2>&1
 		logPrint "DONE" "Reboot Required! Please run this script after the reboot."
        	exitAll 7
     fi
