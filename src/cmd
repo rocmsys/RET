@@ -79,7 +79,7 @@ function parseArgs {
         ;;
 
         -py3)
-          __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYVER_parseArgs="py3"; __hasPY_parseArgs=0
+          __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYVER="py3"; __hasPY_parseArgs=0
           shift
         ;;
 

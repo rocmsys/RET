@@ -745,8 +745,8 @@ function editFile {
     local __old_value_editFile=$2
     local __new_value_editFile=$3
 
-    local __cmd_array_editFile=(sed -i 's|'"${__old_value_editFile}"'|'"${__new_value_editFile}"'|g' "${__file_name_editFile}")
-    runCmd __cmd_editFile "ERR" "Cannot edit file: ${__file_name_editFile}"
+    local __cmd_array_editFile=("sed -i 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}")
+    runCmd __cmd_array_editFile "ERR" "1" "Cannot edit file: ${__file_name_editFile}"
 }
 
 # Init the log file
@@ -858,10 +858,11 @@ function checkBashVersion {
 function runCmd {
 	local -n __cmd_runCmd="$1"
 	local __err_type_runCmd="$2"
-	local __ignore_check_runCmd="${3:-0}"
+	local __ignore_check_runCmd="${3:-1}"
 	local __msg_runCmd="${4:-$__cmd_runCmd}"
 	local __cmd_ret_runCmd
 
+	[ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
 	if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
 		eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
 		__cmd_ret_runCmd="$?"
