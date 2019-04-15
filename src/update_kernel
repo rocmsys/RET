@@ -63,7 +63,7 @@ function updateKernel {
         Ubuntu)
             (${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} | grep "linux-image-${__kernel_version_updateKernel}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found_updateKernel=0;;
         CentOS)
-            ("rpm -qa kernel | grep -i kernel-${__kernel_version_updateKernel}" >/dev/null 2>&1) && __found_updateKernel=0;;
+            (rpm -qa kernel | grep -i "kernel-${__kernel_version_updateKernel}" >/dev/null 2>&1) && __found_updateKernel=0;;
     esac
 
     logPrint "NOTE" "A kernel update to version ${__kernel_version_updateKernel} is required to complete this setup."
