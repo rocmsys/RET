@@ -85,9 +85,12 @@ OR
 # Download your Benchmark
 # Grab the repo
 cd $HOME
-git clone -b cnn_tf_v1.12_compatible https://github.com/tensorflow/benchmarks.git
+git clone -b cnn_tf_v1.13_compatible https://github.com/tensorflow/benchmarks.git
 cd benchmarks
 # Run the training benchmark (e.g. ResNet-50)
-python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50 --num_gpus=1 --batch_size=256 --num_batches=50 --use_fp16=True --datasets_use_prefetch=False --display_every=10
+python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50  --batch_size=256 --num_batches=50 --use_fp16=True --datasets_use_prefetch=False --display_every=10
+
+**Note:** You may need to add your GPU number --num_gpus=<your GPU number>
+
 
 ```
