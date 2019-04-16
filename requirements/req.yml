@@ -56,66 +56,66 @@ dependencies:
       version: latest
     - name: cmake
       version: latest
-
-  - Ubuntu:
-    - name: build-essential
-      version: latest
-    - name: software-properties-common
-      version: latest
-    - name: gfortran
-      version: latest
-    - name: clang-format
-      version: latest
-    - name: clang-tidy
-      version: latest
-    - name: cmake-qt-gui
-      version: latest
-    - name: apt-utils
-      version: latest
-    - name: pkg-config
-      version: latest
-    - name: g++-multilib
-      version: latest
-    - name: libnuma-dev
-      version: latest
-    - name: libunwind-dev
-      version: latest
-    - name: libfftw3-dev
-      version: latest
-    - name: libelf-dev
-      version: latest
-    - name: libncurses5-dev
-      version: latest
-    - name: libpthread-stubs0-dev
-      version: latest
-    - name: libboost-program-options-dev
-      version: latest
-    - name: libssl-dev
-      version: latest
-    - name: libboost-dev
-      version: latest
-    - name: libboost-system-dev
-      version: latest
-    - name: libboost-filesystem-dev
-      version: latest
-    - name: python-pip
-      version: latest
-    - name: python3-pip
-      version: latest  
-
-  - CentOS:
-    - name: epel-release
-      version: latest
-    - name: kernel-headers-`uname -r`
-      version: latest
-    - name: kernel-devel-`uname -r`
-      version: latest 
-    - name: dkms
-      version: latest
-    - name: python2-pip
-      version: latest
-    - name: python36-pip
-      version: latest
+    # Ubuntu Global Dependencies
+    - Ubuntu:
+      - name: build-essential
+        version: latest
+      - name: software-properties-common
+        version: latest
+      - name: gfortran
+        version: latest
+      - name: clang-format
+        version: latest
+      - name: clang-tidy
+        version: latest
+      - name: cmake-qt-gui
+        version: latest
+      - name: apt-utils
+        version: latest
+      - name: pkg-config
+        version: latest
+      - name: g++-multilib
+        version: latest
+      - name: libnuma-dev
+        version: latest
+      - name: libunwind-dev
+        version: latest
+      - name: libfftw3-dev
+        version: latest
+      - name: libelf-dev
+        version: latest
+      - name: libncurses5-dev
+        version: latest
+      - name: libpthread-stubs0-dev
+        version: latest
+      - name: libboost-program-options-dev
+        version: latest
+      - name: libssl-dev
+        version: latest
+      - name: libboost-dev
+        version: latest
+      - name: libboost-system-dev
+        version: latest
+      - name: libboost-filesystem-dev
+        version: latest
+      - name: python-pip
+        version: latest
+      - name: python3-pip
+        version: latest  
+    # CentOS Global Dependencies    
+    - CentOS:
+      - name: epel-release
+        version: latest
+      - name: kernel-headers-`uname -r`
+        version: latest
+      - name: kernel-devel-`uname -r`
+        version: latest 
+      - name: dkms
+        version: latest
+      - name: python2-pip
+        version: latest
+      - name: python36-pip
+        version: latest
       
   - rocm:
     - name: rocm-dkms
@@ -146,8 +146,6 @@ dependencies:
       version: latest
 
   - py2:
-    - name: python-dev
-      version: latest
     - name: python-mock
       version: latest
     - name: python-yaml
@@ -158,24 +156,42 @@ dependencies:
       version: latest
     - name: python-future
       version: latest
-    - name: python-setuptools
-      version: latest
+    # Ubuntu Python2 Packages
+    - Ubuntu:
+      - name: python-dev
+        version: latest
+    # CentOS Python2 Packages
+    - CentOS:
+      - name: python-devel
+        version: latest
 
   - py3:
-    - name: python3-dev
+    - name: wheel:pip
       version: latest
-    - name: python3-mock
-      version: latest
-    - name: python3-yaml
-      version: latest
-    - name: python3-numpy
-      version: latest
-    - name: python3-wheel
-      version: latest
-    - name: python3-future
-      version: latest
-    - name: python3-setuptools
-      version: latest
+    # Ubuntu Python3 Packages
+    - Ubuntu:
+      - name: python3-dev
+        version: latest
+      - name: python3-mock
+        version: latest
+      - name: python3-yaml
+        version: latest
+      - name: python3-numpy
+        version: latest
+      - name: python3-future
+        version: latest
+    # CentOS Python3 Packages
+    - CentOS:
+      - name: python36-devel
+        version: latest
+      - name: python36-mock
+        version: latest
+      - name: python36-yaml
+        version: latest
+      - name: python36-numpy
+        version: latest
+      - name: python36-future
+        version: latest
 
   - tensorflow:
     - name: tensorflow-rocm:pip

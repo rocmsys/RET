@@ -209,7 +209,7 @@ function installCmd {
 
 	        tensorflow)
 		      buildPkgArray "$pkg" __pkg_name_installCmd __pkg_ver_installCmd __isTFInstalled_installCmd
-              	runInstall "Tensorflow" __pkg_name_installCmd __pkg_ver_installCmd "$__isTFInstalled_installCmd"
+              runInstall "Tensorflow" __pkg_name_installCmd __pkg_ver_installCmd "$__isTFInstalled_installCmd"
 		    ;;
 
 	        pytorch)
@@ -481,21 +481,33 @@ function buildPkgArray {
     local __isInstalled_buildPkgArray=0
     local __deps_name_buildPkgArray=()
     local __deps_vers_buildPkgArray=()
+    local __pkgs_buildPkgArray=()
+    local __vers_buildPkgArray=()
 
     # Get ROCm install packages
     getYAMLValue "dependencies|${__key_buildPkgArray}|name" YAML_ARRAY __deps_name_buildPkgArray
     getYAMLValue "dependencies|${__key_buildPkgArray}|name|version" YAML_ARRAY __deps_vers_buildPkgArray
+    __pkgs_buildPkgArray=("${__deps_name_buildPkgArray[@]}")
+    __vers_buildPkgArray=("${__deps_vers_buildPkgArray[@]}")
+
+    # Get distro packages if found
+    if isInArray "YAML_ARRAY" "dependencies|${__key_buildPkgArray}|$RET_DISTRO|name:=" INDEX; then
+        
+        getYAMLValue "dependencies|${__key_buildPkgArray}|$RET_DISTRO|name" YAML_ARRAY __deps_name_buildPkgArray
+        getYAMLValue "dependencies|${__key_buildPkgArray}|$RET_DISTRO|name|version" YAML_ARRAY __deps_vers_buildPkgArray
+
+        __pkgs_buildPkgArray+=("${__deps_name_buildPkgArray[@]}")
+        __vers_buildPkgArray+=("${__deps_vers_buildPkgArray[@]}")
+    fi
 
     # Check if pkgs are installed
-    for dep in "${__deps_name_buildPkgArray[@]}"; do
+    for dep in "${__pkgs_buildPkgArray[@]}"; do
         (isPrgInstalled "${dep}") || { __isInstalled_buildPkgArray=1; break; }
     done
 
-    # Update packages array
-    #__pkg_buildPkgArray=("${__pkg_buildPkgArray[@]:1}" "${__deps_name_buildPkgArray[@]}");
-    #__ver_buildPkgArray=("${__ver_buildPkgArray[@]}" "${__deps_vers_buildPkgArray[@]}");
-    eval $__res_pkg_buildPkgArray="(${__deps_name_buildPkgArray[@]})"
-    eval __res_ver_buildPkgArray="(${__deps_vers_buildPkgArray[@]})"
+    # Return packages array
+    eval $__res_pkg_buildPkgArray="(${__pkgs_buildPkgArray[@]})"
+    eval __res_ver_buildPkgArray="(${__vers_buildPkgArray[@]})"
     eval $__res_isInstalled_buildPkgArray="'$__isInstalled_buildPkgArray'"    
 }
 

@@ -166,7 +166,7 @@ function checkDeps {
 
     logPrint "STEP" "${__title_checkDeps}"
     for dep in "${__name_array[@]}"; do
-        [ -z "${dep}" ] && continue || __pkg_name_checkDeps=("${dep//:/ }");
+        [ -z "${dep}" ] && continue || __pkg_name_checkDeps=("${dep%%:*}");
 
         if isPrgInstalled "${dep}"; then
             logPrint "DET" "${__pkg_name_checkDeps}" "Found" "${SUCC}"
@@ -334,37 +334,6 @@ function isInArray {
     return 1;
 }
 
-# Check if program is installed
-# Input $1: program name e.g. name:phu=version
-# Return 0,1
-function isPrgInstalled {
-    # Init to found eq false
-    # 0 means no failure and non-0 means failure.
-    local __found=1
-	local __pkg_name_isPrgInstalled
-    local __pkg_vers_isPrgInstalled
-    local __phu_isPrgInstalled
-
-    # Extract the package handling utility
-    parsePkg "$1" __pkg_name_isPrgInstalled __pkg_vers_isPrgInstalled __phu_isPrgInstalled
-
-    # update value if found
-    if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
-    	("${PYPI}" freeze 2>/dev/null | grep "${__pkg_name_isPrgInstalled}=" >/dev/null 2>&1) && __found=0
-    else
-    	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { 
-    		case $RET_DISTRO in
-				CentOS)
-					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1) && __found=0;;
-				Ubuntu)
-					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0;;
-			esac
-    	} 
-	fi
-
-    return $__found;
-}
-
 # Get OS and Version
 # Return OS, Version, Kernel and the Architecture
 function getOSInfo {
@@ -446,13 +415,44 @@ function isSudo {
     return 0;
 }
 
+# Check if program is installed
+# Input $1: program name e.g. name:phu=version
+# Return 0,1
+function isPrgInstalled {
+    # Init to found eq false
+    # 0 means no failure and non-0 means failure.
+    local __found=1
+	local __pkg_name_isPrgInstalled
+    local __pkg_vers_isPrgInstalled
+    local __phu_isPrgInstalled
+
+    # Extract the package handling utility
+    parsePkg "$1" __pkg_name_isPrgInstalled __pkg_vers_isPrgInstalled __phu_isPrgInstalled
+
+    # update value if found
+    if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
+    	("${PYPI}" list 2>/dev/null | grep "${__pkg_name_isPrgInstalled} " >/dev/null 2>&1) && __found=0
+    else
+    	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { 
+    		case $RET_DISTRO in
+				CentOS)
+					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1) && __found=0;;
+				Ubuntu)
+					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0;;
+			esac
+    	} 
+	fi
+
+    return $__found;
+}
+
 # Install package
 # Input $1: package array
 # Return 0,1
 function installPkg {
     local -n __packages=$1
     local __cmd_ret_installPkg
-    local __cmd_installPkg=${!RET_CMDS_ARRAY[RET_INSTALL_CMD]}
+    local __cmd_installPkg
 	local __cmd_array_installPkg=()
 
     local __pkg_name_installPkg
@@ -469,6 +469,8 @@ function installPkg {
     stopLoadBar
 
     for dep in "${__packages[@]}"; do
+		# Init package args
+		__cmd_installPkg=${!RET_CMDS_ARRAY[RET_INSTALL_CMD]}
 
         # Extract the package handling utility
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
@@ -714,8 +716,8 @@ function checkSys {
 	__vers_array_checkSys=("${VER_ARRAY[@]}")
 
     # Check Distro Dependencies
-    getYAMLValue "dependencies|$RET_DISTRO|name" YAML_ARRAY DEPS_ARRAY
-    getYAMLValue "dependencies|$RET_DISTRO|name|version" YAML_ARRAY VER_ARRAY
+    getYAMLValue "dependencies|globale|$RET_DISTRO|name" YAML_ARRAY DEPS_ARRAY
+    getYAMLValue "dependencies|globale|$RET_DISTRO|name|version" YAML_ARRAY VER_ARRAY
     __deps_array_checkSys+=("${DEPS_ARRAY[@]}")
     __vers_array_checkSys+=("${VER_ARRAY[@]}")
 
