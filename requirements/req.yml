@@ -180,11 +180,11 @@ dependencies:
     - Ubuntu:
       - name: python3-dev
         version: latest
+      - name: python3-numpy
+        version: latest
       - name: python3-mock
         version: latest
       - name: python3-yaml
-        version: latest
-      - name: python3-numpy
         version: latest
       - name: python3-future
         version: latest
@@ -192,11 +192,11 @@ dependencies:
     - CentOS:
       - name: python36-devel
         version: latest
+      - name: python36-numpy
+        version: latest
       - name: python36-mock
         version: latest
-      - name: python36-yaml
-        version: latest
-      - name: python36-numpy
+      - name: python36-PyYAML
         version: latest
       - name: python36-future
         version: latest
