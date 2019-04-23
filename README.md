@@ -43,20 +43,16 @@ rocminfo
 * command:
   *           [install] <package>              : Install ROCm or ML Framework TF/PT
               [remove]  <package>              : Remove ROCm or ML Framework TF/PT
-              [update]  <package>              : Update ROCm or ML Framework TF/PT
-              [validate]                       : System validation
               [benchmark] <Packages> <Model>   : Run benchmark for specific ML Framework${END}"
-              [show]                           : Show system HW and SW details
 
    * packages:
      *        [rocm]                      : ROCm-dkms packages
               [tensorflow]                : Tensorflow framework
-              [pytorch]                   : Pytorch framework
 
    * Model:
         *     [vgg16]                      : vgg16 model${END}"
               [alexnet]                    : alexnet model${END}"
-              resnet50]                    : resnet50 model. Default Model${END}"
+              [resnet50]                    : resnet50 model. Default Model${END}"
  
 * Options:
   *            [-py2|-py3]                     : ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
@@ -64,7 +60,6 @@ rocminfo
                [-v|--version]                  : Show version of this package
                [-V|--verbose]                  : Be verbose
                [-b|--benchmark]                : Run benchmark
-               [-d|--dryrun]                   : Show what would be happened
 
 ## RUN RET:
 ```
