@@ -24,21 +24,19 @@ REQ_FILE="requirements/req.yml"
 DEF_FILE="src/definitions"
 LOG_FILE="${LOG_DIRECTRORY}/ret.log"
 BASH_FILENAME="bash-4.4.18"
+Ubuntu_ROCM_REPO="/etc/apt/sources.list.d/rocm.list"
+CentOS_ROCM_REPO="/etc/yum.repos.d/rocm.repo"
 
 # Url's
 UBUNTU_KERNEL_URL="kernel.ubuntu.com/~kernel-ppa/mainline/"
 TF_BENCHMARKS_URL="https://github.com/tensorflow/benchmarks.git"
 BASH_URL="https://ftp.gnu.org/gnu/bash/"
-
-Ubuntu_ROCM_REPO="/etc/apt/sources.list.d/rocm.list"
-CentOS_ROCM_REPO="/etc/yum.repos.d/rocm.repo"
-Ubuntu_ROCM_REPO_TEXT="deb [arch=amd64] http://repo.radeon.com/rocm/apt/debian/ xenial main"
-CentOS_ROCM_REPO_TEXT="[ROCm]\nname=ROCm\nbaseurl=http://repo.radeon.com/rocm/yum/rpm\nenabled=1\ngpgcheck=0"
-
+ROCM_DEB="http://repo.radeon.com/rocm/apt/debian/ xenial main"
+ROCM_RPM="http://repo.radeon.com/rocm/yum/rpm"
 
 # Scope
 EMPTY_ARRAY=()
-VERSION="0.1.x"
+RET_VERSION="0.1.x"
 DESCRIPTION="ROCm Machine Learning Stack installer"
 
 # Benchmark

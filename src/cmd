@@ -3,7 +3,7 @@
 # Print script Usage 
 function printUsage {
     echo -e ""
-    echo -e "${BOLD}ROCmML Version ${VERSION}${END}"
+    echo -e "${BOLD}ROCmML Version ${RET_VERSION}${END}"
     echo -e ""
     echo -e "${BOLD}Description:${END} ${FG_DARK_GRAY}${DESCRIPTION}${END}"
     echo -e ""
@@ -59,7 +59,7 @@ function parseArgs {
       __arg_parseArgs="$1"
       case "$__arg_parseArgs" in
         -v | --version)
-          printf "ROCmML version ${VERSION}\n"
+          printf "ROCmML version ${RET_VERSION}\n"
           exit
          ;;
 
@@ -81,6 +81,12 @@ function parseArgs {
         -py3)
           __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYVER="py3"; __hasPY_parseArgs=0
           shift
+        ;;
+
+        -s)
+          [ -z "$2" ] && { printUsage; exit; }
+          [ "$RET_DISTRO" = "Ubuntu" ] && ROCM_DEB="$2" || ROCM_RPM="$2"
+          shift; shift
         ;;
 
         update)
@@ -130,15 +136,15 @@ function parseArgs {
     done
 
     # Include Python Package if required
-    if [ $__cmd_parseArgs = "install" ] && [ "${__isPyRequired_parseArgs}" -eq 0 ]; then 
+    if [ "$__cmd_parseArgs" = "install" ] && [ "${__isPyRequired_parseArgs}" -eq 0 ]; then 
         [ "${__hasPY_parseArgs}" -eq 1 ] && __pkgs_parseArgs=("${PYVER}" "${__pkgs_parseArgs[@]}") || __pkgs_parseArgs=("${PYVER}" ${__pkgs_parseArgs[@]/"${PYVER}"})
     fi
 
     # Exclude rocm if benchamrk
-    [ $__cmd_parseArgs = "benchmark" ] && __pkgs_parseArgs=(${__pkgs_parseArgs[@]/"rocm"})
+    [ "$__cmd_parseArgs" = "benchmark" ] && __pkgs_parseArgs=(${__pkgs_parseArgs[@]/"rocm"})
     
     # Run command
-    [[ $__cmd_parseArgs ]] && cmdEngine "${__cmd_parseArgs}" __pkgs_parseArgs __models_parseArgs || { printUsage; exit; }
+    [[ "$__cmd_parseArgs" ]] && cmdEngine "${__cmd_parseArgs}" __pkgs_parseArgs __models_parseArgs || { printUsage; exit; }
 }
 
 # Run command
@@ -267,10 +273,7 @@ function runPreInstallation {
         ROCm)
             # Add the ROCm apt repository
             startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Add the ROCm apt repository"; printf '\n'
-            [ "$RET_DISTRO" = "Ubuntu" ] && wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
-            __repo_path_runPreInstallation="$RET_DISTRO""_ROCM_REPO"
-            __repo_text_runPreInstallation="$RET_DISTRO""_ROCM_REPO_TEXT"
-            echo -e "${!__repo_text_runPreInstallation}" | tee "${!__repo_path_runPreInstallation}" >/dev/null 2>&1
+            addROCmRepo
             stopLoadBar
         ;;
 
@@ -288,6 +291,20 @@ function runPreInstallation {
 
         Python)
             echo "Python Pre-Installation"
+        ;;
+    esac
+}
+
+# Add the ROCm repository
+function addROCmRepo {
+    case "$RET_DISTRO" in
+        Ubuntu)
+            wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
+            echo -e "deb [arch=amd64 trusted=yes] ${ROCM_DEB}" | tee "${Ubuntu_ROCM_REPO}" >/dev/null 2>&1
+        ;;
+
+        CentOs)
+            echo -e "[ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0" | tee "${CentOS_ROCM_REPO}" >/dev/null 2>&1
         ;;
     esac
 }
