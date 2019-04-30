@@ -762,7 +762,7 @@ function initLog {
 	
 	# re-create the log file
 	rm -f $LOG_FILE >/dev/null 2>&1
-	touch $LOG_FILE >/dev/null 2>&1
+	sudo -u $SUDO_USER touch $LOG_FILE >/dev/null 2>&1
 
 	# Init Header
 	echo '=========================================================================' > $LOG_FILE
