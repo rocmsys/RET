@@ -16,8 +16,8 @@ REQ_BASH_VERSION=4.3
 
 # DIRECTORY Paths
 TEMP_DIRECTRORY=$(mktemp -d)
-WORK_DIRECTRORY="./benchmarks"
-LOG_DIRECTRORY="./log"
+WORK_DIRECTRORY="$PWD/benchmarks"
+LOG_DIRECTRORY="$PWD/log"
 
 # File Paths
 REQ_FILE="requirements/req.yml"
