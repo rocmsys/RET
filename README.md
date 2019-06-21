@@ -57,11 +57,11 @@ Command:
               [resnet50]                       : resnet50 model. Default Model
  
 Options:
-              [-py2|-py3]                     : Python version. Default is Python3
-              [-h|--help]                     : Show this help message
-              [-v|--version]                  : Show version of this package
-              [-V|--verbose]                  : Be verbose
-              [-b|--benchmark]                : Run benchmark
+              [-py2|-py3]                      : Python version. Default is Python3
+              [-h|--help]                      : Show this help message
+              [-v|--version]                   : Show version of this package
+              [-V|--verbose]                   : Be verbose
+              [-b|--benchmark]                 : Run benchmark
 ```
 ## RUN RET
 ```
