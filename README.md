@@ -32,7 +32,7 @@ after the instllation you will need git to download the RET source
 ```
    git clone https://github.com/rocmsys/RET.git
 ```
-## Usage: 
+## Usage
 ```
 sudo ./ret  <command\> <option>
 e.g.
@@ -40,7 +40,7 @@ sudo ./ret install rocm or sudo ./ret install tensorflow
 sudo reboot
 rocminfo
 ```
-### Command options:
+### Command options
 ```
 Command:
               [install] <package>              : Install ROCm or ML Framework TF/PT
@@ -57,13 +57,13 @@ Command:
               [resnet50]                       : resnet50 model. Default Model
  
 Options:
-               [-py2|-py3]                     : Python version. Default is Python3
-               [-h|--help]                     : Show this help message
-               [-v|--version]                  : Show version of this package
-               [-V|--verbose]                  : Be verbose
-               [-b|--benchmark]                : Run benchmark
+              [-py2|-py3]                     : Python version. Default is Python3
+              [-h|--help]                     : Show this help message
+              [-v|--version]                  : Show version of this package
+              [-V|--verbose]                  : Be verbose
+              [-b|--benchmark]                : Run benchmark
 ```
-## RUN RET:
+## RUN RET
 ```
    cd RET
    sudo ./ret install rocm         # install ROCm stack
@@ -90,3 +90,19 @@ python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50  --bat
 ```
 
 **Note:** You may need to add your GPU number ```--num_gpus=YOUR_GPU_NUMBER>```
+
+### ToDo Checklist
+- [x] Support Ubuntu 16.04
+- [x] Support Ubuntu 18.04
+- [x] Support CentOS 7.6
+- [ ] Support RHEL 7.6
+- [x] tensorflow on Ubuntu
+- [ ] tensorflow on CentOS
+- [ ] tensorflow on RHEL
+- [x] pytorch on Ubuntu
+- [ ] pytorch on CentOS
+- [ ] pytorch on RHEL
+- [x] Check System Compatibility
+- [ ] Check HW Compatibility
+- [ ] Adapt RET on top of Docker Container
+- [ ] Cloud Support
