@@ -79,7 +79,7 @@ Here are the basic instructions to run resnet50 benchmark:
 sudo ./ret benchmark tensorflow resnet50
 ```
 You can also use the TensorFlow benchmarks:
-#### Download your Benchmark
+#### Download tensorflow benchmark
 ```
 git clone -b cnn_tf_v1.13_compatible https://github.com/tensorflow/benchmarks.git
 cd benchmarks
@@ -89,4 +89,4 @@ cd benchmarks
 python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50  --batch_size=256 --num_batches=50 --use_fp16=True --datasets_use_prefetch=False --display_every=10
 ```
 
-**Note:** You may need to add your GPU number --num_gpus=<your GPU number>
+**Note:** You may need to add your GPU number ```--num_gpus=YOUR_GPU_NUMBER>```
