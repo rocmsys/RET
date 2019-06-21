@@ -40,27 +40,29 @@ sudo ./ret install rocm or sudo ./ret install tensorflow
 sudo reboot
 rocminfo
 ```
-* command:
-  *           [install] <package>              : Install ROCm or ML Framework TF/PT
+### Command options:
+```
+Command:
+              [install] <package>              : Install ROCm or ML Framework TF/PT
               [remove]  <package>              : Remove ROCm or ML Framework TF/PT
               [benchmark] <Packages> <Model>   : Run benchmark for specific ML Framework${END}"
 
-   * packages:
-     *        [rocm]                      : ROCm-dkms packages
-              [tensorflow]                : Tensorflow framework
+   Packages:
+              [rocm]                           : ROCm-dkms packages
+              [tensorflow]                     : Tensorflow framework
 
-   * Model:
-        *     [vgg16]                      : vgg16 model${END}"
-              [alexnet]                    : alexnet model${END}"
-              [resnet50]                    : resnet50 model. Default Model${END}"
+   Model:
+              [vgg16]                          : vgg16 model${END}"
+              [alexnet]                        : alexnet model${END}"
+              [resnet50]                       : resnet50 model. Default Model${END}"
  
-* Options:
-  *            [-py2|-py3]                     : ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
+Options:
+               [-py2|-py3]                     : ${FG_LIGHT_BLUE}: Python version. Default is Python3${END}"
                [-h|--help]                     : Show this help message
                [-v|--version]                  : Show version of this package
                [-V|--verbose]                  : Be verbose
                [-b|--benchmark]                : Run benchmark
-
+```
 ## RUN RET:
 ```
    cd RET
