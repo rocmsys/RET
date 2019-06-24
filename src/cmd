@@ -303,7 +303,7 @@ function addROCmRepo {
             echo -e "deb [arch=amd64 trusted=yes] ${ROCM_DEB}" | tee "${Ubuntu_ROCM_REPO}" >/dev/null 2>&1
         ;;
 
-        CentOs)
+        CentOS)
             echo -e "[ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0" | tee "${CentOS_ROCM_REPO}" >/dev/null 2>&1
         ;;
     esac
