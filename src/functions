@@ -431,7 +431,7 @@ function isPrgInstalled {
 
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
-    	("${PYPI}" list 2>/dev/null | grep "${__pkg_name_isPrgInstalled} " >/dev/null 2>&1) && __found=0
+    	(sudo -u $SUDO_USER "${PYPI}" list 2>/dev/null | grep "${__pkg_name_isPrgInstalled} " >/dev/null 2>&1) && __found=0
     else
     	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { 
     		case $RET_DISTRO in
