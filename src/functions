@@ -476,7 +476,7 @@ function installPkg {
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
         __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
 
-        [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install" #sudo pip isn't encouraged
+        [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
         __cmd_array_installPkg=("${__cmd_installPkg} ${__dep_installPkg}"); runCmd __cmd_array_installPkg "ERR"
