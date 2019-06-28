@@ -1,0 +1,31 @@
+# This file contains only dependencies required by Python2 
+---
+# Define here OS independent packages
+- name: python-wheel
+  version: latest
+# Ubuntu Python2 Packages
+- Ubuntu:
+  - name: python-dev
+    version: latest
+  - name: python-numpy
+    version: latest
+  - name: python-mock
+    version: latest
+  - name: python-yaml
+    version: latest
+  - name: python-future
+    version: latest
+# CentOS Python2 Packages
+- CentOS:
+  - name: python-devel
+    version: latest
+  - name: numpy
+    version: latest
+  - name: python2-mock
+    version: latest
+  - name: PyYAML
+    version: latest
+  - name: python2-future
+    version: latest
+...
+    

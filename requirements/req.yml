@@ -2,10 +2,11 @@
 # Use ">=4.13 <=4.15" to describe a range of value of the same item. This will be interpreted as 4.13|4.14|4.15
 # Use : to indicate which package handling utility to use. Option is: pip
 # Value between `` will be interpreted as shell command. e.g. `uname -r`
+# req_file key used to point the requirement file for the specific component. This cannot be used into the child req file!
 ---
 # General informations
 name: RET
-version: 0.1.0
+version: 0.1.1
 author: TBD
 summary: ROCm Enablement Tool
 license: TBD
@@ -118,88 +119,13 @@ dependencies:
         version: latest
       
   - rocm:
-    - name: rocm-dkms
-      version: latest
-    - name: rocm-dev
-      version: latest
-    - name: rocm-libs
-      version: latest
-    - name: rocm-device-libs
-      version: latest
-    - name: hsa-ext-rocr-dev
-      version: latest
-    - name: hsakmt-roct-dev
-      version: latest
-    - name: hsa-rocr-dev
-      version: latest
-    - name: rocm-opencl
-      version: latest
-    - name: rocm-utils
-      version: latest
-    - name: rocm-profiler
-      version: latest
-    - name: cxlactivitylogger
-      version: latest
-    - name: miopen-hip
-      version: latest
-    - name: miopengemm
-      version: latest
+    - req_file: rocm.yml
 
   - py2:
-    - name: python-wheel
-      version: latest
-    # Ubuntu Python2 Packages
-    - Ubuntu:
-      - name: python-dev
-        version: latest
-      - name: python-numpy
-        version: latest
-      - name: python-mock
-        version: latest
-      - name: python-yaml
-        version: latest
-      - name: python-future
-        version: latest
-    # CentOS Python2 Packages
-    - CentOS:
-      - name: python-devel
-        version: latest
-      - name: numpy
-        version: latest
-      - name: python2-mock
-        version: latest
-      - name: PyYAML
-        version: latest
-      - name: python2-future
-        version: latest
+    - req_file: py2.yml
 
   - py3:
-    - name: wheel:pip
-      version: latest
-    # Ubuntu Python3 Packages
-    - Ubuntu:
-      - name: python3-dev
-        version: latest
-      - name: python3-numpy
-        version: latest
-      - name: python3-mock
-        version: latest
-      - name: python3-yaml
-        version: latest
-      - name: python3-future
-        version: latest
-    # CentOS Python3 Packages
-    - CentOS:
-      - name: python36-devel
-        version: latest
-      - name: python36-numpy
-        version: latest
-      - name: python36-mock
-        version: latest
-      - name: python36-PyYAML
-        version: latest
-      - name: python36-future
-        version: latest
+    - name: py3.yml
 
   - tensorflow:
     - name: tensorflow-rocm:pip
@@ -209,7 +135,10 @@ dependencies:
     - name: TBD
       version: TBD
 
+  - mivisionx:
+    - req_file: mivisionx.yml
+
 # Project description
-description: ROCm Machine Learning Stack installer xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx 
+description: ROCm Machine Learning one-script installer xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx 
 ...
     

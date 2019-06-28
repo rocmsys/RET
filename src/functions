@@ -195,10 +195,10 @@ function checkDeps {
 }
 
 # Read and parse yaml file 
-# Input $1: yaml file name
+# Input $1: yaml date
 # Note: this parser support only the syntax needed. Flow Styles are not supported
 function parse_yaml {
-    local __file_name=$1
+    local __data=$1
     local __s='[[:space:]]*' 
     local __w='[a-zA-Z0-9_.]*' 
     local __fs=${__fs:-$(echo @|tr @ '\034')}
@@ -217,8 +217,9 @@ function parse_yaml {
     local __get_item_list='s|^\('$__s'\)-'$__s'\('$__w'\)'$__s':'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # - key: value
     local __get_map_list='s|^\('$__s'\)\('$__w'\)'$__s'[:-]'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # map detection key: value, key: 'value', key: "value"
 
-	cat $__file_name | \
-        sed -e $__rm_sp -e $__rm_doc_begin -e $__rm_doc_end -e $__rm_cmt -e $__rm_il_cmt -e $__rm_bl -e $__get_item_list -e $__get_map_list | \
+
+	echo "$__data" | \
+        sed -e "$__rm_sp" -e "$__rm_doc_begin" -e "$__rm_doc_end" -e "$__rm_cmt" -e "$__rm_il_cmt" -e "$__rm_bl" -e "$__get_item_list" -e "$__get_map_list" | \
     
     awk -F$__fs 'BEGIN{
         last_indent = 0; br_count = 0;
@@ -229,44 +230,78 @@ function parse_yaml {
     
 
         # extract the dictionarie key 
-    if(length($2)!= 0){node[indent] = $2}
+	    if(length($2)!= 0){node[indent] = $2}
 
-    # extract the value
-    value= (length($3)!= 0)? $3: "null";
+	    # extract the value
+	    value= (length($3)!= 0)? $3: "null";
 
-    # reinit child elements
-    if(indent < last_indent){for(i=indent+1; i <= last_indent; i++){delete node[i]; idx[i]=0;}}
-    last_indent = indent;
+	    # reinit child elements
+	    if(indent < last_indent){for(i=indent+1; i <= last_indent; i++){delete node[i]; idx[i]=0;}}
+	    last_indent = indent;
 
-    br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
-        branch=br node[indent];
-    
+	    br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
+	    branch=br node[indent];
+	    
 
-    # remove the last char
-    if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
+	    # remove the last char
+	    if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
 
-    # Check if branch already exists
-    # update if true; else insert new value
-    isBrExists = 0;
-    for(i in br_array){
-            split(br_array[i], tmp_br, '$__br_eq');
-        
-            if(branch == tmp_br[1]){
-            br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
-        isBrExists = 1;
-        }
-    }
+	    # Check if branch already exists
+	    # update if true; else insert new value
+	    isBrExists = 0;
+	    for(i in br_array){
+	        split(br_array[i], tmp_br, '$__br_eq');
+	        
+	        if(branch == tmp_br[1]){
+	            br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
+	        	isBrExists = 1;
+	        }
+	    }
 
-    if(isBrExists == 0){
-        # put valid branch in array
-        if(value != "null"){
-            br_array[br_count] = branch '$__br_eq' value;
-        br_count++;
-        }
-    }
-    }END{
-    for(i=0; i<=br_count; i++){print(br_array[i]);}
-    }'
+	    if(isBrExists == 0){
+	        # put valid branch in array
+	        if(value != "null"){
+	            br_array[br_count] = branch '$__br_eq' value;
+	        	br_count++;
+	        }
+	    }
+	}END{
+		for(i=0; i<=br_count; i++){print(br_array[i]);}
+	}'
+}
+
+# Prepare requirement file before parsing
+# Read yaml file and binds the child files
+# Input $1: yaml file name
+function prepareReqFile {
+	local __file_name=$1 
+	local __s='[[:space:]]*' 
+    local __fm="- "
+    local __fd=": "
+    local __rm_doc_begin='s|^'$__s'\(---\)'$__s'||g' # rm doc begin
+    local __rm_doc_end='s|^'$__s'\(\.\.\.\)'$__s'||g' # rm doc end
+    local __inr_sp='s|^|    |g' # insert the spaces for indentation
+	local __req_file_path=""
+
+    # Make Sanity Check
+    fileSanityCheck $__file_name
+
+	while IFS= read -r  line
+	do
+		__req_file_path=""
+
+		#Get file name if exists
+		__req_file_path=$(echo $line | awk -F"$__fm|$__fd" '{if($2 == "req_file"){print($3);}}')
+
+		if [ ! -z "${__req_file_path}" ]; then
+			__req_file_path="requirements/$__req_file_path"
+			fileSanityCheck "$__req_file_path"
+			cat "$__req_file_path" | \
+        	sed -e "$__inr_sp" -e "$__rm_doc_begin" -e "$__rm_doc_end"
+		else
+			printf '%s\n' "$line"
+		fi
+	done < "$__file_name"
 }
 
 # Parser yaml file into array
@@ -275,11 +310,12 @@ function parse_yaml {
 function yaml2arr {
     local __yaml_file=$1
     local __res_array=$2
+	local __yaml_data
 
-    # Make Sanity Check
-    fileSanityCheck $__yaml_file
+    # Prepare Requirement file
+    __yaml_data=$(prepareReqFile $__yaml_file)
 
-    local __array=$(parse_yaml $__yaml_file)
+    local __array=$(parse_yaml "${__yaml_data}")
     IFS=$'\r\n' eval  $__res_array='(${__array})'
     #echo "${__array[@]}"
 }
@@ -326,8 +362,8 @@ function isInArray {
 
     for item in "${__ref_in_array[@]}"; do
         if [[ "${item}" == ${__key}* ]] ; then
-        eval $__idx="'$__index'"
-        return 0;
+	        eval $__idx="'$__index'"
+	        return 0;
         fi
         ((__index++))
     done
@@ -606,7 +642,7 @@ function preRequirement {
 
     # Get Version and Description of this script
     getYAMLValue "version" YAML_ARRAY VERSION
-    getYAMLValue "description" YAML_ARRAY DESCRIPTION    
+    getYAMLValue "description" YAML_ARRAY DESCRIPTION
 }
 
 # Load bar while running a command
