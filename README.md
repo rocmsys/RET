@@ -3,9 +3,9 @@
 RET is a comprehensive checking, set up, installation, testing and benchmarking tool which does carry out the installation of ROCm suite ranging from dependencies, drivers and toolchain to framework and benchmark. 
 RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
 
-* INSTALL OS
-* RUN ret
-* RUN your Tensorflow benchmark OR TRAIN your own model with tensorflow
+* Install Linux OS
+* Run ret
+* Run your Tensorflow benchmark OR Train your own model with tensorflow
 
 ## Hardware Support and supported GPU
 please refer to ROCm main repository
@@ -89,7 +89,7 @@ cd benchmarks
 python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50  --batch_size=256 --num_batches=50 --use_fp16=True --datasets_use_prefetch=False --display_every=10
 ```
 
-**Note:** You may need to add your GPU number ```--num_gpus=YOUR_GPU_NUMBER>```
+**Note:** You may need to add your GPU number ```--num_gpus=YOUR_GPU_NUMBER```
 
 ### ToDo Checklist
 - [x] Support Ubuntu 16.04
