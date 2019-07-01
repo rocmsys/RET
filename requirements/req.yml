@@ -125,7 +125,7 @@ dependencies:
     - req_file: py2.yml
 
   - py3:
-    - name: py3.yml
+    - req_file: py3.yml
 
   - tensorflow:
     - name: tensorflow-rocm:pip
