@@ -1,0 +1,21 @@
+# This file contains only dependencies required by Singularity 
+---
+- Ubuntu:
+  - name: python
+    version: latest
+  - name: dh-autoreconf
+    version: latest
+  - name: build-essential
+    version: latest
+  - name: build-essential
+    version: latest
+  - name: libarchive-dev
+    version: latest
+
+- CentOS:
+  - name: 'Development Tools':group
+    version: latest
+  - name: libarchive-devel
+    version: latest
+...
+    

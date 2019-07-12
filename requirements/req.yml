@@ -138,6 +138,12 @@ dependencies:
   - mivisionx:
     - req_file: mivisionx.yml
 
+  - docker:
+    - req_file: docker.yml
+
+  - singularity:
+    - req_file: singularity.yml
+    
 # Project description
 description: ROCm Machine Learning one-script installer xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx 
 ...

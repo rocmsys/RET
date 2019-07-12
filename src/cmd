@@ -19,11 +19,17 @@ function printUsage {
     echo -e "    [validate]                         ${FG_LIGHT_BLUE}: System validation${END}"
     echo -e "    [benchmark] <Packages> <Model>     ${FG_LIGHT_BLUE}: Run benchmark for specific ML Framework${END}"
     echo -e "    [show]                             ${FG_LIGHT_BLUE}: Show system HW and SW details${END}"
+    echo -e "    [build]                            ${FG_LIGHT_BLUE}: Build ROCm Container either with Docker or Singularity${END}"
     echo -e ""
     echo -e "${BOLD}Package:${END}"
     echo -e "    [rocm]                             ${FG_LIGHT_BLUE}: ROCm-dkms packages${END}"
     echo -e "    [tensorflow]                       ${FG_LIGHT_BLUE}: Tensorflow framework${END}"
     echo -e "    [pytorch]                          ${FG_LIGHT_BLUE}: Pytorch framework${END}"
+    echo -e ""
+    echo -e "${BOLD}Container:${END}"
+    echo -e "    [docker]                           ${FG_LIGHT_BLUE}: Build Docker Container${END}"
+    echo -e "    [singularity]                      ${FG_LIGHT_BLUE}: Build Singularity Container${END}"
+    echo -e "    [--os]                             ${FG_LIGHT_BLUE}: Choosing an OS Base Image from [ubuntu16.04, ubuntu18.04, centos7.6]${END}"
     echo -e ""
     echo -e "${BOLD}Model:${END}"
     echo -e "    [vgg16]                            ${FG_LIGHT_BLUE}: vgg16 model${END}"
@@ -50,89 +56,88 @@ function parseArgs {
     local __cmd_parseArgs=""
     local __arg_parseArgs=""
     local __pkgs_parseArgs=()
-    local __models_parseArgs=()
+    local __options_parseArgs=()
     local __isPyRequired_parseArgs=1
+    local __isROCmRequired_parseArgs=1
     local __hasPY_parseArgs=1
 
     until [ $# = 0 ]
     do
-      __arg_parseArgs="$1"
-      case "$__arg_parseArgs" in
-        -v | --version)
-          printf "ROCmML version ${RET_VERSION}\n"
-          exit
-         ;;
+        __arg_parseArgs="$1"
 
-        -h | --help)
-          printUsage
-          exit
-        ;;
+        case "$__arg_parseArgs" in
+            # Print Version #######################################################################
+            "-v" | "--version")
+              printf "ROCmML version ${RET_VERSION}\n"
+              exit
+             ;;
 
-        -y | --yes)
-          FORCEYES=true
-          shift
-        ;;
+            # Print Help ##########################################################################
+            "-h" | "--help")
+              printUsage
+              exit
+            ;;
 
-        -py2)
-          __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=\"py3\"" "PYVER=\"py2\""; PYVER="py2"; __hasPY_parseArgs=0
-          shift
-        ;;
+            # Force YES ###########################################################################
+            "-y" | "--yes")
+              FORCEYES=true
+              shift
+            ;;
 
-        -py3)
-          __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=\"py2\"" "PYVER=\"py3\""; PYVER="py3"; __hasPY_parseArgs=0
-          shift
-        ;;
+            # Set Python Version ##################################################################
+            "-py2" | "-py3")
+              __pkgs_parseArgs+=("${__arg_parseArgs:1}"); editFile "${DEF_FILE}" "PYVER=.*$" "PYVER=\"${__arg_parseArgs:1}\""; PYVER="${__arg_parseArgs:1}"; __hasPY_parseArgs=0
+              shift
+            ;;
 
-        -s)
-          [ -z "$2" ] && { printUsage; exit; }
-          [ "$RET_DISTRO" = "Ubuntu" ] && ROCM_DEB="$2" || ROCM_RPM="$2"
-          shift; shift
-        ;;
+            # Install ROCm from URL ###############################################################
+            "-s")
+              [ -z "$2" ] && { printUsage; exit; }
+              [ "$RET_DISTRO" = "Ubuntu" ] && ROCM_DEB="$2" || ROCM_RPM="$2"
+              shift; shift
+            ;;
 
-        update)
-          [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
-          __cmd_parseArgs=$__arg_parseArgs
-          shift
-        ;;
+            # Set Command #########################################################################
+            "install" | "update" | "remove" | "benchmark" | "build")
+              [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
+              __cmd_parseArgs=$__arg_parseArgs
+              shift
+            ;;
 
-        install)
-          [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
-          __cmd_parseArgs=$__arg_parseArgs
-          shift
-        ;;
+            # Set Packages ########################################################################
+            "rocm" | "tensorflow" | "pytorch")
+                # Permitted commands: install, remove and update
+                if [[ ! "$__cmd_parseArgs" =~ ^("install"|"update"|"remove"|"benchmark")$ ]]; then logPrint "ERR" "Wrong command! Did you mean: $0 install $__arg_parseArgs"; exit; fi
+                if [[ "$__arg_parseArgs" =~ ^("tensorflow"|"pytorch")$ ]]; then __isPyRequired_parseArgs=0; __isROCmRequired_parseArgs=0; fi
+                __pkgs_parseArgs+=("$__arg_parseArgs");
+              shift
+            ;;
 
-        remove)
-          [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
-          __cmd_parseArgs=$__arg_parseArgs
-          shift
-        ;;
+            "docker" | "singularity")
+                # Permitted commands: install, remove and update
+                if [[ ! "$__cmd_parseArgs" == "build" ]]; then logPrint "ERR" "Wrong command! Did you mean: $0 build $__arg_parseArgs"; exit; fi
+                [[ $__pkgs_parseArgs ]] && logPrint "ERR" "Only one container at time!"
+              __pkgs_parseArgs="$__arg_parseArgs";
+              shift
+            ;;
 
-        benchmark)
-          [[ $__cmd_parseArgs ]] && logPrint "ERR" "Only one command at time!"
-          __cmd_parseArgs=$__arg_parseArgs
-          shift
-        ;;
+            "vgg16" | "alexnet" | "resnet50" | "ubuntu:16.04" | "ubuntu:18.04")
+                # Permitted commands: benchmark
+                if [[ "$__arg_parseArgs" =~ ^("vgg16"|"alexnet"|"resnet50")$ ]]; then if [[ ! "$__cmd_parseArgs" == "benchmark" ]]; then 
+                    logPrint "ERR" "Wrong command! Did you mean: $0 benchmark tensorflow $__arg_parseArgs"; exit; fi
+                else
+                    if [[ ! "$__cmd_parseArgs" == "build" ]]; then logPrint "ERR" "Wrong command! Did you mean: $0 build docker $__arg_parseArgs"; exit; fi
+                fi
+              __options_parseArgs+=("$__arg_parseArgs")
+              shift
+            ;;
 
-	    rocm)
-          __pkgs_parseArgs+=("$__arg_parseArgs")
-          shift
-        ;;
-
-        tensorflow | pytorch)
-          __pkgs_parseArgs+=("$__arg_parseArgs"); __isPyRequired_parseArgs=0
-          shift
-        ;;
-
-        vgg16 | alexnet | resnet50)
-          __models_parseArgs+=("$__arg_parseArgs")
-          shift
-        ;;
-
-        *)
-          printUsage
-          exit
-        ;;
-      esac
+            # Not supported args ##################################################################
+            *)
+              printUsage
+              exit
+            ;;
+        esac
     done
 
     # Include Python Package if required
@@ -140,25 +145,26 @@ function parseArgs {
         [ "${__hasPY_parseArgs}" -eq 1 ] && __pkgs_parseArgs=("${PYVER}" "${__pkgs_parseArgs[@]}") || __pkgs_parseArgs=("${PYVER}" ${__pkgs_parseArgs[@]/"${PYVER}"})
     fi
 
-    # Exclude rocm if benchamrk
-    [ "$__cmd_parseArgs" = "benchmark" ] && __pkgs_parseArgs=(${__pkgs_parseArgs[@]/"rocm"})
-    
     # Run command
-    [[ "$__cmd_parseArgs" ]] && cmdEngine "${__cmd_parseArgs}" __pkgs_parseArgs __models_parseArgs || { printUsage; exit; }
+    if [ "${__isROCmRequired_parseArgs}" -eq 0 ]; then __pkgs_parseArgs=("rocm" ${__pkgs_parseArgs[@]/"rocm"}); fi
+    [[ "$__cmd_parseArgs" ]] && cmdEngine "${__cmd_parseArgs}" __pkgs_parseArgs __options_parseArgs || { printUsage; exit; }
 }
 
 # Run command
 # Input $1: command
 # Input $2: args (packages)
-# Input $3: models
+# Input $3: options
 function cmdEngine {
     local __cmd_cmdEngine=$1
     local -n __args_cmdEngine=$2
-    local -n __models_cmdEngine=$3
+    local -n __options_cmdEngine=$3
 
     if [ "${#__args_cmdEngine[@]}" -eq 0 ]; then printUsage; exit; fi
-    toLog "CMD" "$__cmd_cmdEngine ${__args_cmdEngine[@]} [cmdEngine]"
 
+    # YAML Pre-installation requirements
+    preRequirement
+
+    toLog "CMD" "$__cmd_cmdEngine ${__args_cmdEngine[@]} [cmdEngine]"
     case "$__cmd_cmdEngine" in
         update)
           echo "update pkgs..."
@@ -175,8 +181,14 @@ function cmdEngine {
         ;;
 
         benchmark)
-            if [ "${#__models_cmdEngine[@]}" -eq 0 ]; then __models_cmdEngine=("$TF_MODEL"); fi
-            benchmarkCmd __args_cmdEngine __models_cmdEngine
+            __args_cmdEngine=(${__args_cmdEngine[@]/"rocm"}) # Exclude rocm
+            if [ "${#__args_cmdEngine[@]}" -eq 0 ]; then printUsage; exit; fi
+            benchmarkCmd __args_cmdEngine __options_cmdEngine
+            exit
+        ;;   
+
+        build)
+            buildContainer __args_cmdEngine __options_cmdEngine
             exit
         ;;
 
@@ -191,65 +203,42 @@ function cmdEngine {
 # Input $1: args (packages)
 function installCmd {
     local -n __args_installCmd=$1
-    local __pkg_name_installCmd=()
-    local __pkg_ver_installCmd=()
-    local __index=-1
-    local __isROCmInstalled_installCmd=0
-    local __isTFInstalled_installCmd=0
-    local __isPTInstalled_installCmd=0
-    local __isPYInstalled_installCmd=0
-
-    # Check system requirements
-    checkSys
-
-    # Reorder the pkgs array and insert rocm
-    __args_installCmd=("rocm" ${__args_installCmd[@]/"rocm"})
 
 	# Build Package Array
 	for pkg in "${__args_installCmd[@]}"; do
 	    case "$pkg" in
 	        rocm)
-		      buildPkgArray "$pkg" __pkg_name_installCmd __pkg_ver_installCmd __isROCmInstalled_installCmd
-              runInstall "ROCm" __pkg_name_installCmd __pkg_ver_installCmd "$__isROCmInstalled_installCmd"
+                checkSys # Check system requirements
 		    ;;
-
-	        tensorflow)
-		      buildPkgArray "$pkg" __pkg_name_installCmd __pkg_ver_installCmd __isTFInstalled_installCmd
-              runInstall "Tensorflow" __pkg_name_installCmd __pkg_ver_installCmd "$__isTFInstalled_installCmd"
-		    ;;
-
-	        pytorch)
-		      buildPkgArray "$pkg" __pkg_name_installCmd __pkg_ver_installCmd __isPTInstalled_installCmd
-		    ;;
-
-            py2 | py3)
-              buildPkgArray "$pkg" __pkg_name_installCmd __pkg_ver_installCmd __isPYInstalled_installCmd
-              runInstall "Python" __pkg_name_installCmd __pkg_ver_installCmd "$__isPYInstalled_installCmd"
-            ;;
 	    esac
+        # Install Package
+        runInstall "$pkg"
 	done
 }
 
 # Run Install Process
 # Input $1: pkg name
-# Input $2: pkg array
-# Input $3: ver array
-# Input $4: is pkgs already installed
+# Input $2: pkg name
 function runInstall {
     local __pkg_name_runInstall="$1"
-    local -n __pkg_name_array_runInstall="$2"
-    local -n __pkg_vers_array_runInstall="$3"
-    local __isInstalled_runInstall="$4"
+    local __pkg_name_array_runInstall=()
+    local __pkg_vers_array_runInstall=()
+    local __isInstalled_runInstall=0
 
-    # Run pre installation
+    # Get packages
+    buildPkgArray "$__pkg_name_runInstall" __pkg_name_array_runInstall __pkg_vers_array_runInstall __isInstalled_runInstall
+
+    # Run pre installation if required
     [ "$__isInstalled_runInstall" -eq "1" ] && runPreInstallation "${__pkg_name_runInstall}"
 
     # Install the Packages if not already installed
     checkDeps __pkg_name_array_runInstall __pkg_vers_array_runInstall "Verifying ${__pkg_name_runInstall} Dependencies"
+    [ "$__pkg_name_runInstall" = "singularity" ] && installSingularity # This will be removed in the next release
 
     # Run post installation
     [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
 
+    # Run verification
     runVerification "$__pkg_name_runInstall"
 
     if [ $? -eq 0 ]; then
@@ -270,14 +259,12 @@ function runPreInstallation {
     local __repo_text_runPreInstallation
 
     case "$__pkg_name_runPreInstallation" in
-        ROCm)
+        rocm)
             # Add the ROCm apt repository
-            startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Add the ROCm apt repository"; printf '\n'
             addROCmRepo
-            stopLoadBar
         ;;
 
-        Tensorflow)
+        tensorflow)
             # Uninstall any previously-installed tensorflow whl packages
             startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Uninstall previously-installed tensorflow"; printf '\n'
             local __tf_pkg_runPreInstallation=("tensorflow:${PYPI}")
@@ -285,18 +272,27 @@ function runPreInstallation {
             stopLoadBar
         ;;
 
-        Pytorch)
-            echo "Pytorch Pre-Installation"
+        pytorch)
+            PRE="DONOTHING"
         ;;
 
-        Python)
-            echo "Python Pre-Installation"
+        py2 | py3)
+            PRE="DONOTHING"
+        ;;
+
+        docker)
+            addDockerRepo "https://download.docker.com/linux"
+        ;;
+
+        singularity)
+            PRE="DONOTHING"
         ;;
     esac
 }
 
 # Add the ROCm repository
 function addROCmRepo {
+    startLoadBar "Run ROCm Pre-Installation: Add the ROCm apt repository"; printf '\n'
     case "$RET_DISTRO" in
         Ubuntu)
             wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
@@ -307,7 +303,27 @@ function addROCmRepo {
             echo -e "[ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0" | tee "${CentOS_ROCM_REPO}" >/dev/null 2>&1
         ;;
     esac
+    stopLoadBar
 }
+
+# Add the Docker repository
+# Input $1 url
+function addDockerRepo {
+    local __url_addRepo="$1"
+    startLoadBar "Run Docker Pre-Installation: Add the Docker apt repository"; printf '\n'
+    case "$RET_DISTRO" in
+        Ubuntu)
+            wget -qO - "${__url_addRepo}/ubuntu/gpg" | apt-key add - >/dev/null 2>&1
+            add-apt-repository "deb [arch=amd64 trusted=yes] ${__url_addRepo}/ubuntu $(lsb_release -cs) stable" >/dev/null 2>&1
+        ;;
+
+        CentOS)
+            yum-config-manager --add-repo "${__url_addRepo}/centos/docker-ce.repo" | >/dev/null 2>&1
+        ;;
+    esac
+    stopLoadBar
+}
+
 
 # Run post installation
 # Input $1: pkg name
@@ -316,7 +332,7 @@ function runPostInstallation {
 
     
     case "$__pkg_name_runPostInstallation" in
-        ROCm)
+        rocm)
             # Add user to the video group
             startLoadBar "Run ${__pkg_name_runPostInstallation} Post-Installation: Add user to the video group & put ROCm in PATH "; printf '\n'
             usermod -aG video $SUDO_USER
@@ -327,16 +343,25 @@ function runPostInstallation {
             stopLoadBar
         ;;
 
-        Tensorflow)
-            echo "Tensorflow Post-Installation"
+        tensorflow)
+            POST="DONOTHING"
         ;;
 
-        Pytorch)
-            echo "Pytorch Post-Installation"
+        pytorch)
+            POST="DONOTHING"
         ;;
 
-        Python)
-            echo "Python Post-Installation"
+        py2 | py3)
+            POST="DONOTHING"
+        ;;
+
+        docker)
+            systemctl start docker
+            systemctl enable docker
+        ;;
+
+        singularity)
+            POST="DONOTHING"
         ;;
     esac
 }
@@ -347,22 +372,35 @@ function runVerification {
     local __pkg_name_runVerification="$1"
 
     case "$__pkg_name_runVerification" in
-        ROCm)
+        rocm)
             rocmVerification
             return "$?";
         ;;
 
-        Tensorflow)
+        tensorflow)
             tfVerification
             return "$?";
         ;;
 
-        Pytorch)
+        pytorch)
             echo "Pytorch Verification"
         ;;
 
-        Python)
-            echo "Python Verification"
+        py2)
+            logPrint "NOTE" "The Current Python Version is: `python -V`"
+        ;;
+        py3)
+            logPrint "NOTE" "The Current Python Version is: `python3 -V`"
+        ;;
+
+        docker)
+            systemctl start docker; DOCKER_VERSION=$(docker version --format '{{.Server.Version}}')
+            return "$?";
+        ;;
+
+        singularity)
+            logPrint "NOTE" "The Current Singularity Version is: `singularity --version`"
+            singularity --version >/dev/null 2>&1; return "$?";
         ;;
     esac
 }
@@ -486,9 +524,9 @@ function runRemove {
 }
 
 # Build Package Array by key and check if packages already installed
-# I/O $1: Package array and updated array
-# Output $2: Package Version array
-# Input  $3: Key
+# Input  $1: Key
+# I/O $2: Package array and updated array
+# Output $3: Package Version array
 # Output $4: true if packages already installed
 function buildPkgArray {
     local __key_buildPkgArray=$1
@@ -501,21 +539,25 @@ function buildPkgArray {
     local __pkgs_buildPkgArray=()
     local __vers_buildPkgArray=()
 
-    # Get ROCm install packages
-    getYAMLValue "dependencies|${__key_buildPkgArray}|name" YAML_ARRAY __deps_name_buildPkgArray
-    getYAMLValue "dependencies|${__key_buildPkgArray}|name|version" YAML_ARRAY __deps_vers_buildPkgArray
-    __pkgs_buildPkgArray=("${__deps_name_buildPkgArray[@]}")
-    __vers_buildPkgArray=("${__deps_vers_buildPkgArray[@]}")
+    # Get install packages
+    if isInArray "YAML_ARRAY" "dependencies|${__key_buildPkgArray}|name:=" INDEX; then
+        getYAMLValue "dependencies|${__key_buildPkgArray}|name" YAML_ARRAY __deps_name_buildPkgArray
+        getYAMLValue "dependencies|${__key_buildPkgArray}|name|version" YAML_ARRAY __deps_vers_buildPkgArray
+        __pkgs_buildPkgArray=("${__deps_name_buildPkgArray[@]}")
+        __vers_buildPkgArray=("${__deps_vers_buildPkgArray[@]}")
+    fi
 
     # Get distro packages if found
     if isInArray "YAML_ARRAY" "dependencies|${__key_buildPkgArray}|$RET_DISTRO|name:=" INDEX; then
-        
         getYAMLValue "dependencies|${__key_buildPkgArray}|$RET_DISTRO|name" YAML_ARRAY __deps_name_buildPkgArray
         getYAMLValue "dependencies|${__key_buildPkgArray}|$RET_DISTRO|name|version" YAML_ARRAY __deps_vers_buildPkgArray
 
         __pkgs_buildPkgArray+=("${__deps_name_buildPkgArray[@]}")
         __vers_buildPkgArray+=("${__deps_vers_buildPkgArray[@]}")
     fi
+
+    # Check packages array
+    if [ "${#__pkgs_buildPkgArray[@]}" -eq 0 ]; then logPrint "ERR" "No value Found with this key!" "$__key_buildPkgArray" "${FAIL}"; exit; fi
 
     # Check if pkgs are installed
     for dep in "${__pkgs_buildPkgArray[@]}"; do
@@ -537,7 +579,7 @@ function benchmarkCmd {
 
     local __pkg_name_benchmarkCmd=()
     local __pkg_ver_benchmarkCmd=()
-    local __isROCmInstalled_removeCmd=0
+    local __isROCmInstalled_benchmarkCmd=0
     local __isTFInstalled_benchmarkCmd=0
     local __isPTInstalled_benchmarkCmd=0
 
@@ -602,4 +644,77 @@ function runBenchmark {
                 echo "Pytorch benchmarking..."
             ;;
         esac
+}
+
+
+# Build ROCm Container
+# Input $1: args (docker or singularity)
+# Input $2: options
+function buildContainer {
+    local -n __args_buildContainer=$1
+    local -n __options_buildContainer=$2
+
+    local __pkg_name_buildContainer=()
+    local __pkg_ver_buildContainer=()
+    local __isInstalled_buildContainer=0
+    local __isTFInstalled_buildContainer=0
+    local __isPTInstalled_buildContainer=0
+
+    yaml2arr "$REQ_FILE" YAML_ARRAY
+
+    installCmd __args_cmdEngine
+
+    case "${__args_buildContainer[0]}" in
+        "docker")
+            docker build -t "first_ret_rocm" "container/docker/"
+        ;;
+
+        "singularity")
+            installCmd __args_cmdEngine
+        ;;
+    esac
+}
+
+# Install Singularity from Source
+# This should be removed once singularity support DEP & RPM package installation
+function installSingularity {
+    local __cmd_ret_installSingularity
+    local __retPath_installSingularity=$(pwd)
+    local __version_installSingularity=2.5.2
+    local __url_installSingularity="https://github.com/singularityware/singularity/releases/download/$__version_installSingularity/singularity-$__version_installSingularity.tar.gz"
+    
+    # Confirmation message
+    logPrint "STEP" "Install Singularity"
+    confirmYn "Install Singularity? [Y/n] " || logPrint "ERR" "Install Singularity" "Singularity" "${FAIL}"
+
+
+    # Download and extract the bash package
+    downloadFile  "$__url_installSingularity" "$TEMP_DIRECTRORY" "ERR" "Download Singularity"
+
+    # Install the singularity
+    startLoadBar "Install Singularity"
+
+    tar xvf "$TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz" -C "$TEMP_DIRECTRORY" >/dev/null 2>&1
+    __cmd_ret_installSingularity="$?"
+    checkReturn "$__cmd_ret_installSingularity" "tar zxvf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY" "ERR"
+
+    cd "$TEMP_DIRECTRORY/singularity-$__version_installSingularity"
+
+    ./configure --prefix=/usr/local >/dev/null 2>&1
+    __cmd_ret_installSingularity="$?"
+    checkReturn "$__cmd_ret_installSingularity" "./configure --prefix=/usr/local" "ERR"
+
+    make -j $(nproc) >/dev/null 2>&1
+    __cmd_ret_installSingularity="$?"
+    checkReturn "$__cmd_ret_installSingularity" "make" "ERR"
+
+    make install >/dev/null 2>&1
+    __cmd_ret_installSingularity="$?"
+    checkReturn "$__cmd_ret_installSingularity" "make install" "ERR"
+
+    # Back to the RET folder
+    cd "$__retPath_installSingularity"
+
+    [ $__cmd_ret_installSingularity -ne 0 ] && stopLoadBar "There was a problem installing Singularity!" "ERR" "make install" \
+                                      || stopLoadBar "Install Completed Successfully."
 }

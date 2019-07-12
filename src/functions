@@ -317,7 +317,7 @@ function yaml2arr {
 
     local __array=$(parse_yaml "${__yaml_data}")
     IFS=$'\r\n' eval  $__res_array='(${__array})'
-    #echo "${__array[@]}"
+    #echo "${__array[@]}"; exit
 }
 
 # Get value yaml value by key
@@ -361,7 +361,7 @@ function isInArray {
     local __index=0
 
     for item in "${__ref_in_array[@]}"; do
-        if [[ "${item}" == ${__key}* ]] ; then
+        if [[ "${item}" == "${__key}"* ]] ; then
 	        eval $__idx="'$__index'"
 	        return 0;
         fi
@@ -472,7 +472,11 @@ function isPrgInstalled {
     	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { 
     		case $RET_DISTRO in
 				CentOS)
-					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1) && __found=0;;
+					if [[ "${__phu_isPrgInstalled}" == "group" ]]; then
+                        ("yum grouplist installed ${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -i "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1) && __found=0;
+                    else
+                        (${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1) && __found=0;
+                    fi;;
 				Ubuntu)
 					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0;;
 			esac
@@ -513,6 +517,7 @@ function installPkg {
         __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
 
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
+        [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="group install"
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
         __cmd_array_installPkg=("${__cmd_installPkg} ${__dep_installPkg}"); runCmd __cmd_array_installPkg "ERR"
@@ -595,6 +600,7 @@ function removePkg {
         __dep_removePkg="${__pkg_name_removePkg}${__pkg_vers_removePkg}"
 
         [[ "${__phu_removePkg}" =~ "pip" ]] && __cmd_removePkg="${PYPI} uninstall -y"
+        [[ "${__phu_removePkg}" == "group" ]] && __cmd_removePkg="groupremove -y"
 
         startLoadBar "Uninstalling Package: ${__dep_removePkg}"
 
@@ -726,7 +732,7 @@ function downloadFile {
     }
 
     # Download file and get the current download state
-    wget --progress=dot -P "$2" "$1" 2>&1 | grep --line-buffered "%" | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage
+    wget --progress=dot -P "$2" "$1" 2>&1 | grep --line-buffered "[[:space:]][[:digit:]][[:digit:]]*%" | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage
 
     # Check the return state 
     __cmd_ret_downloadFile="$?"
@@ -737,9 +743,6 @@ function downloadFile {
 function checkSys {
 	local __deps_array_checkSys=()
 	local __vers_array_checkSys=()
-
-    # Pre-installation requirements
-    preRequirement
 
     # Check OS
     logPrint "STEP" "Checking OS"
@@ -776,7 +779,7 @@ function isRebootRequired {
     fi
 }
 
-# Edit File in place
+# Edit File in place. Support pattern matching
 # Input $1: file name
 # Input $2: new value
 # Input $3: old value
@@ -785,7 +788,7 @@ function editFile {
     local __old_value_editFile=$2
     local __new_value_editFile=$3
 
-    local __cmd_array_editFile=("sed -i 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}")
+    local __cmd_array_editFile=("sed -i -e 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}")
     runCmd __cmd_array_editFile "ERR" "1" "Cannot edit file: ${__file_name_editFile}"
 }
 
