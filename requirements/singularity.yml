@@ -1,21 +1,37 @@
 # This file contains only dependencies required by Singularity 
 ---
+- name: wget
+  version: latest
 - Ubuntu:
-  - name: python
-    version: latest
-  - name: dh-autoreconf
-    version: latest
   - name: build-essential
     version: latest
-  - name: build-essential
+  - name: libssl-dev
     version: latest
-  - name: libarchive-dev
+  - name: uuid-dev
+    version: latest
+  - name: libgpgme11-dev
+    version: latest
+  - name: squashfs-tools
+    version: latest
+  - name: libseccomp-dev
+    version: latest
+  - name: pkg-config
+    version: latest
+  - name: git
     version: latest
 
 - CentOS:
   - name: 'Development Tools':group
     version: latest
-  - name: libarchive-devel
+  - name: openssl-devel
+    version: latest
+  - name: libuuid-devel
+    version: latest
+  - name: openssl-devel
+    version: latest
+  - name: libseccomp-devel
+    version: latest
+  - name: squashfs-tools
     version: latest
 ...
     

@@ -233,7 +233,7 @@ function runInstall {
 
     # Install the Packages if not already installed
     checkDeps __pkg_name_array_runInstall __pkg_vers_array_runInstall "Verifying ${__pkg_name_runInstall} Dependencies"
-    [ "$__pkg_name_runInstall" = "singularity" ] && installSingularity # This will be removed in the next release
+    [ "$__pkg_name_runInstall" = "singularity" ] && singularity --version >/dev/null 2>&1 || installSingularity # This will be removed in the next release
 
     # Run post installation
     [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
@@ -670,7 +670,7 @@ function buildContainer {
         ;;
 
         "singularity")
-            installCmd __args_cmdEngine
+            singularity build --sandbox --notest "rocm.simg" "container/singularity/recipe"
         ;;
     esac
 }
@@ -680,37 +680,53 @@ function buildContainer {
 function installSingularity {
     local __cmd_ret_installSingularity
     local __retPath_installSingularity=$(pwd)
-    local __version_installSingularity=2.5.2
-    local __url_installSingularity="https://github.com/singularityware/singularity/releases/download/$__version_installSingularity/singularity-$__version_installSingularity.tar.gz"
-    
+    local __version_installSingularity=3.2.1     
+    local __url_installSingularity="https://github.com/sylabs/singularity/releases/download/v$__version_installSingularity/singularity-$__version_installSingularity.tar.gz"
+    local __version_go=1.12
+    local __url_go="https://dl.google.com/go/go${__version_go}.linux-amd64.tar.gz"
+
     # Confirmation message
     logPrint "STEP" "Install Singularity"
     confirmYn "Install Singularity? [Y/n] " || logPrint "ERR" "Install Singularity" "Singularity" "${FAIL}"
 
+    # Download Go package
+    downloadFile "$__url_go" "$TEMP_DIRECTRORY" "ERR" "Download Go"
 
-    # Download and extract the bash package
+    # Install the Go ###################################################################################
+    startLoadBar "Install Go"
+    tar -xzvf "$TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz"  -C "/usr/local" >/dev/null 2>&1
+    __cmd_ret_installSingularity="$?"
+    checkReturn "$__cmd_ret_installSingularity" "tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local" "ERR"
+
+    export GOPATH=${HOME}/go
+    export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
+
+    stopLoadBar "Install Completed Successfully."
+    ###################################################################################################
+
+    # Download and extract the singularity package ####################################################
     downloadFile  "$__url_installSingularity" "$TEMP_DIRECTRORY" "ERR" "Download Singularity"
 
     # Install the singularity
     startLoadBar "Install Singularity"
 
-    tar xvf "$TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz" -C "$TEMP_DIRECTRORY" >/dev/null 2>&1
+    tar -xzf "$TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz" -C "$TEMP_DIRECTRORY" >/dev/null 2>&1
     __cmd_ret_installSingularity="$?"
     checkReturn "$__cmd_ret_installSingularity" "tar zxvf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY" "ERR"
 
-    cd "$TEMP_DIRECTRORY/singularity-$__version_installSingularity"
+    cd "$TEMP_DIRECTRORY/singularity"
 
-    ./configure --prefix=/usr/local >/dev/null 2>&1
+    ./mconfig >/dev/null 2>&1
     __cmd_ret_installSingularity="$?"
-    checkReturn "$__cmd_ret_installSingularity" "./configure --prefix=/usr/local" "ERR"
+    checkReturn "$__cmd_ret_installSingularity" "./mconfig" "ERR"
 
-    make -j $(nproc) >/dev/null 2>&1
+    make -C ./builddir >/dev/null 2>&1
     __cmd_ret_installSingularity="$?"
-    checkReturn "$__cmd_ret_installSingularity" "make" "ERR"
+    checkReturn "$__cmd_ret_installSingularity" "make -C ./builddir" "ERR"
 
-    make install >/dev/null 2>&1
+    make -C ./builddir install >/dev/null 2>&1
     __cmd_ret_installSingularity="$?"
-    checkReturn "$__cmd_ret_installSingularity" "make install" "ERR"
+    checkReturn "$__cmd_ret_installSingularity" "make -C ./builddir install" "ERR"
 
     # Back to the RET folder
     cd "$__retPath_installSingularity"
