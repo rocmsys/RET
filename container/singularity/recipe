@@ -1,6 +1,5 @@
-
 Bootstrap: docker
-From: ubuntu:18.04
+From: ubuntu:16.04 #DISTRO
 
 %environment
     export LC_ALL=C
@@ -24,5 +23,5 @@ From: ubuntu:18.04
     ./ret benchmark tensorflow
 
 %help
-    Singularity Ubuntu 18.04 container for ROCm.
+    Singularity container for ROCm.
 

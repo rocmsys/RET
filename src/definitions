@@ -26,6 +26,8 @@ LOG_FILE="${LOG_DIRECTRORY}/ret.log"
 BASH_FILENAME="bash-4.4.18"
 Ubuntu_ROCM_REPO="/etc/apt/sources.list.d/rocm.list"
 CentOS_ROCM_REPO="/etc/yum.repos.d/rocm.repo"
+DOCKERFILE="container/docker/Dockerfile"
+RECIPEFILE="container/singularity/recipe"
 
 # Url's
 UBUNTU_KERNEL_URL="kernel.ubuntu.com/~kernel-ppa/mainline/"

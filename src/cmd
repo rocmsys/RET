@@ -29,7 +29,7 @@ function printUsage {
     echo -e "${BOLD}Container:${END}"
     echo -e "    [docker]                           ${FG_LIGHT_BLUE}: Build Docker Container${END}"
     echo -e "    [singularity]                      ${FG_LIGHT_BLUE}: Build Singularity Container${END}"
-    echo -e "    [--os]                             ${FG_LIGHT_BLUE}: Choosing an OS Base Image from [ubuntu16.04, ubuntu18.04, centos7.6]${END}"
+    echo -e "    [--os]                             ${FG_LIGHT_BLUE}: Choosing an OS Base Image from [ubuntu16.04, ubuntu18.04, centos7]${END}"
     echo -e ""
     echo -e "${BOLD}Model:${END}"
     echo -e "    [vgg16]                            ${FG_LIGHT_BLUE}: vgg16 model${END}"
@@ -121,7 +121,7 @@ function parseArgs {
               shift
             ;;
 
-            "vgg16" | "alexnet" | "resnet50" | "ubuntu:16.04" | "ubuntu:18.04")
+            "vgg16" | "alexnet" | "resnet50" | "ubuntu:16.04" | "ubuntu:18.04" | "centos:7")
                 # Permitted commands: benchmark
                 if [[ "$__arg_parseArgs" =~ ^("vgg16"|"alexnet"|"resnet50")$ ]]; then if [[ ! "$__cmd_parseArgs" == "benchmark" ]]; then 
                     logPrint "ERR" "Wrong command! Did you mean: $0 benchmark tensorflow $__arg_parseArgs"; exit; fi
@@ -167,7 +167,7 @@ function cmdEngine {
     toLog "CMD" "$__cmd_cmdEngine ${__args_cmdEngine[@]} [cmdEngine]"
     case "$__cmd_cmdEngine" in
         update)
-          echo "update pkgs..."
+          echo "Update Command not yet implemented"
         ;;
 
         install)
@@ -233,7 +233,7 @@ function runInstall {
 
     # Install the Packages if not already installed
     checkDeps __pkg_name_array_runInstall __pkg_vers_array_runInstall "Verifying ${__pkg_name_runInstall} Dependencies"
-    [ "$__pkg_name_runInstall" = "singularity" ] && singularity --version >/dev/null 2>&1 || installSingularity # This will be removed in the next release
+    if [ "$__pkg_name_runInstall" = "singularity" ]; then singularity --version >/dev/null 2>&1 || installSingularity; fi # This will be removed in the next release
 
     # Run post installation
     [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
@@ -324,7 +324,6 @@ function addDockerRepo {
     stopLoadBar
 }
 
-
 # Run post installation
 # Input $1: pkg name
 function runPostInstallation {
@@ -399,7 +398,7 @@ function runVerification {
         ;;
 
         singularity)
-            logPrint "NOTE" "The Current Singularity Version is: `singularity --version`"
+            logPrint "NOTE" "The Current `singularity --version`"
             singularity --version >/dev/null 2>&1; return "$?";
         ;;
     esac
@@ -662,15 +661,22 @@ function buildContainer {
 
     yaml2arr "$REQ_FILE" YAML_ARRAY
 
+    TOTALSTEPS=3;
+
+    # Set default distro
+    [ "${#__options_buildContainer[@]}" -eq 0 ] && __options_buildContainer[0]="ubuntu:16.04"
+
     installCmd __args_cmdEngine
 
     case "${__args_buildContainer[0]}" in
         "docker")
-            docker build -t "first_ret_rocm" "container/docker/"
+            editFile "${DOCKERFILE}" "FROM .*$" "FROM ${__options_buildContainer[0]}";
+            docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
         ;;
 
         "singularity")
-            singularity build --sandbox --notest "rocm.simg" "container/singularity/recipe"
+            editFile "${RECIPEFILE}" "From: .* #DISTRO$" "From: ${__options_buildContainer[0]} #DISTRO";
+            singularity build --sandbox --notest "ret_rocm.simg" "${RECIPEFILE}"
         ;;
     esac
 }

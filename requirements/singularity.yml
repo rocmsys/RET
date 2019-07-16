@@ -17,8 +17,6 @@
     version: latest
   - name: pkg-config
     version: latest
-  - name: git
-    version: latest
 
 - CentOS:
   - name: 'Development Tools':group
