@@ -6,6 +6,6 @@ dist: xenial
 sudo: required
 deploy:
   provider: script
-  script: sudo bash ret install rocm -y
+  script: sudo bash ret install rocm -y --nov
   on:
     branch: dev
