@@ -910,7 +910,7 @@ function runCmd {
 
 	[ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
 	if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
-		eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
+		eval "${__cmd_runCmd[@]}" #>/dev/null 2>&1
 		__cmd_ret_runCmd="$?"
 		[ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd"
 	fi
