@@ -7,8 +7,5 @@ sudo: required
 deploy:
   provider: script
   script: sudo bash ret install rocm -y
-  script: sudo bash ret install tensorflow -y
-  script: sudo bash ret build docker -y
-  script: sudo bash ret build singularity -y
   on:
     branch: dev
