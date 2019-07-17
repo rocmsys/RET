@@ -8,6 +8,6 @@ sudo: required
 
 deploy:
   provider: script
-  script: bash ret
+  script: bash ret install rocm
   on:
     branch: dev
