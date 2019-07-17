@@ -7,6 +7,13 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
 * Run ret
 * Run your Tensorflow benchmark OR Train your own model with tensorflow
 
+## Continuous build status
+| Build Type      | Status | Branch |
+| ---             | ---    | ---       |
+| **Ubuntu 16.04**   | [![Status](https://travis-ci.org/rocmsys/RET.svg?branch=dev)](https://travis-ci.org/rocmsys/RET) | [Dev](https://github.com/rocmsys/RET/tree/dev) |
+| **Ubuntu 16.04**   | [![Status](https://travis-ci.org/rocmsys/RET.svg?branch=master)](https://travis-ci.org/rocmsys/RET) | [Master](https://github.com/rocmsys/RET) |
+
+
 ## Hardware Support and supported GPU
 please refer to ROCm main repository
 at [https://rocm.github.io/ROCmInstall.html](https://rocm.github.io/ROCmInstall.html).
