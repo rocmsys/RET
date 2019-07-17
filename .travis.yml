@@ -6,9 +6,9 @@ os:
 sudo: required
 deploy:
   provider: script
-  script: bash ret install rocm
-  script: bash ret install tensorflow
-  script: bash ret build docker
-  script: bash ret build singularity
+  script: bash sudo ret install rocm
+  script: bash sudo ret install tensorflow
+  script: bash sudo ret build docker
+  script: bash sudo ret build singularity
   on:
     branch: dev
