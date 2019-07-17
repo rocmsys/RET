@@ -1,7 +1,7 @@
 language: bash
 os:
   - linux
- 
+dist: xenial
 
 sudo: required
 deploy:
