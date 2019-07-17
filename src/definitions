@@ -51,6 +51,7 @@ BATCH_SIZE=128
 TOTALSTEPS=12
 BEQUIET=false
 FORCEYES=false
+SKIPVERI=false
 PYVER="py3"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
 

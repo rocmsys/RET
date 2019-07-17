@@ -43,6 +43,7 @@ function printUsage {
     echo -e "    [-V|--verbose]                     ${FG_LIGHT_BLUE}: Be verbose${END}"
     echo -e "    [-q|--quiet]                       ${FG_LIGHT_BLUE}: Be quiet and omit progress indicators${END}"
     echo -e "    [-y|--yes]                         ${FG_LIGHT_BLUE}: Skip confirmation message${END}"
+    echo -e "    [-n|--nov]                         ${FG_LIGHT_BLUE}: Skip verification steps${END}"
     echo -e "    [-b|--benchmark]                   ${FG_LIGHT_BLUE}: Run benchmark${END}"
     echo -e "    [-d|--dryrun]                      ${FG_LIGHT_BLUE}: Show what would be happened${END}"
     echo -e ""
@@ -81,6 +82,12 @@ function parseArgs {
             # Force YES ###########################################################################
             "-y" | "--yes")
               FORCEYES=true
+              shift
+            ;;
+
+            # Skip Verification ###################################################################
+            "-n" | "--nov")
+              SKIPVERI=true
               shift
             ;;
 
@@ -368,6 +375,8 @@ function runPostInstallation {
 # Run install verification
 # Input $1: pkg name
 function runVerification {
+    [ "${SKIPVERI}" = "true" ] && return 0;
+
     local __pkg_name_runVerification="$1"
 
     case "$__pkg_name_runVerification" in
