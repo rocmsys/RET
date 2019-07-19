@@ -65,6 +65,8 @@ function logPrint {
 # Check OS, Distro and kernel
 # Input $1: array with the Distro
 function checkOs {
+    [ "${SKIPSYSC}" = "true" ] && return 0;
+
     local __distro_checkOS
     local __release_checkOS
     local __kernel_checkOS
@@ -73,6 +75,7 @@ function checkOs {
     local __state="${SUCC}"
     local __failed
 
+    logPrint "STEP" "Checking OS"
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
         getOSInfo __distro_checkOS __release_checkOS __kernel_checkOS __arch_checkOS
 
@@ -741,13 +744,10 @@ function downloadFile {
 
 # Check system requirements
 function checkSys {
-    [ "${SKIPSYSC}" = "true" ] && return 0;
-
-	local __deps_array_checkSys=()
+    local __deps_array_checkSys=()
 	local __vers_array_checkSys=()
 
     # Check OS
-    logPrint "STEP" "Checking OS"
     checkOs 
     
     # Check Global Dependencies
