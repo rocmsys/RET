@@ -42,7 +42,7 @@ RET_VERSION="0.1.x"
 DESCRIPTION="ROCm Machine Learning Stack installer"
 
 # Benchmark
-TF_BNCH_VER="cnn_tf_v1.13_compatible"
+TF_BNCH_VER="cnn_tf_v1.14_compatible"
 TF_MODEL="resnet50"
 NUM_GPUS=1
 BATCH_SIZE=128
@@ -52,8 +52,13 @@ TOTALSTEPS=12
 BEQUIET=false
 FORCEYES=false
 SKIPVERI=false
+SKIPSYSC=false
+INCONTAINER=false
 PYVER="py3"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
+
+# Container
+IMGNAME="ubuntu:18.04"
 
 # Debian cmds
 DEB_INSTALL_CMD="apt-get -qq -y --allow-unauthenticated install"

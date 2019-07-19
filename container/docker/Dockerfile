@@ -1,5 +1,5 @@
 # set the base image
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 
 # author
 MAINTAINER RET https://github.com/rocmsys/RET

@@ -29,7 +29,7 @@ function printUsage {
     echo -e "${BOLD}Container:${END}"
     echo -e "    [docker]                           ${FG_LIGHT_BLUE}: Build Docker Container${END}"
     echo -e "    [singularity]                      ${FG_LIGHT_BLUE}: Build Singularity Container${END}"
-    echo -e "    [--os]                             ${FG_LIGHT_BLUE}: Choosing an OS Base Image from [ubuntu16.04, ubuntu18.04, centos7]${END}"
+    echo -e "    [ImageName]                        ${FG_LIGHT_BLUE}: Choosing an OS Base Image from [ubuntu:16.04, ubuntu:18.04, centos:7] Default is [ubuntu:18.04]${END}"
     echo -e ""
     echo -e "${BOLD}Model:${END}"
     echo -e "    [vgg16]                            ${FG_LIGHT_BLUE}: vgg16 model${END}"
@@ -43,7 +43,9 @@ function printUsage {
     echo -e "    [-V|--verbose]                     ${FG_LIGHT_BLUE}: Be verbose${END}"
     echo -e "    [-q|--quiet]                       ${FG_LIGHT_BLUE}: Be quiet and omit progress indicators${END}"
     echo -e "    [-y|--yes]                         ${FG_LIGHT_BLUE}: Skip confirmation message${END}"
-    echo -e "    [-n|--nov]                         ${FG_LIGHT_BLUE}: Skip verification steps${END}"
+    echo -e "    [-ns|--nsc]                        ${FG_LIGHT_BLUE}: Skip system check steps${END}"
+    echo -e "    [-nv|--nov]                        ${FG_LIGHT_BLUE}: Skip verification steps${END}"
+    echo -e "    [-ic|--incontainer]                ${FG_LIGHT_BLUE}: Run RET on top of Container${END}"
     echo -e "    [-b|--benchmark]                   ${FG_LIGHT_BLUE}: Run benchmark${END}"
     echo -e "    [-d|--dryrun]                      ${FG_LIGHT_BLUE}: Show what would be happened${END}"
     echo -e ""
@@ -85,9 +87,21 @@ function parseArgs {
               shift
             ;;
 
+            # Skip System Check ###################################################################
+            "-ns" | "--nsc")
+              SKIPSYSC=true
+              shift
+            ;;
+
             # Skip Verification ###################################################################
-            "-n" | "--nov")
+            "-nv" | "--nov")
               SKIPVERI=true
+              shift
+            ;;
+
+            # RET on top of Container ###################################################################
+            "-ic" | "--incontainer")
+              SKIPVERI=true; SKIPSYSC=true; INCONTAINER=true;
               shift
             ;;
 
@@ -115,7 +129,10 @@ function parseArgs {
             "rocm" | "tensorflow" | "pytorch")
                 # Permitted commands: install, remove and update
                 if [[ ! "$__cmd_parseArgs" =~ ^("install"|"update"|"remove"|"benchmark")$ ]]; then logPrint "ERR" "Wrong command! Did you mean: $0 install $__arg_parseArgs"; exit; fi
-                if [[ "$__arg_parseArgs" =~ ^("tensorflow"|"pytorch")$ ]]; then __isPyRequired_parseArgs=0; __isROCmRequired_parseArgs=0; fi
+                if [[ "$__arg_parseArgs" =~ ^("tensorflow"|"pytorch")$ ]]; then 
+                    __isPyRequired_parseArgs=0; 
+                    [ "${__cmd_parseArgs}" = "install" ] && __isROCmRequired_parseArgs=0; 
+                fi
                 __pkgs_parseArgs+=("$__arg_parseArgs");
               shift
             ;;
@@ -211,11 +228,11 @@ function cmdEngine {
 function installCmd {
     local -n __args_installCmd=$1
 
-	# Build Package Array
+	# Install Packages
 	for pkg in "${__args_installCmd[@]}"; do
 	    case "$pkg" in
 	        rocm)
-                checkSys # Check system requirements
+                checkSys; # Check system requirements
 		    ;;
 	    esac
         # Install Package
@@ -473,40 +490,10 @@ function tfVerification {
 # Input $1: args (packages)
 function removeCmd {
     local -n __args_removeCmd=$1
-    local __pkg_name_removeCmd=()
-    local __pkg_ver_removeCmd=()
-    local __isROCmInstalled_removeCmd=0
-    local __isTFInstalled_removeCmd=0
-    local __isPTInstalled_removeCmd=0
-    local __isPYInstalled_removeCmd=0
 
-    # read yaml file
-    yaml2arr "$REQ_FILE" YAML_ARRAY
-
-    TOTALSTEPS="${#__args_removeCmd[@]}";
-
-    # Build Package Array
+    # Remove Packages
     for pkg in "${__args_removeCmd[@]}"; do
-        case "$pkg" in
-            rocm)
-              buildPkgArray "$pkg" __pkg_name_removeCmd __pkg_ver_removeCmd __isROCmInstalled_removeCmd
-              runRemove "ROCm" __pkg_name_removeCmd __pkg_ver_removeCmd "$__isROCmInstalled_removeCmd"
-            ;;
-
-            tensorflow)
-              buildPkgArray "$pkg" __pkg_name_removeCmd __pkg_ver_removeCmd __isTFInstalled_removeCmd
-              runRemove "Tensorflow" __pkg_name_removeCmd __pkg_ver_removeCmd "$__isTFInstalled_removeCmd"
-            ;;
-
-            pytorch)
-              buildPkgArray "$pkg" __pkg_name_removeCmd __pkg_ver_removeCmd __isPTInstalled_removeCmd
-            ;;
-
-            py2 | py3)
-              buildPkgArray "$pkg" __pkg_name_removeCmd __pkg_ver_removeCmd __isPYInstalled_removeCmd
-              runRemove "Python" __pkg_name_removeCmd __pkg_ver_removeCmd "$__isPYInstalled_removeCmd"
-            ;;
-        esac
+        runRemove "$pkg"
     done
 }
 
@@ -516,14 +503,17 @@ function removeCmd {
 # Input $3: ver array
 # Input $4: is pkgs already installed
 function runRemove {
-    local __pkg_name_runRemove=$1
-    local -n __pkg_name_array_runRemove=$2
-    local -n __pkg_vers_array_runRemove=$3
-    local __isInstalled_runRemove=$4
-
+    local __pkg_name_runRemove="$1"
+    local __pkg_name_array_runRemove=()
+    local __pkg_vers_array_runRemove=()
+    local __isInstalled_runRemove=0
 
     logPrint "STEP" "Uninstalling ${__pkg_name_runRemove} Packages"
+
+    # Get packages
+    buildPkgArray "$__pkg_name_runRemove" __pkg_name_array_runRemove __pkg_vers_array_runRemove __isInstalled_runRemove
     removePkg __pkg_name_array_runRemove
+
 
     # Verify if uninstall was successful
     for dep in "${__pkg_name_array_runRemove[@]}"; do
@@ -563,6 +553,9 @@ function buildPkgArray {
         __pkgs_buildPkgArray+=("${__deps_name_buildPkgArray[@]}")
         __vers_buildPkgArray+=("${__deps_vers_buildPkgArray[@]}")
     fi
+
+    # Exclude rocm-dkms if on Container
+    [ "${INCONTAINER}" = "true" ] && { __pkgs_buildPkgArray=(${__pkgs_buildPkgArray[@]/"rocm-dkms"}); __vers_buildPkgArray=(${__vers_buildPkgArray[@]/"rocm-dkms"}); }
 
     # Check packages array
     if [ "${#__pkgs_buildPkgArray[@]}" -eq 0 ]; then logPrint "ERR" "No value Found with this key!" "$__key_buildPkgArray" "${FAIL}"; exit; fi
@@ -673,7 +666,7 @@ function buildContainer {
     TOTALSTEPS=3;
 
     # Set default distro
-    [ "${#__options_buildContainer[@]}" -eq 0 ] && __options_buildContainer[0]="ubuntu:16.04"
+    [ "${#__options_buildContainer[@]}" -eq 0 ] && __options_buildContainer[0]="${IMGNAME}"
 
     installCmd __args_cmdEngine
 

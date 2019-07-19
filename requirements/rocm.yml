@@ -26,5 +26,7 @@
   version: latest
 - name: miopengemm
   version: latest
+- name: rccl
+  version: latest
 ...
     
