@@ -741,7 +741,7 @@ function downloadFile {
 
 # Check system requirements
 function checkSys {
-    [ "${SKIPSYSC}" = "true" ] && retun 0;
+    [ "${SKIPSYSC}" = "true" ] && return 0;
 
 	local __deps_array_checkSys=()
 	local __vers_array_checkSys=()
