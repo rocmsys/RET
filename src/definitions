@@ -4,8 +4,8 @@
 PWD=$(pwd)
 SRC="${BASH_SOURCE%/*}"
 if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
-[ -z "$SUDO_USER" ] && SUDO_USER="$USER"
-echo $SUDO_USER; printenv; exit;
+[ -z "$SUDO_USER" ] && SUDO_USER="root"
+#echo $SUDO_USER; printenv; exit;
 
 . $SRC/cmd
 . $SRC/format
