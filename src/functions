@@ -14,9 +14,9 @@ function logPrint {
     # Step heading
     if [ "${__type}" = "STEP" ]; then
 	    sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; 
-	    printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+	    printf "${FG_DEFAULT_COLOR}"'=%.0s' $(seq 1 ${__terminal_width}); printf "${END}"'\n'
 	    echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
-	    printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+	    printf "${FG_DEFAULT_COLOR}"'=%.0s' $(seq 1 ${__terminal_width}); printf "${END}"'\n'
 
     # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then

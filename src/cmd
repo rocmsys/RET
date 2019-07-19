@@ -101,7 +101,7 @@ function parseArgs {
 
             # RET on top of Container ###################################################################
             "-ic" | "--incontainer")
-              SKIPVERI=true; SKIPSYSC=true; INCONTAINER=true; SUDO_USER="root";
+              SKIPVERI=true; SKIPSYSC=true; INCONTAINER=true; SUDO_USER="root"; FG_DEFAULT_COLOR="${FG_ORANGE}"
               shift
             ;;
 

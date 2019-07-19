@@ -11,7 +11,7 @@ if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 . $SRC/functions
 . $SRC/update_kernel
 
-# Requirement
+# Min Requirement
 REQ_BASH_VERSION=4.3
 
 
@@ -43,7 +43,7 @@ RET_VERSION="0.1.x"
 DESCRIPTION="ROCm Machine Learning Stack installer"
 
 # Benchmark
-TF_BNCH_VER="cnn_tf_v1.14_compatible"
+TF_BNCH_VER="cnn_tf_v1.13_compatible"
 TF_MODEL="resnet50"
 NUM_GPUS=1
 BATCH_SIZE=128
@@ -55,6 +55,8 @@ FORCEYES=false
 SKIPVERI=false
 SKIPSYSC=false
 INCONTAINER=false
+FG_DEFAULT_COLOR="${FG_DEFAULT}"
+
 PYVER="py3"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
 
