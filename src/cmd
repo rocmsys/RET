@@ -101,7 +101,7 @@ function parseArgs {
 
             # RET on top of Container ###################################################################
             "-ic" | "--incontainer")
-              SKIPVERI=true; SKIPSYSC=true; INCONTAINER=true;
+              SKIPVERI=true; SKIPSYSC=true; INCONTAINER=true; SUDO_USER="root";
               shift
             ;;
 
