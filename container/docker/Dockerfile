@@ -23,7 +23,7 @@ ENV TERM dumb
 
 # install ROCm with RET
 RUN mkdir /home/ret \
-    && git clone -b onDocker https://github.com/rocmsys/ret.git /home/ret \
+    && git clone -b dev https://github.com/rocmsys/ret.git /home/ret \
     && cd /home/ret \
-    && ./ret install rocm
+    && ./ret install rocm -ic
 

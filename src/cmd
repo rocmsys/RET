@@ -673,11 +673,13 @@ function buildContainer {
 
     case "${__args_buildContainer[0]}" in
         "docker")
+            logPrint "STEP" "Build Docker Image"
             editFile "${DOCKERFILE}" "FROM .*$" "FROM ${__options_buildContainer[0]}";
             docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
         ;;
 
         "singularity")
+            logPrint "STEP" "Build Singularity Image"
             editFile "${RECIPEFILE}" "From: .* #DISTRO$" "From: ${__options_buildContainer[0]} #DISTRO";
             singularity build --sandbox --notest "ret_rocm.simg" "${RECIPEFILE}"
         ;;
