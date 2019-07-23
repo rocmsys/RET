@@ -587,7 +587,7 @@ function benchmarkCmd {
     startLoadBar "Check ROCm Installation"; printf '\n'; echo
     # read yaml file
     yaml2arr "$REQ_FILE" YAML_ARRAY
-    TOTALSTEPS="${#__models_benchmarkCmd[@]}" + 1;
+    TOTALSTEPS=$((${#__models_benchmarkCmd[@]}+1));
     buildPkgArray "rocm" __pkg_name_benchmarkCmd __pkg_ver_benchmarkCmd __isROCmInstalled_benchmarkCmd
     stopLoadBar
 
