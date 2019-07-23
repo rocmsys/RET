@@ -587,7 +587,7 @@ function benchmarkCmd {
     startLoadBar "Check ROCm Installation"; printf '\n'; echo
     # read yaml file
     yaml2arr "$REQ_FILE" YAML_ARRAY
-    TOTALSTEPS="${#__models_benchmarkCmd[@]}";
+    TOTALSTEPS="${#__models_benchmarkCmd[@]}" + 1;
     buildPkgArray "rocm" __pkg_name_benchmarkCmd __pkg_ver_benchmarkCmd __isROCmInstalled_benchmarkCmd
     stopLoadBar
 
@@ -631,6 +631,7 @@ function runBenchmark {
 
                 # Run the training benchmark (e.g. ResNet-50)
                 [ "$PYVER" = "py2" ] && __cmd_python_runBenchmark="python" || __cmd_python_runBenchmark="python3"
+                [ "${#__models_runBenchmark[@]}" -eq 0 ] && __models_runBenchmark=("$TF_MODEL")
                 for model in "${__models_runBenchmark[@]}"; do
                     TF_MODEL=$model
                     startLoadBar "Run ${TF_MODEL} benchmark"; printf '\n'
