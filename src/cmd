@@ -696,6 +696,7 @@ function buildContainer {
 function installSingularity {
     local __cmd_ret_installSingularity
     local __retPath_installSingularity=$(pwd)
+    local __cmd_array_installSingularity=()
     local __version_installSingularity=3.2.1     
     local __url_installSingularity="https://github.com/sylabs/singularity/releases/download/v$__version_installSingularity/singularity-$__version_installSingularity.tar.gz"
     local __version_go=1.12
@@ -710,9 +711,10 @@ function installSingularity {
 
     # Install the Go ###################################################################################
     startLoadBar "Install Go"
-    tar -xzvf "$TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz"  -C "/usr/local" >/dev/null 2>&1
-    __cmd_ret_installSingularity="$?"
-    checkReturn "$__cmd_ret_installSingularity" "tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local" "ERR"
+    #tar -xzvf "$TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz"  -C "/usr/local" >/dev/null 2>&1
+    __cmd_array_installSingularity=("tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz  -C /usr/local")
+    runCmd __cmd_array_installSingularity "ERR"
+
 
     export GOPATH=${HOME}/go
     export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
@@ -726,23 +728,19 @@ function installSingularity {
     # Install the singularity
     startLoadBar "Install Singularity"
 
-    tar -xzf "$TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz" -C "$TEMP_DIRECTRORY" >/dev/null 2>&1
-    __cmd_ret_installSingularity="$?"
-    checkReturn "$__cmd_ret_installSingularity" "tar zxvf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY" "ERR"
+    __cmd_array_installSingularity=("tar -xzf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY")
+    runCmd __cmd_array_installSingularity "ERR"
 
     cd "$TEMP_DIRECTRORY/singularity"
 
-    ./mconfig >/dev/null 2>&1
-    __cmd_ret_installSingularity="$?"
-    checkReturn "$__cmd_ret_installSingularity" "./mconfig" "ERR"
+    __cmd_array_installSingularity=("./mconfig")
+    runCmd __cmd_array_installSingularity "ERR"
 
-    make -C ./builddir >/dev/null 2>&1
-    __cmd_ret_installSingularity="$?"
-    checkReturn "$__cmd_ret_installSingularity" "make -C ./builddir" "ERR"
-
-    make -C ./builddir install >/dev/null 2>&1
-    __cmd_ret_installSingularity="$?"
-    checkReturn "$__cmd_ret_installSingularity" "make -C ./builddir install" "ERR"
+    __cmd_array_installSingularity=("make -C ./builddir")
+    runCmd __cmd_array_installSingularity "ERR"
+    
+    __cmd_array_installSingularity=("make -C ./builddir install")
+    runCmd __cmd_array_installSingularity "ERR"
 
     # Back to the RET folder
     cd "$__retPath_installSingularity"
