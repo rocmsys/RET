@@ -40,7 +40,8 @@ function printUsage {
     echo -e "    [-py2|-py3]                        ${FG_LIGHT_BLUE}: Define the Python version. Default is [Python3]${END}"
     echo -e "    [-h|--help]                        ${FG_LIGHT_BLUE}: Show this help message${END}"
     echo -e "    [-v|--version]                     ${FG_LIGHT_BLUE}: Show version of this package${END}"
-    echo -e "    [-d|--dryrun]                      ${FG_LIGHT_BLUE}: Show what would be happened${END}"
+    echo -e "    [--dryrun]                         ${FG_LIGHT_BLUE}: Show what would be happened${END}"
+    echo -e "    [-d|--debug]                       ${FG_LIGHT_BLUE}: Enable Debug Mode${END}"
     echo -e "    [-V|--verbose]                     ${FG_LIGHT_BLUE}: Be verbose${END}"
     echo -e "    [-q|--quiet]                       ${FG_LIGHT_BLUE}: Be quiet and omit progress indicators${END}"
     echo -e "    [-y|--yes]                         ${FG_LIGHT_BLUE}: Skip confirmation message${END}"
@@ -749,7 +750,7 @@ function installSingularity {
 
     cd "$TEMP_DIRECTRORY/singularity"
 
-    __cmd_array_installSingularity=("./mconfig")
+    __cmd_array_installSingularity=("./mconfig --prefix=/usr/")
     runCmd __cmd_array_installSingularity "ERR"
 
     __cmd_array_installSingularity=("make -C ./builddir")
