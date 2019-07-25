@@ -253,6 +253,7 @@ function runInstall {
     local __pkg_name_array_runInstall=()
     local __pkg_vers_array_runInstall=()
     local __isInstalled_runInstall=0
+    local __cmd_array_runInstall=()
 
     # Get packages
     buildPkgArray "$__pkg_name_runInstall" __pkg_name_array_runInstall __pkg_vers_array_runInstall __isInstalled_runInstall
@@ -262,7 +263,13 @@ function runInstall {
 
     # Install the Packages if not already installed
     checkDeps __pkg_name_array_runInstall __pkg_vers_array_runInstall "Verifying ${__pkg_name_runInstall} Dependencies"
-    if [ "$__pkg_name_runInstall" = "singularity" ]; then singularity --version >/dev/null 2>&1 || installSingularity; fi # This will be removed in the next release
+    
+    # This will be removed in the next release
+    if [ "$__pkg_name_runInstall" = "singularity" ]; then 
+        __cmd_array_runInstall=("singularity --version");
+        runCmd __cmd_array_runInstall "ERR" 0 || installSingularity;
+    fi
+
 
     # Run post installation
     [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
@@ -324,12 +331,13 @@ function addROCmRepo {
     startLoadBar "Run ROCm Pre-Installation: Add the ROCm apt repository"; printf '\n'
     case "$RET_DISTRO" in
         Ubuntu)
-            wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add - >/dev/null 2>&1
-            echo -e "deb [arch=amd64 trusted=yes] ${ROCM_DEB}" | tee "${Ubuntu_ROCM_REPO}" >/dev/null 2>&1
+            __cmd_array_addROCmRepo=("wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add -"); runCmd __cmd_array_addROCmRepo "ERR"
+            __cmd_array_addROCmRepo=("echo -e deb [arch=amd64 trusted=yes] ${ROCM_DEB} | tee ${Ubuntu_ROCM_REPO}"); runCmd __cmd_array_addROCmRepo "ERR"
         ;;
 
         CentOS)
-            echo -e "[ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0" | tee "${CentOS_ROCM_REPO}" >/dev/null 2>&1
+            __cmd_array_addROCmRepo=("echo -e [ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0 | tee ${CentOS_ROCM_REPO}"); 
+            runCmd __cmd_array_addROCmRepo "ERR"
         ;;
     esac
     stopLoadBar
@@ -339,15 +347,21 @@ function addROCmRepo {
 # Input $1 url
 function addDockerRepo {
     local __url_addRepo="$1"
+    local __cmd_array_addDockerRepo=()
+
     startLoadBar "Run Docker Pre-Installation: Add the Docker apt repository"; printf '\n'
     case "$RET_DISTRO" in
         Ubuntu)
-            wget -qO - "${__url_addRepo}/ubuntu/gpg" | apt-key add - >/dev/null 2>&1
-            add-apt-repository "deb [arch=amd64 trusted=yes] ${__url_addRepo}/ubuntu $(lsb_release -cs) stable" >/dev/null 2>&1
+            __cmd_array_addDockerRepo=("wget -qO - ${__url_addRepo}/ubuntu/gpg | apt-key add -"); 
+            runCmd __cmd_array_addDockerRepo "ERR"
+
+            __cmd_array_addDockerRepo=("add-apt-repository deb [arch=amd64 trusted=yes] ${__url_addRepo}/ubuntu $(lsb_release -cs) stable"); 
+            runCmd __cmd_array_addDockerRepo "ERR"
         ;;
 
         CentOS)
-            yum-config-manager --add-repo "${__url_addRepo}/centos/docker-ce.repo" | >/dev/null 2>&1
+            __cmd_array_addDockerRepo=("yum-config-manager --add-repo ${__url_addRepo}/centos/docker-ce.repo"); 
+            runCmd __cmd_array_addDockerRepo "ERR"
         ;;
     esac
     stopLoadBar
@@ -357,7 +371,7 @@ function addDockerRepo {
 # Input $1: pkg name
 function runPostInstallation {
     local __pkg_name_runPostInstallation="$1"
-
+    local __cmd_array_runPostInstallation=()
     
     case "$__pkg_name_runPostInstallation" in
         rocm)
@@ -366,8 +380,11 @@ function runPostInstallation {
             usermod -aG video $SUDO_USER
 
             # Put the ROCm binaries in PATH
-            echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' | tee -a /etc/profile.d/rocm.sh >/dev/null 2>&1
-            source /etc/profile.d/rocm.sh >/dev/null 2>&1
+            __cmd_array_runPostInstallation=("echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' | tee -a /etc/profile.d/rocm.sh"); 
+            runCmd __cmd_array_runPostInstallation "ERR"
+
+
+            __cmd_array_runPostInstallation=("source /etc/profile.d/rocm.sh"); runCmd __cmd_array_runPostInstallation "ERR"
             stopLoadBar
         ;;
 
@@ -400,6 +417,7 @@ function runVerification {
     [ "${SKIPVERI}" = "true" ] && return 0;
 
     local __pkg_name_runVerification="$1"
+    local __cmd_array_runVerification=()
 
     case "$__pkg_name_runVerification" in
         rocm)
@@ -430,7 +448,7 @@ function runVerification {
 
         singularity)
             logPrint "NOTE" "The Current `singularity --version`"
-            singularity --version >/dev/null 2>&1; return "$?";
+            __cmd_array_runVerification=("singularity --version"); runCmd __cmd_array_runVerification "ERR" 0; return "$?";
         ;;
     esac
 }
@@ -453,7 +471,7 @@ function rocmVerification {
     __gpu_lshw=$(lshw -C display -quiet | grep "${__key}" | sed -n 's|'$__s"${__key}"$__s'||p')
 
     # Get GPU info with rocminfo
-    $__cmd_rocmVerification >/dev/null 2>&1
+    __cmd_array_rocmVerification=("$__cmd_rocmVerification"); runCmd __cmd_array_rocmVerification "ERR" 0
     __cmd_ret_rocmVerification="$?"
     [ "$__cmd_ret_rocmVerification" -ne 0 ] && { isRebootRequired 1; stopLoadBar; return 7; }
 
@@ -624,14 +642,13 @@ function runBenchmark {
     local -n __models_runBenchmark=$2
     local __cmd_ret_runBenchmark
     local __ret_value_runBenchmark=0
+    local __cmd_array_runBenchmark=()
 
     case "$__ml_framework_runBenchmark" in
             tensorflow)
                 if [ ! -d "$WORK_DIRECTRORY/tf" ]; then
                     local __cmd_python_runBenchmark
-
-                    git clone -b "$TF_BNCH_VER" "$TF_BENCHMARKS_URL" "$WORK_DIRECTRORY/tf/" >/dev/null 2>&1
-                    checkReturn "$?" "git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTRORY/tf/" "WARN"
+                    __cmd_array_runBenchmark=("git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTRORY/tf/"); runCmd __cmd_array_runBenchmark "WARN"
                 fi
 
                 # Run the training benchmark (e.g. ResNet-50)
@@ -711,7 +728,6 @@ function installSingularity {
 
     # Install the Go ###################################################################################
     startLoadBar "Install Go"
-    #tar -xzvf "$TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz"  -C "/usr/local" >/dev/null 2>&1
     __cmd_array_installSingularity=("tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz  -C /usr/local")
     runCmd __cmd_array_installSingularity "ERR"
 
