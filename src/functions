@@ -520,7 +520,7 @@ function installPkg {
         __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
 
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
-        [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="group install"
+        [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="yum groupinstall"
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
         __cmd_array_installPkg=("${__cmd_installPkg} ${__dep_installPkg}"); runCmd __cmd_array_installPkg "ERR"
@@ -572,12 +572,12 @@ function parsePkg {
             __pkg_name_parsePkg="${__pkg_parsePkg}"
             __phu_parsePkg=""      # empty
             __pkg_vers_parsePkg="" # empty
-            
+        ;;    
     esac
 
-    eval $__res_pkg_name_parsePkg="'$__pkg_name_parsePkg'"
-    eval $__res_phu_parsePkg="'$__phu_parsePkg'"
-    eval $__res_pkg_vers_parsePkg="'$__pkg_vers_parsePkg'"
+    eval $__res_pkg_name_parsePkg='$__pkg_name_parsePkg'
+    eval $__res_phu_parsePkg='$__phu_parsePkg'
+    eval $__res_pkg_vers_parsePkg='$__pkg_vers_parsePkg'
 }
 
 # Remove package
@@ -836,7 +836,7 @@ function checkBashVersion {
 
     # Compare version need command line calculator
     startLoadBar "Check Bash Version"
-    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc >/dev/null 2>&1
+    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc gcc >/dev/null 2>&1
     __cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc" "ERR"
 
