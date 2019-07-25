@@ -520,7 +520,7 @@ function installPkg {
         __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
 
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
-        [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="yum groupinstall"
+        [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="yum groupinstall -y"
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
         __cmd_array_installPkg=("${__cmd_installPkg} ${__dep_installPkg}"); runCmd __cmd_array_installPkg "ERR"
@@ -912,7 +912,7 @@ function runCmd {
 
 	[ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
 	if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
-		eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
+		[ "${DEBUG}" = "true" ] && eval "${__cmd_runCmd[@]}" || eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
 		__cmd_ret_runCmd="$?"
 		[ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd"
 	fi
