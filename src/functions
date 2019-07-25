@@ -478,7 +478,7 @@ function isPrgInstalled {
             case $RET_DISTRO in
                 CentOS)
                     if [[ "${__phu_isPrgInstalled}" == "group" ]]; then
-                        __cmd_array_isPrgInstalled=("yum grouplist installed ${__pkg_name_isPrgInstalled} 2>/dev/null | grep -i ${__pkg_name_isPrgInstalled}");
+                        __cmd_array_isPrgInstalled=("yum grouplist installed '${__pkg_name_isPrgInstalled}' 2>/dev/null | grep -i '${__pkg_name_isPrgInstalled}'");
                     else
                         __cmd_array_isPrgInstalled=("${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} ${__pkg_name_isPrgInstalled}");
                     fi;;
@@ -527,7 +527,7 @@ function installPkg {
         [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="yum groupinstall -y"
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
-        __cmd_array_installPkg=("${__cmd_installPkg} ${__dep_installPkg}"); runCmd __cmd_array_installPkg "ERR"
+        __cmd_array_installPkg=("${__cmd_installPkg} '${__dep_installPkg}'"); runCmd __cmd_array_installPkg "ERR"
         logPrint "DET" "${__dep_installPkg}" "Installed" "${SUCC}"
     done
 
