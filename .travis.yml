@@ -1,9 +1,14 @@
 language: bash
-os:
-  - linux
-dist: xenial
 
-sudo: required
+matrix:
+  include:
+    - dist: xenial
+      os: linux
+      sudo: required
+    - dist: bionic
+      os: linux
+      sudo: required
+    
 deploy:
   provider: script
   script: sudo bash ret install rocm -y --nov
