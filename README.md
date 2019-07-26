@@ -1,4 +1,4 @@
-# Welcome to RET (ROCm Enablement Tool) [![Status](https://travis-ci.org/rocmsys/RET.svg?branch=dev)](https://travis-ci.org/rocmsys/RET)
+# Welcome to RET (ROCm Enablement Tool) [![Status](https://travis-ci.org/rocmsys/RET.svg?branch=master)](https://travis-ci.org/rocmsys/RET)
 
 RET is a comprehensive checking, set up, installation, testing and benchmarking tool which does carry out the installation of ROCm suite ranging from dependencies, drivers and toolchain to framework and benchmark. 
 RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
