@@ -15,8 +15,5 @@ deploy:
   script: sudo bash ret install tensorflow -y --nov
   script: bash ret build docker -y
   script: bash ret build singularity -y
-
-branches:
-  only:
-    - master
-    - dev
+  on:
+    branch: dev
