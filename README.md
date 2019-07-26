@@ -115,3 +115,5 @@ python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50  --bat
 - [ ] Check HW Compatibility
 - [x] Adapt RET on top of Docker Container
 - [ ] Cloud Support
+
+[![Project Stats](https://www.openhub.net/p/RET-ROCm/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/RET-ROCm)
