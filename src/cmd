@@ -337,7 +337,7 @@ function addROCmRepo {
         ;;
 
         CentOS)
-            __cmd_array_addROCmRepo=("echo -e [ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0 | tee ${CentOS_ROCM_REPO}"); 
+            __cmd_array_addROCmRepo=('echo -e [ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0 | tee ${CentOS_ROCM_REPO}'); 
             runCmd __cmd_array_addROCmRepo "ERR"
         ;;
     esac

@@ -39,7 +39,7 @@ ROCM_RPM="http://repo.radeon.com/rocm/yum/rpm"
 
 # Scope
 EMPTY_ARRAY=()
-RET_VERSION="0.1.x"
+RET_VERSION="0.1.1"
 DESCRIPTION="ROCm Machine Learning Stack installer"
 
 # Benchmark
