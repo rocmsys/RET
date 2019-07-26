@@ -1,0 +1,10 @@
+# This file contains only dependencies required by Docker 
+---
+- name: docker-ce
+  version: latest
+- name: docker-ce-cli
+  version: latest
+- name: containerd.io
+  version: latest
+...
+    

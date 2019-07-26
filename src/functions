@@ -13,18 +13,18 @@ function logPrint {
 
     # Step heading
     if [ "${__type}" = "STEP" ]; then
-	    sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; 
-	    printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
-	    echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
-	    printf '=%.0s' $(seq 1 ${__terminal_width}); printf '\n'
+        sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; 
+        printf "${FG_DEFAULT_COLOR}"'=%.0s' $(seq 1 ${__terminal_width}); printf "${END}"'\n'
+        echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
+        printf "${FG_DEFAULT_COLOR}"'=%.0s' $(seq 1 ${__terminal_width}); printf "${END}"'\n'
 
     # Sub-Step heading
     elif [ "${__type}" = "SUBSTEP" ]; then
-    	echo -ne "${SUBSTEP}${__title}...${END}\r"
+        echo -ne "${SUBSTEP}${__title}...${END}\r"
 
     # Detailed info
     elif [ "${__type}" = "DET" ]; then
-    	local __new__title="${__title}"
+        local __new__title="${__title}"
         local __state=$4; [ ${#__title} -gt 28 ] && __new__title="${__title:0:25}..."
         local __msg=$(printf '\t%-28s' "${__new__title}")
         printf '%-42s' "$__msg .........."
@@ -33,29 +33,29 @@ function logPrint {
     # Success confirmation
     elif [ "${__type}" = "DONE" ]; then
         echo
-    	echo -e "${DONE}${__title}${END}";
+        echo -e "${DONE}${__title}${END}";
 
     # Error and exit
     elif [ "${__type}" = "ERR" ]; then
         echo
-    	echo -e "${ERR}${__title}...[${__value}]${END}";
-    	toLog "${__type}" "${__title} [${__value}]"
+        echo -e "${ERR}${__title}...[${__value}]${END}";
+        toLog "${__type}" "${__title} [${__value}]"
         exitAll 2
 
     # Warning
     elif [ "${__type}" = "WARN" ]; then
         echo
-    	echo -e "${WARN}${__title}...[${__value}]${END}";
+        echo -e "${WARN}${__title}...[${__value}]${END}";
 
     # Info
     elif [ "${__type}" = "NOTE" ]; then
         echo
-    	echo -e "${NOTE}${__title}${END}";
+        echo -e "${NOTE}${__title}${END}";
 
     # Default
     else
         echo
-    	echo -e "${NOTE}${__title}${END}";
+        echo -e "${NOTE}${__title}${END}";
     fi
 
     # Insert to log file
@@ -65,6 +65,8 @@ function logPrint {
 # Check OS, Distro and kernel
 # Input $1: array with the Distro
 function checkOs {
+    [ "${SKIPSYSC}" = "true" ] && return 0;
+
     local __distro_checkOS
     local __release_checkOS
     local __kernel_checkOS
@@ -73,18 +75,19 @@ function checkOs {
     local __state="${SUCC}"
     local __failed
 
+    logPrint "STEP" "Checking OS"
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
         getOSInfo __distro_checkOS __release_checkOS __kernel_checkOS __arch_checkOS
 
-    	# Check distro name
+        # Check distro name
         (isSupported "os_support|os" "${__distro_checkOS}") && __state="${SUCC}" || { __state="${FAIL}"; __failed="NSDISTRO"; }
         logPrint "DET" "OS" "${__distro_checkOS}" "${__state}"
 
-    	# Check Release version
+        # Check Release version
         (isSupported "os_support|${__distro_checkOS}|release" "${__release_checkOS}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSREL"; }
-    	logPrint "DET" "RELEASE" "${__release_checkOS}" "${__state}"
+        logPrint "DET" "RELEASE" "${__release_checkOS}" "${__state}"
 
-    	# Check just Kernel and major revision
+        # Check just Kernel and major revision
         local __kernel_version="${__kernel_checkOS%%.*}"
         local __major_revision="${__kernel_checkOS#*.}"
         __major_revision="${__major_revision%%.*}"
@@ -93,8 +96,8 @@ function checkOs {
         (isSupported "os_support|${__distro_checkOS}|kernel|${__release_checkOS}|version" "${__kernel_version}.${__major_revision}") && __state="${SUCC}" || { __state="${FAIL}"; [ -z "$__failed" ] && __failed="NSKERNEL"; }
         logPrint "DET" "KERNEL" "${__kernel_checkOS}" "${__state}"
 
-    	# Just print the current Arch
-    	logPrint "DET" "ARCH" "${__arch_checkOS}" "${SUCC}"
+        # Just print the current Arch
+        logPrint "DET" "ARCH" "${__arch_checkOS}" "${SUCC}"
     else
         logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
     fi
@@ -189,8 +192,8 @@ function checkDeps {
         if (confirmYn "Install dependencies? [Y/n] "); then
             installPkg __DEPS_TOINSTALL
         else
-	        logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
-	    fi
+            logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
+        fi
     fi
 }
 
@@ -218,7 +221,7 @@ function parse_yaml {
     local __get_map_list='s|^\('$__s'\)\('$__w'\)'$__s'[:-]'$__s'\(.*\)'$__s'$|\1'$__fs'\2'$__fs'\3|g' # map detection key: value, key: 'value', key: "value"
 
 
-	echo "$__data" | \
+    echo "$__data" | \
         sed -e "$__rm_sp" -e "$__rm_doc_begin" -e "$__rm_doc_end" -e "$__rm_cmt" -e "$__rm_il_cmt" -e "$__rm_bl" -e "$__get_item_list" -e "$__get_map_list" | \
     
     awk -F$__fs 'BEGIN{
@@ -230,78 +233,78 @@ function parse_yaml {
     
 
         # extract the dictionarie key 
-	    if(length($2)!= 0){node[indent] = $2}
+        if(length($2)!= 0){node[indent] = $2}
 
-	    # extract the value
-	    value= (length($3)!= 0)? $3: "null";
+        # extract the value
+        value= (length($3)!= 0)? $3: "null";
 
-	    # reinit child elements
-	    if(indent < last_indent){for(i=indent+1; i <= last_indent; i++){delete node[i]; idx[i]=0;}}
-	    last_indent = indent;
+        # reinit child elements
+        if(indent < last_indent){for(i=indent+1; i <= last_indent; i++){delete node[i]; idx[i]=0;}}
+        last_indent = indent;
 
-	    br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
-	    branch=br node[indent];
-	    
+        br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
+        branch=br node[indent];
+        
 
-	    # remove the last char
-	    if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
+        # remove the last char
+        if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
 
-	    # Check if branch already exists
-	    # update if true; else insert new value
-	    isBrExists = 0;
-	    for(i in br_array){
-	        split(br_array[i], tmp_br, '$__br_eq');
-	        
-	        if(branch == tmp_br[1]){
-	            br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
-	        	isBrExists = 1;
-	        }
-	    }
+        # Check if branch already exists
+        # update if true; else insert new value
+        isBrExists = 0;
+        for(i in br_array){
+            split(br_array[i], tmp_br, '$__br_eq');
+            
+            if(branch == tmp_br[1]){
+                br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
+                isBrExists = 1;
+            }
+        }
 
-	    if(isBrExists == 0){
-	        # put valid branch in array
-	        if(value != "null"){
-	            br_array[br_count] = branch '$__br_eq' value;
-	        	br_count++;
-	        }
-	    }
-	}END{
-		for(i=0; i<=br_count; i++){print(br_array[i]);}
-	}'
+        if(isBrExists == 0){
+            # put valid branch in array
+            if(value != "null"){
+                br_array[br_count] = branch '$__br_eq' value;
+                br_count++;
+            }
+        }
+    }END{
+        for(i=0; i<=br_count; i++){print(br_array[i]);}
+    }'
 }
 
 # Prepare requirement file before parsing
 # Read yaml file and binds the child files
 # Input $1: yaml file name
 function prepareReqFile {
-	local __file_name=$1 
-	local __s='[[:space:]]*' 
+    local __file_name=$1 
+    local __s='[[:space:]]*' 
     local __fm="- "
     local __fd=": "
     local __rm_doc_begin='s|^'$__s'\(---\)'$__s'||g' # rm doc begin
     local __rm_doc_end='s|^'$__s'\(\.\.\.\)'$__s'||g' # rm doc end
     local __inr_sp='s|^|    |g' # insert the spaces for indentation
-	local __req_file_path=""
+    local __req_file_path=""
 
     # Make Sanity Check
     fileSanityCheck $__file_name
 
-	while IFS= read -r  line
-	do
-		__req_file_path=""
+    while IFS= read -r  line
+    do
+        __req_file_path=""
 
-		#Get file name if exists
-		__req_file_path=$(echo $line | awk -F"$__fm|$__fd" '{if($2 == "req_file"){print($3);}}')
+        #Get file name if exists
+        __req_file_path=$(echo $line | awk -F"$__fm|$__fd" '{if($2 == "req_file"){print($3);}}')
 
-		if [ ! -z "${__req_file_path}" ]; then
-			__req_file_path="requirements/$__req_file_path"
-			fileSanityCheck "$__req_file_path"
-			cat "$__req_file_path" | \
-        	sed -e "$__inr_sp" -e "$__rm_doc_begin" -e "$__rm_doc_end"
-		else
-			printf '%s\n' "$line"
-		fi
-	done < "$__file_name"
+        if [ ! -z "${__req_file_path}" ]; then
+            __req_file_path="requirements/$__req_file_path"
+            fileSanityCheck "$__req_file_path"
+            cat "$__req_file_path" | \
+            sed -e "$__inr_sp" -e "$__rm_doc_begin" -e "$__rm_doc_end"
+        else
+            printf '%s\n' "$line"
+        fi
+    done < "$__file_name"
 }
 
 # Parser yaml file into array
@@ -310,14 +313,14 @@ function prepareReqFile {
 function yaml2arr {
     local __yaml_file=$1
     local __res_array=$2
-	local __yaml_data
+    local __yaml_data
 
     # Prepare Requirement file
     __yaml_data=$(prepareReqFile $__yaml_file)
 
     local __array=$(parse_yaml "${__yaml_data}")
     IFS=$'\r\n' eval  $__res_array='(${__array})'
-    #echo "${__array[@]}"
+    #echo "${__array[@]}"; exit
 }
 
 # Get value yaml value by key
@@ -338,15 +341,15 @@ function getYAMLValue {
 
         # interpret value if required
         for ((i=0; i<"${#__yaml_array[@]}"; i++)); do
-    		__yaml_array_item="${__yaml_array[i]}"
-    		[[ "${__yaml_array_item}" == *'`'* ]] && eval __yaml_array[i]="${__yaml_array_item}" || __yaml_array[i]="${__yaml_array_item}"
-		done
+            __yaml_array_item="${__yaml_array[i]}"
+            [[ "${__yaml_array_item}" == *'`'* ]] && eval __yaml_array[i]="${__yaml_array_item}" || __yaml_array[i]="${__yaml_array_item}"
+        done
         eval $__ref_yaml_val_array='(${__yaml_array[@]})'
 
         return 0;
     else
         logPrint "ERR" "No value Found with this key!" "$__key" "${FAIL}"
-		return 1;
+        return 1;
     fi
 }
 
@@ -361,9 +364,9 @@ function isInArray {
     local __index=0
 
     for item in "${__ref_in_array[@]}"; do
-        if [[ "${item}" == ${__key}* ]] ; then
-	        eval $__idx="'$__index'"
-	        return 0;
+        if [[ "${item}" == "${__key}"* ]] ; then
+            eval $__idx="'$__index'"
+            return 0;
         fi
         ((__index++))
     done
@@ -386,9 +389,9 @@ function getOSInfo {
     local __KERNEL=$(uname -r)
 
     if [ -f /etc/centos-release ]; then
-    	__OS="CentOS"
+        __OS="CentOS"
         __VER=$(cat /etc/centos-release | sed 's|^.*[^0-9]\('$__digit'\.'$__digit'\)\(\.[0-9]*\).*$|\1|g')
-	elif [ -f /etc/os-release ]; then
+    elif [ -f /etc/os-release ]; then
         . /etc/os-release
         __OS=$NAME
         __VER=$VERSION_ID
@@ -432,7 +435,7 @@ function fileSanityCheck {
 # Input $1: message (optional)
 # Return 0,1
 function confirmYn {
-	local __return_confirmYn=1
+    local __return_confirmYn=1
 
     [ "${FORCEYES}" = "false" ] && read -r -p "${1:-Do you want to continue? [Y/n] }" REPLY || REPLY="Y"
     if [[ ${REPLY} =~ ^[Yy] ]] || [[ -z "${REPLY}" ]]; then
@@ -458,29 +461,37 @@ function isPrgInstalled {
     # Init to found eq false
     # 0 means no failure and non-0 means failure.
     local __found=1
-	local __pkg_name_isPrgInstalled
+    local __pkg_name_isPrgInstalled
     local __pkg_vers_isPrgInstalled
     local __phu_isPrgInstalled
+    local __cmd_array_isPrgInstalled=()
 
     # Extract the package handling utility
     parsePkg "$1" __pkg_name_isPrgInstalled __pkg_vers_isPrgInstalled __phu_isPrgInstalled
 
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
-    	(sudo -u $SUDO_USER "${PYPI}" list 2>/dev/null | grep "${__pkg_name_isPrgInstalled} " >/dev/null 2>&1) && __found=0
+        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} list 2>/dev/null | grep ${__pkg_name_isPrgInstalled}");
     else
-    	type "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1 && __found=0 || { 
-    		case $RET_DISTRO in
-				CentOS)
-					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" >/dev/null 2>&1) && __found=0;;
-				Ubuntu)
-					(${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} "${__pkg_name_isPrgInstalled}" 2>/dev/null | grep -e "^ii" >/dev/null 2>&1) && __found=0;;
-			esac
-    	} 
-	fi
-
+        __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}"); 
+        runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || { 
+            case $RET_DISTRO in
+                CentOS)
+                    if [[ "${__phu_isPrgInstalled}" == "group" ]]; then
+                        __cmd_array_isPrgInstalled=("yum grouplist installed '${__pkg_name_isPrgInstalled}' 2>/dev/null | grep -i '${__pkg_name_isPrgInstalled}'");
+                    else
+                        __cmd_array_isPrgInstalled=("${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} ${__pkg_name_isPrgInstalled}");
+                    fi;;
+                Ubuntu)
+                    __cmd_array_isPrgInstalled=("${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} ${__pkg_name_isPrgInstalled} 2>/dev/null | grep -e '^ii'");;
+            esac
+        } 
+    fi
+    runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0
     return $__found;
 }
+
+
 
 # Install package
 # Input $1: package array
@@ -489,7 +500,7 @@ function installPkg {
     local -n __packages=$1
     local __cmd_ret_installPkg
     local __cmd_installPkg
-	local __cmd_array_installPkg=()
+    local __cmd_array_installPkg=()
 
     local __pkg_name_installPkg
     local __pkg_vers_installPkg
@@ -505,17 +516,18 @@ function installPkg {
     stopLoadBar
 
     for dep in "${__packages[@]}"; do
-		# Init package args
-		__cmd_installPkg=${!RET_CMDS_ARRAY[RET_INSTALL_CMD]}
+        # Init package args
+        __cmd_installPkg=${!RET_CMDS_ARRAY[RET_INSTALL_CMD]}
 
         # Extract the package handling utility
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
         __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
 
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
+        [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="yum groupinstall -y"
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
-        __cmd_array_installPkg=("${__cmd_installPkg} ${__dep_installPkg}"); runCmd __cmd_array_installPkg "ERR"
+        __cmd_array_installPkg=("${__cmd_installPkg} '${__dep_installPkg}'"); runCmd __cmd_array_installPkg "ERR"
         logPrint "DET" "${__dep_installPkg}" "Installed" "${SUCC}"
     done
 
@@ -564,12 +576,12 @@ function parsePkg {
             __pkg_name_parsePkg="${__pkg_parsePkg}"
             __phu_parsePkg=""      # empty
             __pkg_vers_parsePkg="" # empty
-            
+        ;;    
     esac
 
-    eval $__res_pkg_name_parsePkg="'$__pkg_name_parsePkg'"
-    eval $__res_phu_parsePkg="'$__phu_parsePkg'"
-    eval $__res_pkg_vers_parsePkg="'$__pkg_vers_parsePkg'"
+    eval $__res_pkg_name_parsePkg='$__pkg_name_parsePkg'
+    eval $__res_phu_parsePkg='$__phu_parsePkg'
+    eval $__res_pkg_vers_parsePkg='$__pkg_vers_parsePkg'
 }
 
 # Remove package
@@ -578,31 +590,32 @@ function parsePkg {
 function removePkg {
     local -n __packages_removePkg=$1
     local __cmd_ret_removePkg
-	local __cmd_removePkg
-	local __cmd_array_removePkg=()
-	local __rm_msg_removePkg
-	local __pkg_name_removePkg
-	local __pkg_vers_removePkg
-	local __phu_removePkg
-	local __dep_removePkg
+    local __cmd_removePkg
+    local __cmd_array_removePkg=()
+    local __rm_msg_removePkg
+    local __pkg_name_removePkg
+    local __pkg_vers_removePkg
+    local __phu_removePkg
+    local __dep_removePkg
 
     for dep in "${__packages_removePkg[@]}"; do
-    	__cmd_removePkg=${!RET_CMDS_ARRAY[RET_REMOVE_CMD]}
-    	__rm_msg_removePkg="Uninstalled"
+        __cmd_removePkg=${!RET_CMDS_ARRAY[RET_REMOVE_CMD]}
+        __rm_msg_removePkg="Uninstalled"
 
-    	# Extract the package handling utility
+        # Extract the package handling utility
         parsePkg "${dep}" __pkg_name_removePkg __pkg_vers_removePkg __phu_removePkg
         __dep_removePkg="${__pkg_name_removePkg}${__pkg_vers_removePkg}"
 
         [[ "${__phu_removePkg}" =~ "pip" ]] && __cmd_removePkg="${PYPI} uninstall -y"
+        [[ "${__phu_removePkg}" == "group" ]] && __cmd_removePkg="groupremove -y"
 
         startLoadBar "Uninstalling Package: ${__dep_removePkg}"
 
         if isPrgInstalled "${__dep_removePkg}:${__phu_removePkg}"; then
-        	__cmd_array_removePkg=("${__cmd_removePkg} ${__dep_removePkg}")
-        	runCmd __cmd_array_removePkg "ERR"
+            __cmd_array_removePkg=("${__cmd_removePkg} ${__dep_removePkg}")
+            runCmd __cmd_array_removePkg "ERR"
         else
-        	__rm_msg_removePkg="Already uninstalled"
+            __rm_msg_removePkg="Already uninstalled"
         fi
 
         logPrint "DET" "${__dep_removePkg}" "${__rm_msg_removePkg}" "${SUCC}"
@@ -658,8 +671,8 @@ function loadBar {
     while true
     do 
         for (( i=${__pos_loadbar}; i<${#LOADBAR}; i++ )); do
-        	logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
-	        sleep 0.1; 
+            logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
+            sleep 0.1; 
         done
     done
 }
@@ -709,24 +722,24 @@ function downloadFile {
     function updatePercentage {
         local __download_per
         local __LoadBar_Pos=0
-    	local __succ_updatePercentage=1
+        local __succ_updatePercentage=1
         local __previous_value_updatePercentage="${__download_per}"
 
         while read __download_per
-    	do
+        do
             if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
-	            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
-	            startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
-	            __previous_value_updatePercentage="${__download_per}"
-		        __succ_updatePercentage=0
-	        fi
+                ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
+                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
+                __previous_value_updatePercentage="${__download_per}"
+                __succ_updatePercentage=0
+            fi
         done
-	    [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
-	    return $__succ_updatePercentage;
+        [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
+        return $__succ_updatePercentage;
     }
 
     # Download file and get the current download state
-    wget --progress=dot -P "$2" "$1" 2>&1 | grep --line-buffered "%" | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage
+    wget --progress=dot -P "$2" "$1" 2>&1 | grep --line-buffered "[[:space:]][[:digit:]][[:digit:]]*%" | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage
 
     # Check the return state 
     __cmd_ret_downloadFile="$?"
@@ -735,21 +748,17 @@ function downloadFile {
 
 # Check system requirements
 function checkSys {
-	local __deps_array_checkSys=()
-	local __vers_array_checkSys=()
-
-    # Pre-installation requirements
-    preRequirement
+    local __deps_array_checkSys=()
+    local __vers_array_checkSys=()
 
     # Check OS
-    logPrint "STEP" "Checking OS"
     checkOs 
     
     # Check Global Dependencies
     getYAMLValue "dependencies|globale|name" YAML_ARRAY DEPS_ARRAY
     getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
     __deps_array_checkSys=("${DEPS_ARRAY[@]}")
-	__vers_array_checkSys=("${VER_ARRAY[@]}")
+    __vers_array_checkSys=("${VER_ARRAY[@]}")
 
     # Check Distro Dependencies
     getYAMLValue "dependencies|globale|$RET_DISTRO|name" YAML_ARRAY DEPS_ARRAY
@@ -764,19 +773,21 @@ function checkSys {
 # Input $1: 0/1 value to force reboot required (Optional)
 # Input $2: reboot requestor (Optional)
 function isRebootRequired {
-	local __rebot_requestor_isRebootRequired="${2:-RET}"
+    local __reboot_requestor_isRebootRequired="${2:-RET}"
+    local __cmd_array_isRebootRequired=()
+
     if [ -f /var/run/reboot-required ]; then
        logPrint "DONE" "Reboot Required! Please run this script after the reboot."
        exitAll 7
 
     elif [ "$1" = 1 ]; then
-    	echo "${__rebot_requestor_isRebootRequired}" | tee -a /var/run/reboot-required >/dev/null 2>&1
-		logPrint "DONE" "Reboot Required! Please run this script after the reboot."
-       	exitAll 7
+        __cmd_array_isRebootRequired=("echo ${__reboot_requestor_isRebootRequired} | tee -a /var/run/reboot-required"); runCmd __cmd_array_isRebootRequired "ERR" 0 && __found=0
+        logPrint "DONE" "Reboot Required! Please run this script after the reboot."
+        exitAll 7
     fi
 }
 
-# Edit File in place
+# Edit File in place. Support pattern matching
 # Input $1: file name
 # Input $2: new value
 # Input $3: old value
@@ -785,39 +796,39 @@ function editFile {
     local __old_value_editFile=$2
     local __new_value_editFile=$3
 
-    local __cmd_array_editFile=("sed -i 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}")
+    local __cmd_array_editFile=("sed -i -e 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}")
     runCmd __cmd_array_editFile "ERR" "1" "Cannot edit file: ${__file_name_editFile}"
 }
 
 # Init the log file
 function initLog {
-	local __msg_initLog="${1:-START SCRIPT}"
+    local __msg_initLog="${1:-START SCRIPT}"
 
-	# Creat log directory
-	[ ! -d "${LOG_DIRECTRORY}" ] && mkdir "${LOG_DIRECTRORY}"
-	
-	# re-create the log file
-	rm -f $LOG_FILE >/dev/null 2>&1
-	sudo -u $SUDO_USER touch $LOG_FILE >/dev/null 2>&1
+    # Creat log directory
+    [ ! -d "${LOG_DIRECTRORY}" ] && mkdir "${LOG_DIRECTRORY}"
+    
+    # re-create the log file
+    rm -f $LOG_FILE >/dev/null 2>&1
+    sudo -u $SUDO_USER touch $LOG_FILE >/dev/null 2>&1
 
-	# Init Header
-	echo '=========================================================================' > $LOG_FILE
-	echo "                          ROCm Enablement Tool Log                       " >> $LOG_FILE
-	echo '=========================================================================' >> $LOG_FILE
-	echo "" 																		 >> $LOG_FILE
+    # Init Header
+    echo '=========================================================================' > $LOG_FILE
+    echo "                          ROCm Enablement Tool Log                       " >> $LOG_FILE
+    echo '=========================================================================' >> $LOG_FILE
+    echo ""                                                                          >> $LOG_FILE
 
-	# Add the first msg after header
-	toLog "INFO" "${__msg_initLog} [USER: $SUDO_USER]"
+    # Add the first msg after header
+    toLog "INFO" "${__msg_initLog} [USER: $SUDO_USER]"
 }
 
 # Insert log message to the log file
 # Input $1: log state INFO, ERROR, WARNING, etc.
 # Input $2: log message
 function toLog {
-	local __state_toLog="$1"
-	local __msg_toLog="$2"
+    local __state_toLog="$1"
+    local __msg_toLog="$2"
 
-	echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> $LOG_FILE
+    echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> $LOG_FILE
 }
 
 # Check Bash Version and Update it if requiered
@@ -831,7 +842,7 @@ function checkBashVersion {
 
     # Compare version need command line calculator
     startLoadBar "Check Bash Version"
-    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc >/dev/null 2>&1
+    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc gcc >/dev/null 2>&1
     __cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc" "ERR"
 
@@ -861,13 +872,13 @@ function checkBashVersion {
     # Install the new bash version
     startLoadBar "Install $BASH_FILENAME"
 
-	cd "$TEMP_DIRECTRORY/$BASH_FILENAME"
+    cd "$TEMP_DIRECTRORY/$BASH_FILENAME"
     ./configure >/dev/null 2>&1
     __cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "./configure" "ERR"
 
     make >/dev/null 2>&1
-	__cmd_ret_checkBashVersion="$?"
+    __cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "make" "ERR"
 
     cp -f "bash" "$__path_checkBashVersion" >/dev/null 2>&1
@@ -899,37 +910,37 @@ function checkBashVersion {
 # Input $3: Ignore Check Process (Default 1)
 # Input $4: Message (Optional)
 function runCmd {
-	local -n __cmd_runCmd="$1"
-	local __err_type_runCmd="$2"
-	local __ignore_check_runCmd="${3:-1}"
-	local __msg_runCmd="${4:-$__cmd_runCmd}"
-	local __cmd_ret_runCmd
+    local -n __cmd_runCmd="$1"
+    local __err_type_runCmd="$2"
+    local __ignore_check_runCmd="${3:-1}"
+    local __msg_runCmd="${4:-$__cmd_runCmd}"
+    local __cmd_ret_runCmd
 
-	[ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
-	if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
-		eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
-		__cmd_ret_runCmd="$?"
-		[ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd"
-	fi
+    [ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
+    if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
+        [ "${DEBUG}" = "true" ] && eval "${__cmd_runCmd[@]}" || eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
+        __cmd_ret_runCmd="$?"
+        [ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd" || return "${__cmd_ret_runCmd}"
+    fi
 }
 
 # Check what distro
 function updateCmd {
-	local __distro_updateCmd
-	local __release_updateCmd
-	local __kernel_updateCmd
-	local __arch_updateCmd
+    local __distro_updateCmd
+    local __release_updateCmd
+    local __kernel_updateCmd
+    local __arch_updateCmd
 
-	if [[ "$OSTYPE" == "linux-gnu" ]]; then
-    	getOSInfo RET_DISTRO __release_updateCmd __kernel_updateCmd __arch_updateCmd
+    if [[ "$OSTYPE" == "linux-gnu" ]]; then
+        getOSInfo RET_DISTRO __release_updateCmd __kernel_updateCmd __arch_updateCmd
 
-    	case $RET_DISTRO in
-			CentOS)
-				updateCmdArray "COS";;
-			Ubuntu)
-				;; # per default initialized
-			*) logPrint "ERR" "Distro Not Supported!" "$RET_DISTRO" "${FAIL}";;
-		esac
+        case $RET_DISTRO in
+            CentOS)
+                updateCmdArray "COS";;
+            Ubuntu)
+                ;; # per default initialized
+            *) logPrint "ERR" "Distro Not Supported!" "$RET_DISTRO" "${FAIL}";;
+        esac
     else
         logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
     fi
@@ -938,23 +949,23 @@ function updateCmd {
 # Update the command by distro
 # Input $1: Distro Prefix
 function updateCmdArray {
-	local __distro_updateCmdArray="$1"
-	local __cmd_name_updateCmdArray
+    local __distro_updateCmdArray="$1"
+    local __cmd_name_updateCmdArray
 
-	for ((i=0; i<"${#RET_CMDS_ARRAY[@]}"; i++)); do
-		__cmd_name_updateCmdArray="${RET_CMDS_ARRAY[i]}"
-		RET_CMDS_ARRAY[i]="$__distro_updateCmdArray""_${__cmd_name_updateCmdArray#*_}"
-	done
+    for ((i=0; i<"${#RET_CMDS_ARRAY[@]}"; i++)); do
+        __cmd_name_updateCmdArray="${RET_CMDS_ARRAY[i]}"
+        RET_CMDS_ARRAY[i]="$__distro_updateCmdArray""_${__cmd_name_updateCmdArray#*_}"
+    done
 }
 
 # Run pre-Start setup
 function preStart {
-	# Clear the terminal
-	tput clear
+    # Clear the terminal
+    tput clear
 
-	# Update commands by distro
-	updateCmd
+    # Update commands by distro
+    updateCmd
 
-	# Update Bash version if required
-	checkBashVersion
+    # Update Bash version if required
+    checkBashVersion
 }

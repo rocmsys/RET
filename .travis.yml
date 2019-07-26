@@ -1,14 +1,22 @@
 language: bash
-os:
-  - linux
- 
 
-sudo: required
+matrix:
+  include:
+    - dist: xenial
+      os: linux
+      sudo: required
+    - dist: bionic
+      os: linux
+      sudo: required
+    
 deploy:
   provider: script
-  script: bash ret install rocm
-  script: bash ret install tensorflow
-  script: bash ret build docker
-  script: bash ret build singularity
-  on:
-    branch: dev
+  script: sudo bash ret install rocm -y --nov
+  script: sudo bash ret install tensorflow -y --nov
+  script: bash ret build docker -y
+  script: bash ret build singularity -y
+
+branches:
+  only:
+    - master
+    - dev

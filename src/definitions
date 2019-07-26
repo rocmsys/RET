@@ -4,13 +4,14 @@
 PWD=$(pwd)
 SRC="${BASH_SOURCE%/*}"
 if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
+[ -z "$SUDO_USER" ] && SUDO_USER="root"
 
 . $SRC/cmd
 . $SRC/format
 . $SRC/functions
 . $SRC/update_kernel
 
-# Requirement
+# Min Requirement
 REQ_BASH_VERSION=4.3
 
 
@@ -26,6 +27,8 @@ LOG_FILE="${LOG_DIRECTRORY}/ret.log"
 BASH_FILENAME="bash-4.4.18"
 Ubuntu_ROCM_REPO="/etc/apt/sources.list.d/rocm.list"
 CentOS_ROCM_REPO="/etc/yum.repos.d/rocm.repo"
+DOCKERFILE="container/docker/Dockerfile"
+RECIPEFILE="container/singularity/recipe"
 
 # Url's
 UBUNTU_KERNEL_URL="kernel.ubuntu.com/~kernel-ppa/mainline/"
@@ -36,7 +39,7 @@ ROCM_RPM="http://repo.radeon.com/rocm/yum/rpm"
 
 # Scope
 EMPTY_ARRAY=()
-RET_VERSION="0.1.x"
+RET_VERSION="0.1.1"
 DESCRIPTION="ROCm Machine Learning Stack installer"
 
 # Benchmark
@@ -49,8 +52,17 @@ BATCH_SIZE=128
 TOTALSTEPS=12
 BEQUIET=false
 FORCEYES=false
-PYVER="py3"
+DEBUG=false
+SKIPVERI=false
+SKIPSYSC=false
+INCONTAINER=false
+FG_DEFAULT_COLOR="${FG_DEFAULT}"
+
+PYVER="py2"
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
+
+# Container
+IMGNAME="ubuntu:18.04"
 
 # Debian cmds
 DEB_INSTALL_CMD="apt-get -qq -y --allow-unauthenticated install"

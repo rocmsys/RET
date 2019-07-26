@@ -1,0 +1,27 @@
+Bootstrap: docker
+From: ubuntu:18.04 #DISTRO
+
+%environment
+    export LC_ALL=C
+    unset LANGUAGE
+    export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+
+%runscript
+    cd /ret/
+    bash ret benchmark tensorflow -ic
+
+%post
+    echo Download RET Repository
+    apt-get update
+    apt-get install git -y
+    git clone -b dev https://github.com/rocmsys/ret.git ret
+    cd /ret/
+    ./ret install tensorflow -y -ic
+
+%test
+    cd /ret/
+    ./ret benchmark tensorflow -ic
+
+%help
+    Singularity container for ROCm.
+

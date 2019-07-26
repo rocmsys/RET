@@ -3,6 +3,8 @@
 # Define here OS independent packages
 - name: python-wheel
   version: latest
+- name: python-setuptools
+  version: latest
 # Ubuntu Python2 Packages
 - Ubuntu:
   - name: python-dev
