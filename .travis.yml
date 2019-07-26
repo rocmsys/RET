@@ -14,6 +14,6 @@ deploy:
   script: sudo bash ret install rocm -y --nov
   script: sudo bash ret install tensorflow -y --nov
   script: sudo bash ret build docker -y
-  script: sudo bash ret build singularity -y
+  script: sudo bash ret build singularity -y --debug
   on:
     branch: master
