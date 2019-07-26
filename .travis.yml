@@ -16,7 +16,3 @@ deploy:
   script: bash ret build docker -y
   script: bash ret build singularity -y
 
-branches:
-  only:
-    - master
-    - dev
