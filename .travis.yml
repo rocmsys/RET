@@ -14,4 +14,4 @@ deploy:
   script: sudo bash ret install rocm -y --nov
   script: sudo bash ret install tensorflow -y --nov
   on:
-    branch: dev
+    branch: master
