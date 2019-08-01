@@ -333,11 +333,11 @@ function addROCmRepo {
     case "$RET_DISTRO" in
         Ubuntu)
             __cmd_array_addROCmRepo=("wget -qO - http://repo.radeon.com/rocm/apt/debian/rocm.gpg.key | apt-key add -"); runCmd __cmd_array_addROCmRepo "ERR"
-            __cmd_array_addROCmRepo=("echo -e deb [arch=amd64 trusted=yes] ${ROCM_DEB} | tee ${Ubuntu_ROCM_REPO}"); runCmd __cmd_array_addROCmRepo "ERR"
+            __cmd_array_addROCmRepo=("echo -e 'deb [arch=amd64 trusted=yes] ${ROCM_DEB}' | tee ${Ubuntu_ROCM_REPO}"); runCmd __cmd_array_addROCmRepo "ERR"
         ;;
 
         CentOS)
-            __cmd_array_addROCmRepo=('echo -e [ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0 | tee ${CentOS_ROCM_REPO}'); 
+            __cmd_array_addROCmRepo=("echo -e '[ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0' | tee ${CentOS_ROCM_REPO}"); 
             runCmd __cmd_array_addROCmRepo "ERR"
         ;;
     esac
@@ -356,7 +356,7 @@ function addDockerRepo {
             __cmd_array_addDockerRepo=("wget -qO - ${__url_addRepo}/ubuntu/gpg | apt-key add -"); 
             runCmd __cmd_array_addDockerRepo "ERR"
 
-            __cmd_array_addDockerRepo=("add-apt-repository deb [arch=amd64 trusted=yes] ${__url_addRepo}/ubuntu $(lsb_release -cs) stable"); 
+            __cmd_array_addDockerRepo=("add-apt-repository 'deb [arch=amd64 trusted=yes] ${__url_addRepo}/ubuntu $(lsb_release -cs) stable'"); 
             runCmd __cmd_array_addDockerRepo "ERR"
         ;;
 
@@ -698,13 +698,13 @@ function buildContainer {
         "docker")
             logPrint "STEP" "Build Docker Image"
             editFile "${DOCKERFILE}" "FROM .*$" "FROM ${__options_buildContainer[0]}";
-            docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
+            sudo -u $SUDO_USER docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
         ;;
 
         "singularity")
             logPrint "STEP" "Build Singularity Image"
             editFile "${RECIPEFILE}" "From: .* #DISTRO$" "From: ${__options_buildContainer[0]} #DISTRO";
-            singularity build --sandbox --notest "ret_rocm.simg" "${RECIPEFILE}"
+            sudo -u $SUDO_USER singularity build --sandbox --notest "ret_rocm.simg" "${RECIPEFILE}"
         ;;
     esac
 }

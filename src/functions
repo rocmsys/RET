@@ -796,7 +796,7 @@ function editFile {
     local __old_value_editFile=$2
     local __new_value_editFile=$3
 
-    local __cmd_array_editFile=("sed -i -e 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}")
+    local __cmd_array_editFile=("sudo -u $SUDO_USER sed -i -e 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}")
     runCmd __cmd_array_editFile "ERR" "1" "Cannot edit file: ${__file_name_editFile}"
 }
 
