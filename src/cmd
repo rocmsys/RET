@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # start
-# Print script Usage 
+# Print script Usage
 function printUsage {
     echo -e ""
     echo -e "${BOLD}ROCmML Version ${RET_VERSION}${END}"
@@ -264,7 +264,7 @@ function runInstall {
 
     # Install the Packages if not already installed
     checkDeps __pkg_name_array_runInstall __pkg_vers_array_runInstall "Verifying ${__pkg_name_runInstall} Dependencies"
-    
+
     # This will be removed in the next release
     if [ "$__pkg_name_runInstall" = "singularity" ]; then 
         __cmd_array_runInstall=("singularity --version");
@@ -373,7 +373,7 @@ function addDockerRepo {
 function runPostInstallation {
     local __pkg_name_runPostInstallation="$1"
     local __cmd_array_runPostInstallation=()
-    
+
     case "$__pkg_name_runPostInstallation" in
         rocm)
             # Add user to the video group
@@ -698,7 +698,7 @@ function buildContainer {
         "docker")
             logPrint "STEP" "Build Docker Image"
             editFile "${DOCKERFILE}" "FROM .*$" "FROM ${__options_buildContainer[0]}";
-            docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
+            sudo -u $SUDO_USER docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
         ;;
 
         "singularity")

@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 
-# Print the message/inser to the log file 
+# Print the message/inser to the log file
 # Input $1: type [STEP (for one of the main steps), DET (for detailed info), ERR (for error), NOTE ( for note), DONE (success confirmation)]
 # Input $2: title
 # Input $3: value (only for type [DET, ERR])
 # Input $4: State [SUCC, FAIL]
 function logPrint {
-    # Init input variables 
+    # Init input variables
     local __type=$1
     local __title=$2
     local __value=$3
 
     # Step heading
     if [ "${__type}" = "STEP" ]; then
-        sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; 
+        sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear;
         printf "${FG_DEFAULT_COLOR}"'=%.0s' $(seq 1 ${__terminal_width}); printf "${END}"'\n'
         echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
         printf "${FG_DEFAULT_COLOR}"'=%.0s' $(seq 1 ${__terminal_width}); printf "${END}"'\n'
@@ -119,17 +119,17 @@ function checkOs {
 # Input $1: string to convert
 function str2ArrayRange {
     local __str=$1
-    local __s='[[:space:]]*' 
+    local __s='[[:space:]]*'
     local __digit='[0-9.]*'
     local __conversation_type="SEQ" # Params are SEQ (for sequence) and SPT (for split)
- 
+
     [[ "${__str}" == *'>='*'<='* ]] && __conversation_type="SEQ" || __conversation_type="SPT"
 
     if [[ "$__conversation_type" == "SEQ" ]]; then
         echo $__str | sed -n 's|^.*>='$__s'\('$__digit'\)[[:space:]]<='$__s'\('$__digit'\).*|\1-\2|p' |
                       awk 'BEGIN{FS="-";}{for (i=$1; i<$2; i+=0.01) { print(i); }}'
     elif [[ "$__conversation_type" == "SPT" ]]; then
-        echo $__str | sed 's| ||g' | awk '{ split($0,a,"|"); for (item in a){ print(a[item]);} }' 
+        echo $__str | sed 's| ||g' | awk '{ split($0,a,"|"); for (item in a){ print(a[item]);} }'
     fi
 }
 
@@ -146,7 +146,7 @@ function isSupported {
 
     # Check if __ret_array needs to be interept (If sym. like >=, <=, <, etc.)
     if [[ "${__ret_array[0]}" == *'>='*'<='* || "${__ret_array[0]}" == *'|'* ]]; then
-        __ret_array=$(str2ArrayRange "${__ret_array[0]}") 
+        __ret_array=$(str2ArrayRange "${__ret_array[0]}")
         IFS=$'\r\n' eval  __ret_array='(${__ret_array})'
     fi
 
@@ -197,13 +197,13 @@ function checkDeps {
     fi
 }
 
-# Read and parse yaml file 
+# Read and parse yaml file
 # Input $1: yaml date
 # Note: this parser support only the syntax needed. Flow Styles are not supported
 function parse_yaml {
     local __data=$1
-    local __s='[[:space:]]*' 
-    local __w='[a-zA-Z0-9_.]*' 
+    local __s='[[:space:]]*'
+    local __w='[a-zA-Z0-9_.]*'
     local __fs=${__fs:-$(echo @|tr @ '\034')}
     local __q=''\"\'''
     local __sep=\"\|\"
@@ -223,16 +223,16 @@ function parse_yaml {
 
     echo "$__data" | \
         sed -e "$__rm_sp" -e "$__rm_doc_begin" -e "$__rm_doc_end" -e "$__rm_cmt" -e "$__rm_il_cmt" -e "$__rm_bl" -e "$__get_item_list" -e "$__get_map_list" | \
-    
+
     awk -F$__fs 'BEGIN{
         last_indent = 0; br_count = 0;
     }
     {
         #The suggested syntax for YAML files is to use 2 spaces for indentation
         indent = length($1)/2;
-    
 
-        # extract the dictionarie key 
+
+        # extract the dictionarie key
         if(length($2)!= 0){node[indent] = $2}
 
         # extract the value
@@ -244,7 +244,7 @@ function parse_yaml {
 
         br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
         branch=br node[indent];
-        
+
 
         # remove the last char
         if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
@@ -254,9 +254,9 @@ function parse_yaml {
         isBrExists = 0;
         for(i in br_array){
             split(br_array[i], tmp_br, '$__br_eq');
-            
+
             if(branch == tmp_br[1]){
-                br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
+                br_array[i] = branch '$__br_eq' tmp_br[2]";"value;
                 isBrExists = 1;
             }
         }
@@ -277,8 +277,8 @@ function parse_yaml {
 # Read yaml file and binds the child files
 # Input $1: yaml file name
 function prepareReqFile {
-    local __file_name=$1 
-    local __s='[[:space:]]*' 
+    local __file_name=$1
+    local __s='[[:space:]]*'
     local __fm="- "
     local __fd=": "
     local __rm_doc_begin='s|^'$__s'\(---\)'$__s'||g' # rm doc begin
@@ -324,7 +324,7 @@ function yaml2arr {
 }
 
 # Get value yaml value by key
-# Input $1: Key 
+# Input $1: Key
 # Input $2: YAML_Array Ref
 # Output $3: Return Array
 function getYAMLValue {
@@ -376,7 +376,7 @@ function isInArray {
 # Get OS and Version
 # Return OS, Version, Kernel and the Architecture
 function getOSInfo {
-    # Init output variables 
+    # Init output variables
     local __res_os=$1
     local __res_ver=$2
     local __res_kernel=$3
@@ -431,7 +431,7 @@ function fileSanityCheck {
     fi
 }
 
-# Get user confirmation of Y/n 
+# Get user confirmation of Y/n
 # Input $1: message (optional)
 # Return 0,1
 function confirmYn {
@@ -441,7 +441,7 @@ function confirmYn {
     if [[ ${REPLY} =~ ^[Yy] ]] || [[ -z "${REPLY}" ]]; then
         __return_confirmYn=0
     fi
-    toLog "INFO" "${1:-Do you want to continue? [Y/n] }[${REPLY}]" 
+    toLog "INFO" "${1:-Do you want to continue? [Y/n] }[${REPLY}]"
     return "$__return_confirmYn";
 }
 
@@ -473,8 +473,8 @@ function isPrgInstalled {
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
         __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} list 2>/dev/null | grep ${__pkg_name_isPrgInstalled}");
     else
-        __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}"); 
-        runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || { 
+        __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}");
+        runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || {
             case $RET_DISTRO in
                 CentOS)
                     if [[ "${__phu_isPrgInstalled}" == "group" ]]; then
@@ -485,7 +485,7 @@ function isPrgInstalled {
                 Ubuntu)
                     __cmd_array_isPrgInstalled=("${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} ${__pkg_name_isPrgInstalled} 2>/dev/null | grep -e '^ii'");;
             esac
-        } 
+        }
     fi
     runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0
     return $__found;
@@ -538,7 +538,7 @@ function installPkg {
     return 0;
 }
 
-# Parse and return name, version and package handling utility from package str 
+# Parse and return name, version and package handling utility from package str
 # Input $1: package title/name e.g. name:phu=version
 # Output $2: package name
 # Output $3: package version
@@ -553,7 +553,7 @@ function parsePkg {
     local __pkg_vers_parsePkg
     local __phu_parsePkg
 
-    case "$__pkg_parsePkg" in 
+    case "$__pkg_parsePkg" in
         *:*=*) # name:phu=version
             __pkg_name_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\1|p')
             __phu_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\2|p')
@@ -576,7 +576,7 @@ function parsePkg {
             __pkg_name_parsePkg="${__pkg_parsePkg}"
             __phu_parsePkg=""      # empty
             __pkg_vers_parsePkg="" # empty
-        ;;    
+        ;;
     esac
 
     eval $__res_pkg_name_parsePkg='$__pkg_name_parsePkg'
@@ -629,7 +629,7 @@ function removePkg {
 # Input $1: Return State
 # Input $2: The cmd causing the error
 # Input $3: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-# Input $4: The output message 
+# Input $4: The output message
 function checkReturn {
     local __state=$1
     local __cmd=$2
@@ -669,10 +669,10 @@ function loadBar {
     tput civis
 
     while true
-    do 
+    do
         for (( i=${__pos_loadbar}; i<${#LOADBAR}; i++ )); do
             logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
-            sleep 0.1; 
+            sleep 0.1;
         done
     done
 }
@@ -696,7 +696,7 @@ function stopLoadBar {
     local __msg_value_stopLoadBar="$3"
     tput cnorm
 
-    kill -9 "${LOADBARPID}" >/dev/null 2>&1 # send SIGKILL 
+    kill -9 "${LOADBARPID}" >/dev/null 2>&1 # send SIGKILL
     wait "${LOADBARPID}" >/dev/null 2>&1
     [ -z "${__msg_stopLoadBar}" ] || logPrint "${__msg_type_stopLoadBar}" "${__msg_stopLoadBar}" "${__msg_value_stopLoadBar}"
 }
@@ -741,7 +741,7 @@ function downloadFile {
     # Download file and get the current download state
     sudo -u $SUDO_USER wget --progress=dot -P "$2" "$1" 2>&1 | grep --line-buffered "[[:space:]][[:digit:]][[:digit:]]*%" | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage
 
-    # Check the return state 
+    # Check the return state
     __cmd_ret_downloadFile="$?"
     checkReturn "$__cmd_ret_downloadFile" "wget -O $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
 }
@@ -752,8 +752,8 @@ function checkSys {
     local __vers_array_checkSys=()
 
     # Check OS
-    checkOs 
-    
+    checkOs
+
     # Check Global Dependencies
     getYAMLValue "dependencies|globale|name" YAML_ARRAY DEPS_ARRAY
     getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
@@ -805,17 +805,17 @@ function initLog {
     local __msg_initLog="${1:-START SCRIPT}"
 
     # Creat log directory
-    [ ! -d "${LOG_DIRECTRORY}" ] && mkdir "${LOG_DIRECTRORY}"
-    
+    sudo -u $SUDO_USER mkdir "${LOG_DIRECTRORY}" >/dev/null 2>&1
+
     # re-create the log file
-    rm -f $LOG_FILE >/dev/null 2>&1
+    sudo -u $SUDO_USER rm -f $LOG_FILE >/dev/null 2>&1
     sudo -u $SUDO_USER touch $LOG_FILE >/dev/null 2>&1
 
     # Init Header
-    echo '=========================================================================' > $LOG_FILE
-    echo "                          ROCm Enablement Tool Log                       " >> $LOG_FILE
-    echo '=========================================================================' >> $LOG_FILE
-    echo ""                                                                          >> $LOG_FILE
+    su - $SUDO_USER -c "echo '=========================================================================' > $LOG_FILE"
+    su - $SUDO_USER -c "echo '                          ROCm Enablement Tool Log                       ' >> $LOG_FILE"
+    su - $SUDO_USER -c "echo '=========================================================================' >> $LOG_FILE"
+    su - $SUDO_USER -c "echo ''                                                                          >> $LOG_FILE"
 
     # Add the first msg after header
     toLog "INFO" "${__msg_initLog} [USER: $SUDO_USER]"
@@ -828,7 +828,7 @@ function toLog {
     local __state_toLog="$1"
     local __msg_toLog="$2"
 
-    echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> $LOG_FILE
+    su - $SUDO_USER -c "echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` '[${__state_toLog:0:3}] ${__msg_toLog}' >> $LOG_FILE"
 }
 
 # Check Bash Version and Update it if requiered
@@ -849,7 +849,7 @@ function checkBashVersion {
     __bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
     stopLoadBar
     [ $(echo "$__bash_ver >= $REQ_BASH_VERSION"|bc) -eq 1 ] && return 0
-    
+
 
     # Get bash location and Create bash Backup
     __path_checkBashVersion=$(which bash)
