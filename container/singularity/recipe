@@ -14,7 +14,7 @@ From: ubuntu:18.04 #DISTRO
     echo Download RET Repository
     apt-get update
     apt-get install git -y
-    git clone -b dev https://github.com/rocmsys/ret.git ret
+    git clone https://github.com/rocmsys/ret.git ret
     cd /ret/
     ./ret install tensorflow -y -ic
 

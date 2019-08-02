@@ -698,13 +698,13 @@ function buildContainer {
         "docker")
             logPrint "STEP" "Build Docker Image"
             editFile "${DOCKERFILE}" "FROM .*$" "FROM ${__options_buildContainer[0]}";
-            sudo -u $SUDO_USER docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
+            docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
         ;;
 
         "singularity")
             logPrint "STEP" "Build Singularity Image"
             editFile "${RECIPEFILE}" "From: .* #DISTRO$" "From: ${__options_buildContainer[0]} #DISTRO";
-            sudo -u $SUDO_USER singularity build --sandbox --notest "ret_rocm.simg" "${RECIPEFILE}"
+            singularity build --sandbox --notest "ret_rocm.simg" "${RECIPEFILE}"
         ;;
     esac
 }
@@ -715,7 +715,7 @@ function installSingularity {
     local __cmd_ret_installSingularity
     local __retPath_installSingularity=$(pwd)
     local __cmd_array_installSingularity=()
-    local __version_installSingularity=3.2.1     
+    local __version_installSingularity=3.2.1
     local __url_installSingularity="https://github.com/sylabs/singularity/releases/download/v$__version_installSingularity/singularity-$__version_installSingularity.tar.gz"
     local __version_go=1.12
     local __url_go="https://dl.google.com/go/go${__version_go}.linux-amd64.tar.gz"
@@ -729,9 +729,9 @@ function installSingularity {
 
     # Install the Go ###################################################################################
     startLoadBar "Install Go"
-    __cmd_array_installSingularity=("tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz  -C /usr/local")
-    runCmd __cmd_array_installSingularity "ERR"
 
+    __cmd_array_installSingularity=("sudo -u $SUDO_USER tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local")
+    runCmd __cmd_array_installSingularity "ERR"
 
     export GOPATH=${HOME}/go
     export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin
@@ -745,17 +745,18 @@ function installSingularity {
     # Install the singularity
     startLoadBar "Install Singularity"
 
-    __cmd_array_installSingularity=("tar -xzf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY")
+    __cmd_array_installSingularity=("sudo -u $SUDO_USER tar -xzf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY")
     runCmd __cmd_array_installSingularity "ERR"
 
     cd "$TEMP_DIRECTRORY/singularity"
 
-    __cmd_array_installSingularity=("./mconfig --prefix=/usr/")
+    __cmd_array_installSingularity=("sudo -u $SUDO_USER ./mconfig")
     runCmd __cmd_array_installSingularity "ERR"
 
-    __cmd_array_installSingularity=("make -C ./builddir")
+    __cmd_array_installSingularity=("su - $SUDO_USER -c 'make -C $TEMP_DIRECTRORY/singularity/builddir'")
     runCmd __cmd_array_installSingularity "ERR"
-    
+
+
     __cmd_array_installSingularity=("make -C ./builddir install")
     runCmd __cmd_array_installSingularity "ERR"
 
