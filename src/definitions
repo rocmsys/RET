@@ -16,7 +16,7 @@ REQ_BASH_VERSION=4.3
 
 
 # DIRECTORY Paths
-TEMP_DIRECTRORY=$(mktemp -d)
+TEMP_DIRECTRORY=$(sudo -u $SUDO_USER mktemp -d)
 WORK_DIRECTRORY="./benchmarks"
 LOG_DIRECTRORY="./log"
 
