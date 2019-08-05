@@ -739,7 +739,7 @@ function downloadFile {
     }
 
     # Download file and get the current download state
-    sudo -u $SUDO_USER wget --progress=dot -P "$2" "$1" 2>&1 | grep --line-buffered "[[:space:]][[:digit:]][[:digit:]]*%" | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage
+    su - $SUDO_USER -c "wget --progress=dot -P '$2' '$1' 2>&1 | grep --line-buffered '[[:space:]][[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage"
 
     # Check the return state
     __cmd_ret_downloadFile="$?"
@@ -805,11 +805,11 @@ function initLog {
     local __msg_initLog="${1:-START SCRIPT}"
 
     # Creat log directory
-    sudo -u $SUDO_USER mkdir "${LOG_DIRECTRORY}" >/dev/null 2>&1
+    su - $SUDO_USER -c "mkdir '${LOG_DIRECTRORY}'" >/dev/null 2>&1
 
     # re-create the log file
-    sudo -u $SUDO_USER rm -f $LOG_FILE >/dev/null 2>&1
-    sudo -u $SUDO_USER touch $LOG_FILE >/dev/null 2>&1
+    su - $SUDO_USER -c "rm -f $LOG_FILE" >/dev/null 2>&1
+    su - $SUDO_USER -c "touch $LOG_FILE" >/dev/null 2>&1
 
     # Init Header
     su - $SUDO_USER -c "echo '=========================================================================' > $LOG_FILE"
