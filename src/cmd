@@ -659,7 +659,7 @@ function runBenchmark {
                 for model in "${__models_runBenchmark[@]}"; do
                     TF_MODEL=$model
                     startLoadBar "Run ${TF_MODEL} benchmark"; printf '\n'
-                    sudo -u $SUDO_USER $__cmd_python_runBenchmark "$WORK_DIRECTRORY/tf/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py" --model="$TF_MODEL" --num_gpus="$NUM_GPUS" --batch_size="$BATCH_SIZE" --use_fp16=True
+                    su -p $SUDO_USER -c "$__cmd_python_runBenchmark $WORK_DIRECTRORY/tf/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=$TF_MODEL --num_gpus=$NUM_GPUS --batch_size=$BATCH_SIZE --use_fp16=True"
                     __cmd_ret_runBenchmark="$?"
                     [ "$__cmd_ret_runBenchmark" -eq 0 ] && stopLoadBar "${TF_MODEL} benchmark Done" || { stopLoadBar "${TF_MODEL} benchmark Failed" "ERR"; __ret_value_runBenchmark=1; }
                 done
@@ -731,7 +731,7 @@ function installSingularity {
     # Install the Go ###################################################################################
     startLoadBar "Install Go"
 
-    __cmd_array_installSingularity=("sudo -u $SUDO_USER tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local")
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c \"tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local\"")
     runCmd __cmd_array_installSingularity "ERR"
 
     export GOPATH=${HOME}/go
@@ -746,15 +746,15 @@ function installSingularity {
     # Install the singularity
     startLoadBar "Install Singularity"
 
-    __cmd_array_installSingularity=("sudo -u $SUDO_USER tar -xzf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY")
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c \"tar -xzf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY\"")
     runCmd __cmd_array_installSingularity "ERR"
 
     cd "$TEMP_DIRECTRORY/singularity"
 
-    __cmd_array_installSingularity=("sudo -u $SUDO_USER ./mconfig")
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c \"./mconfig\"")
     runCmd __cmd_array_installSingularity "ERR"
 
-    __cmd_array_installSingularity=("su - $SUDO_USER -c 'make -C $TEMP_DIRECTRORY/singularity/builddir'")
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'make -C ./builddir'")
     runCmd __cmd_array_installSingularity "ERR"
 
 
