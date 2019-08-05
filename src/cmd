@@ -699,7 +699,7 @@ function buildContainer {
         "docker")
             logPrint "STEP" "Build Docker Image"
             editFile "${DOCKERFILE}" "FROM .*$" "FROM ${__options_buildContainer[0]}";
-            sudo -u $SUDO_USER docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
+            docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
         ;;
 
         "singularity")
