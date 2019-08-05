@@ -304,8 +304,7 @@ function runPreInstallation {
         tensorflow)
             # Uninstall any previously-installed tensorflow whl packages
             startLoadBar "Run ${__pkg_name_runPreInstallation} Pre-Installation: Uninstall previously-installed tensorflow"; printf '\n'
-            local __tf_pkg_runPreInstallation=("tensorflow:${PYPI}")
-            removePkg __tf_pkg_runPreInstallation
+            local __tf_pkg_runPreInstallation=("tensorflow:${PYPI}"); removePkg __tf_pkg_runPreInstallation
             stopLoadBar
         ;;
 
@@ -319,6 +318,7 @@ function runPreInstallation {
 
         docker)
             addDockerRepo "https://download.docker.com/linux"
+            local __docker_pkg_runPreInstallation=("docker-*"); removePkg __docker_pkg_runPreInstallation
         ;;
 
         singularity)
