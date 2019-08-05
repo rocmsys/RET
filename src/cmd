@@ -685,6 +685,7 @@ function buildContainer {
     local __isInstalled_buildContainer=0
     local __isTFInstalled_buildContainer=0
     local __isPTInstalled_buildContainer=0
+    local __pms_buildContainer="apt-get"
 
     yaml2arr "$REQ_FILE" YAML_ARRAY
 
@@ -692,6 +693,7 @@ function buildContainer {
 
     # Set default distro
     [ "${#__options_buildContainer[@]}" -eq 0 ] && __options_buildContainer[0]="${IMGNAME}"
+    [[ ${__options_buildContainer[0]} =~ ^centos.* ]] && __pms_buildContainer="yum"
 
     installCmd __args_cmdEngine
 
@@ -699,12 +701,14 @@ function buildContainer {
         "docker")
             logPrint "STEP" "Build Docker Image"
             editFile "${DOCKERFILE}" "FROM .*$" "FROM ${__options_buildContainer[0]}";
+            editFile "${DOCKERFILE}" "ENV PMS=.*$" "ENV PMS=\\\"$__pms_buildContainer\\\"";
             docker build -t "ret_rocm" `dirname "${DOCKERFILE}"`
         ;;
 
         "singularity")
             logPrint "STEP" "Build Singularity Image"
             editFile "${RECIPEFILE}" "From: .* #DISTRO$" "From: ${__options_buildContainer[0]} #DISTRO";
+            editFile "${RECIPEFILE}" "PMS=.*$" "PMS=\\\"$__pms_buildContainer\\\"";
             singularity build --sandbox --notest "ret_rocm.simg" "${RECIPEFILE}"
         ;;
     esac
@@ -731,7 +735,7 @@ function installSingularity {
     # Install the Go ###################################################################################
     startLoadBar "Install Go"
 
-    __cmd_array_installSingularity=("su -p $SUDO_USER -c \"tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local\"")
+    __cmd_array_installSingularity=("tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local")
     runCmd __cmd_array_installSingularity "ERR"
 
     export GOPATH=${HOME}/go
@@ -754,7 +758,7 @@ function installSingularity {
     __cmd_array_installSingularity=("su -p $SUDO_USER -c \"./mconfig\"")
     runCmd __cmd_array_installSingularity "ERR"
 
-    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'make -C ./builddir'")
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'export PATH=/usr/local/go/bin:${PATH}:${GOPATH}/bin; make -C ./builddir'")
     runCmd __cmd_array_installSingularity "ERR"
 
 
@@ -764,6 +768,6 @@ function installSingularity {
     # Back to the RET folder
     cd "$__retPath_installSingularity"
 
-    [ $__cmd_ret_installSingularity -ne 0 ] && stopLoadBar "There was a problem installing Singularity!" "ERR" "make install" \
+    [ $? -ne 0 ] && stopLoadBar "There was a problem installing Singularity!" "ERR" "make install" \
                                       || stopLoadBar "Install Completed Successfully."
 }
