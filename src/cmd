@@ -318,7 +318,7 @@ function runPreInstallation {
 
         docker)
             addDockerRepo "https://download.docker.com/linux"
-            confirmYn "Uninstall old Docker versions? [Y/n] " || logPrint "ERR" "Uninstall Docker" "Docker" "${FAIL}"
+            echo ''; confirmYn "Uninstall old Docker versions? [Y/n] " || logPrint "ERR" "Uninstall Docker" "Docker" "${FAIL}"
             local __docker_pkg_runPreInstallation=("docker-*"); removePkg __docker_pkg_runPreInstallation
         ;;
 
@@ -403,8 +403,8 @@ function runPostInstallation {
         ;;
 
         docker)
-            systemctl start docker
-            systemctl enable docker
+            __cmd_array_runPostInstallation=("systemctl start docker"); runCmd __cmd_array_runPostInstallation "ERR"
+            __cmd_array_runPostInstallation=("systemctl enable docker"); runCmd __cmd_array_runPostInstallation "ERR"
         ;;
 
         singularity)
