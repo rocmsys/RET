@@ -11,8 +11,7 @@ ENV PMS="apt-get"
 LABEL description="Dockerfile used by RET to build ROCm Container."
 
 # update sources list
-RUN $PMS clean
-RUN $PMS update
+RUN $PMS update -qy
 
 # install basic packages
 RUN $PMS install -qy git

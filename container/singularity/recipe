@@ -15,7 +15,7 @@ From: ubuntu:18.04 #DISTRO
 %post
     PMS="apt-get"
     echo Download RET Repository
-    $PMS update
+    $PMS update -y
     $PMS install git -y
     git clone https://github.com/rocmsys/ret.git ret
     cd /ret/

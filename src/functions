@@ -842,7 +842,7 @@ function checkBashVersion {
 
     # Compare version need command line calculator
     startLoadBar "Check Bash Version"
-    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc gcc >/dev/null 2>&1
+    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc gcc which wget make >/dev/null 2>&1
     __cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc" "ERR"
 
