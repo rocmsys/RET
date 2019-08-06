@@ -768,7 +768,7 @@ function checkSys {
 
 
     # Exclude Kernel-* if in Container
-    [ "${INCONTAINER}" = "true" ] && { __deps_array_checkSys=(${__deps_array_checkSys[@]/"kernel-headers-*"}); __vers_array_checkSys=(${__vers_array_checkSys[@]/kernel-*}); }
+    [ "${INCONTAINER}" = "true" ] && { __deps_array_checkSys=(${__deps_array_checkSys[@]/kernel-*}); __vers_array_checkSys=(${__vers_array_checkSys[@]/kernel-*}); }
     checkDeps __deps_array_checkSys __vers_array_checkSys
 }
 
