@@ -20,9 +20,6 @@ RUN $PMS install -qy git
 RUN $PMS -qy autoremove
 
 # add rocm path to environment
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
 ENV PATH="${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64"
 ENV TERM dumb
 
