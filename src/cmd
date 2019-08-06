@@ -579,7 +579,7 @@ function buildPkgArray {
         __vers_buildPkgArray+=("${__deps_vers_buildPkgArray[@]}")
     fi
 
-    # Exclude rocm-dkms if on Container
+    # Exclude rocm-dkms if in Container
     [ "${INCONTAINER}" = "true" ] && { __pkgs_buildPkgArray=(${__pkgs_buildPkgArray[@]/"rocm-dkms"}); __vers_buildPkgArray=(${__vers_buildPkgArray[@]/"rocm-dkms"}); }
 
     # Check packages array
