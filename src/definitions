@@ -11,6 +11,12 @@ if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 . $SRC/functions
 . $SRC/update_kernel
 
+# Check privileges
+if ! isSudo; then
+	echo -e "${ERR}Please run the following command instead!...[sudo $0 $ret_args]${END}";
+    exitAll 2
+fi
+
 # Min Requirement
 REQ_BASH_VERSION=4.3
 
