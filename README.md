@@ -27,8 +27,6 @@ after the instllation you will need git to download the RET source
   sudo apt -y install git
 ```
 
-**Note:** DO NOT update and upgrade your system
-
 ## Clone repository
 ```
    git clone https://github.com/rocmsys/RET.git
