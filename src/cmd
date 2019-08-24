@@ -248,7 +248,6 @@ function installCmd {
 
 # Run Install Process
 # Input $1: pkg name
-# Input $2: pkg name
 function runInstall {
     local __pkg_name_runInstall="$1"
     local __pkg_name_array_runInstall=()
@@ -260,7 +259,7 @@ function runInstall {
     buildPkgArray "$__pkg_name_runInstall" __pkg_name_array_runInstall __pkg_vers_array_runInstall __isInstalled_runInstall
 
     # Run pre installation if required
-    [ "$__isInstalled_runInstall" -eq "1" ] && runPreInstallation "${__pkg_name_runInstall}"
+    [ "$__isInstalled_runInstall" -eq "1" ] && runPreInstallation "${__pkg_name_runInstall}" __pkg_name_array_runInstall __pkg_vers_array_runInstall
 
     # Install the Packages if not already installed
     checkDeps __pkg_name_array_runInstall __pkg_vers_array_runInstall "Verifying ${__pkg_name_runInstall} Dependencies"
@@ -290,8 +289,13 @@ function runInstall {
 
 # Run pre installation
 # Input $1: pkg name
+# I/O   $2: pkg Name array
+# I/O   $3: pkg Version array
 function runPreInstallation {
     local __pkg_name_runPreInstallation="$1"
+    local -n __pkg_name_arr_runPreInstallation="$2"
+    local -n __pkg_vers_arr_runPreInstallation="$3"
+
     local __repo_path_runPreInstallation
     local __repo_text_runPreInstallation
 
@@ -309,7 +313,14 @@ function runPreInstallation {
         ;;
 
         pytorch)
-            PRE="DONOTHING"
+            # Download Pytorch whl package
+            [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation="$PYT_PKG_PY2" || __pytorch_pkg_name_runPreInstallation="$PYT_PKG_PY3"
+            downloadFile "$WHL_URL$RET_DISTRO$RET_RELEASE-$__pytorch_pkg_name_runPreInstallation" "$TEMP_DIRECTRORY" "ERR" "Download Pytorch whl package"
+            mv "$TEMP_DIRECTRORY/$RET_DISTRO$RET_RELEASE-$__pytorch_pkg_name_runPreInstallation" "$__pytorch_pkg_name_runPreInstallation"
+
+            # Exclude torch pkg and insert the new pkg name
+            removeFromArray "torch" __pkg_name_arr_runPreInstallation __pkg_vers_arr_runPreInstallation
+            eval __pkg_name_arr_runPreInstallation="(${__pkg_name_arr_runPreInstallation[@]} $__pytorch_pkg_name_runPreInstallation:${PYPI})"
         ;;
 
         py2 | py3)
@@ -548,7 +559,7 @@ function runRemove {
 
 # Build Package Array by key and check if packages already installed
 # Input  $1: Key
-# I/O $2: Package array and updated array
+# Output $2: Package array and updated array
 # Output $3: Package Version array
 # Output $4: true if packages already installed
 function buildPkgArray {
@@ -580,7 +591,7 @@ function buildPkgArray {
     fi
 
     # Exclude rocm-dkms if in Container
-    [ "${INCONTAINER}" = "true" ] && { __pkgs_buildPkgArray=(${__pkgs_buildPkgArray[@]/"rocm-dkms"}); __vers_buildPkgArray=(${__vers_buildPkgArray[@]/"rocm-dkms"}); }
+    [ "${INCONTAINER}" = "true" ] && { removeFromArray "rocm-dkms" __pkgs_buildPkgArray __vers_buildPkgArray; }
 
     # Check packages array
     if [ "${#__pkgs_buildPkgArray[@]}" -eq 0 ]; then logPrint "ERR" "No value Found with this key!" "$__key_buildPkgArray" "${FAIL}"; exit; fi
@@ -592,7 +603,7 @@ function buildPkgArray {
 
     # Return packages array
     eval $__res_pkg_buildPkgArray="(${__pkgs_buildPkgArray[@]})"
-    eval __res_ver_buildPkgArray="(${__vers_buildPkgArray[@]})"
+    eval $__res_ver_buildPkgArray="(${__vers_buildPkgArray[@]})"
     eval $__res_isInstalled_buildPkgArray="'$__isInstalled_buildPkgArray'"    
 }
 

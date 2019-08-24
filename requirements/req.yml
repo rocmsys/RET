@@ -52,7 +52,7 @@ os_support:
 dependencies:
   - globale:
     - name: sudo
-      version: latest
+      version: latest1
     - name: clang
       version: latest
     - name: cmake
@@ -102,7 +102,7 @@ dependencies:
       - name: python-pip
         version: latest
       - name: python3-pip
-        version: latest  
+        version: latest
     # CentOS Global Dependencies    
     - CentOS:
       - name: epel-release
@@ -132,8 +132,7 @@ dependencies:
       version: latest
 
   - pytorch:
-    - name: TBD
-      version: TBD
+    - req_file: pytorch.yml
 
   - mivisionx:
     - req_file: mivisionx.yml

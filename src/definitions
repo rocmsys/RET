@@ -42,11 +42,14 @@ TF_BENCHMARKS_URL="https://github.com/tensorflow/benchmarks.git"
 BASH_URL="https://ftp.gnu.org/gnu/bash/"
 ROCM_DEB="http://repo.radeon.com/rocm/apt/debian/ xenial main"
 ROCM_RPM="http://repo.radeon.com/rocm/yum/rpm"
+WHL_URL="https://srv-file1.gofile.io/download/9XPVDV/"
 
 # Scope
 EMPTY_ARRAY=()
 RET_VERSION="0.1.1"
 DESCRIPTION="ROCm Machine Learning Stack installer"
+PYT_PKG_PY2="torch-1.3.0a0+87217cf-cp27-cp27mu-linux_x86_64.whl"
+PYT_PKG_PY3="torch-1.3.0a0+87217cf-cp35-cp35m-linux_x86_64.whl"
 
 # Benchmark
 TF_BNCH_VER="cnn_tf_v1.13_compatible"
@@ -70,6 +73,7 @@ PYVER=py3
 # Container
 IMGNAME="ubuntu:18.04"
 
+###################################Commands##############################
 # Debian cmds
 DEB_INSTALL_CMD="apt-get -qq -y --allow-unauthenticated install"
 DEB_INSTALL_PKG_CMD="dpkg -i"

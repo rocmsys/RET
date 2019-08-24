@@ -373,6 +373,27 @@ function isInArray {
     return 1;
 }
 
+# Remove package and the corresponding version from array
+# Input $1: pkg name
+# Input $2: pkg name array
+# Input $3: pkg version array
+function removeFromArray {
+    local __pkg_name_removeFromArray=$1
+    local -n __pkg_name_array_removeFromArray=$2
+    local -n __pkg_vers_array_removeFromArray=$3
+    local __index=0
+
+    for item in "${__pkg_name_array_removeFromArray[@]}"; do
+        if [[ "${item}" == "${__pkg_name_removeFromArray}"* ]] ; then
+            eval __pkg_name_array_removeFromArray="(${__pkg_name_array_removeFromArray[@]:0:$__index} ${__pkg_name_array_removeFromArray[@]:$__index+1})"
+            eval __pkg_vers_array_removeFromArray="(${__pkg_vers_array_removeFromArray[@]:0:$__index} ${__pkg_vers_array_removeFromArray[@]:$__index+1})"
+            return 0;
+        fi
+        ((__index++))
+    done
+    return 1;
+}
+
 # Get OS and Version
 # Return OS, Version, Kernel and the Architecture
 function getOSInfo {
@@ -471,7 +492,7 @@ function isPrgInstalled {
 
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
-        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} list 2>/dev/null | grep ${__pkg_name_isPrgInstalled}");
+        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} freeze 2>/dev/null | grep ${__pkg_name_isPrgInstalled}");
     else
         __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}");
         runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || {
@@ -766,9 +787,9 @@ function checkSys {
     __deps_array_checkSys+=("${DEPS_ARRAY[@]}")
     __vers_array_checkSys+=("${VER_ARRAY[@]}")
 
-
     # Exclude Kernel-* if in Container
-    [ "${INCONTAINER}" = "true" ] && { __deps_array_checkSys=(${__deps_array_checkSys[@]/kernel-*}); __vers_array_checkSys=(${__vers_array_checkSys[@]/kernel-*}); }
+    [ "${INCONTAINER}" = "true" ] && { removeFromArray "kernel-" __deps_array_checkSys __vers_array_checkSys; }
+
     checkDeps __deps_array_checkSys __vers_array_checkSys
 }
 
@@ -933,13 +954,11 @@ function runCmd {
 
 # Check what distro
 function updateCmd {
-    local __distro_updateCmd
-    local __release_updateCmd
     local __kernel_updateCmd
     local __arch_updateCmd
 
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
-        getOSInfo RET_DISTRO __release_updateCmd __kernel_updateCmd __arch_updateCmd
+        getOSInfo RET_DISTRO RET_RELEASE __kernel_updateCmd __arch_updateCmd
 
         case $RET_DISTRO in
             CentOS)
