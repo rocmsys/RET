@@ -52,7 +52,7 @@ os_support:
 dependencies:
   - globale:
     - name: sudo
-      version: latest1
+      version: latest
     - name: clang
       version: latest
     - name: cmake

@@ -159,42 +159,36 @@ function isSupported {
 # Input $2: array with the version of deps
 # Input $3: title (Optional)
 function checkDeps {
-    local -n __name_array=$1
-    local -n __ver_array=${2:-EMPTY_ARRAY}
-    local __idx=0
+    local -n __name_array_checkDeps=$1
+    local -n __ver_array_checkDeps=${2:-EMPTY_ARRAY}
     local __title_checkDeps=${3:-"Verifying Dependencies"}
+
+    local __idx=0
     local __dep_toInstall
-    local __DEPS_TOINSTALL=() # Array of deps
+    local __dep_array_toInstall=() # Array of deps
     local __pkg_name_checkDeps
 
     logPrint "STEP" "${__title_checkDeps}"
-    for dep in "${__name_array[@]}"; do
+    for dep in "${__name_array_checkDeps[@]}"; do
         [ -z "${dep}" ] && continue || __pkg_name_checkDeps=("${dep%%:*}");
 
         if isPrgInstalled "${dep}"; then
-            logPrint "DET" "${__pkg_name_checkDeps}" "Found" "${SUCC}"
+            logPrint "DET" "${__pkg_name_checkDeps}" "${CLEAR}Found" "${SUCC}"
         else
             __dep_toInstall="${dep}"
 
             # Get Version
-            local __version="${__ver_array[$__idx]}"
+            local __version="${__ver_array_checkDeps[$__idx]}"
             [ ! -z "$__version" ] && [ "$__version" != "latest" ] && __dep_toInstall="${dep}=${__version}"
 
-            __DEPS_TOINSTALL+=("${__dep_toInstall}")
+            __dep_array_toInstall+=("${__dep_toInstall}")
             logPrint "DET" "${__pkg_name_checkDeps}" "Not Found!" "${FAIL}"
         fi
        ((__idx++))
     done
 
-    # Install deps if needed
-    if [ "${#__DEPS_TOINSTALL[@]}" -ne 0 ]; then
-        logPrint "NOTE" "The above not installed packages are required to complete this setup."
-        if (confirmYn "Install dependencies? [Y/n] "); then
-            installPkg __DEPS_TOINSTALL
-        else
-            logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
-        fi
-    fi
+    eval  __name_array_checkDeps='(${__dep_array_toInstall[@]})'
+    [ "${#__dep_array_toInstall[@]}" -ne 0 ] && logPrint "NOTE" "The above not installed packages are required to complete this setup."
 }
 
 # Read and parse yaml file
@@ -312,14 +306,14 @@ function prepareReqFile {
 # Output $2: Return Array
 function yaml2arr {
     local __yaml_file=$1
-    local __res_array=$2
+    local __ret_array=$2
     local __yaml_data
 
     # Prepare Requirement file
     __yaml_data=$(prepareReqFile $__yaml_file)
 
     local __array=$(parse_yaml "${__yaml_data}")
-    IFS=$'\r\n' eval  $__res_array='(${__array})'
+    IFS=$'\r\n' eval  $__ret_array='(${__array})'
     #echo "${__array[@]}"; exit
 }
 
@@ -549,7 +543,7 @@ function installPkg {
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
         __cmd_array_installPkg=("${__cmd_installPkg} '${__dep_installPkg}'"); runCmd __cmd_array_installPkg "ERR"
-        logPrint "DET" "${__dep_installPkg}" "Installed" "${SUCC}"
+        logPrint "DET" "${__dep_installPkg}" "${CLEAR}Installed" "${SUCC}"
     done
 
     # Clean Archives cache
@@ -639,7 +633,7 @@ function removePkg {
             __rm_msg_removePkg="Already uninstalled"
         fi
 
-        logPrint "DET" "${__dep_removePkg}" "${__rm_msg_removePkg}" "${SUCC}"
+        logPrint "DET" "${__dep_removePkg}" "${CLEAR}${__rm_msg_removePkg}" "${SUCC}"
     done
 
     stopLoadBar "The Uninstallation Completed Successfully."
@@ -668,7 +662,15 @@ function checkReturn {
 # read YAML file
 function preRequirement {
     local __necessary_packages=("git" "tee" "curl" "wget" "lynx" "sed" "gawk" "rpm" "ssh")
+    
     checkDeps __necessary_packages "" "Run Pre-installation Requirements"
+    if [ "${#__necessary_packages[@]}" -ne 0 ]; then
+        if (confirmYn "Install dependencies? [Y/n] "); then 
+            installPkg __necessary_packages
+        else
+            logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__necessary_packages[@]}")"
+        fi
+    fi
 
     # read yaml file
     yaml2arr "$REQ_FILE" YAML_ARRAY
@@ -791,6 +793,13 @@ function checkSys {
     [ "${INCONTAINER}" = "true" ] && { removeFromArray "kernel-" __deps_array_checkSys __vers_array_checkSys; }
 
     checkDeps __deps_array_checkSys __vers_array_checkSys
+    if [ "${#__deps_array_checkSys[@]}" -ne 0 ]; then
+        if (confirmYn "Install dependencies? [Y/n] "); then 
+            installPkg __deps_array_checkSys
+        else
+            logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__deps_array_checkSys[@]}")"
+        fi
+    fi
 }
 
 # Check if system reboot required

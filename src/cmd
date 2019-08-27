@@ -258,21 +258,27 @@ function runInstall {
     # Get packages
     buildPkgArray "$__pkg_name_runInstall" __pkg_name_array_runInstall __pkg_vers_array_runInstall __isInstalled_runInstall
 
-    # Run pre installation if required
-    [ "$__isInstalled_runInstall" -eq "1" ] && runPreInstallation "${__pkg_name_runInstall}" __pkg_name_array_runInstall __pkg_vers_array_runInstall
-
     # Install the Packages if not already installed
     checkDeps __pkg_name_array_runInstall __pkg_vers_array_runInstall "Verifying ${__pkg_name_runInstall} Dependencies"
+    if [ "${#__pkg_name_array_runInstall[@]}" -ne 0 ]; then
+        if (confirmYn "Install dependencies? [Y/n] "); then
+            # Run pre installation if required
+            [ "$__isInstalled_runInstall" -eq "1" ] && runPreInstallation "${__pkg_name_runInstall}" __pkg_name_array_runInstall __pkg_vers_array_runInstall
 
-    # This will be removed in the next release
-    if [ "$__pkg_name_runInstall" = "singularity" ]; then 
-        __cmd_array_runInstall=("singularity --version");
-        runCmd __cmd_array_runInstall "ERR" 0 || installSingularity;
+            installPkg __pkg_name_array_runInstall
+
+            # This will be removed in the next release
+            if [ "$__pkg_name_runInstall" = "singularity" ]; then 
+                __cmd_array_runInstall=("singularity --version");
+                runCmd __cmd_array_runInstall "ERR" 0 || installSingularity;
+            fi
+
+            # Run post installation
+            [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
+        else
+            logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__pkg_name_array_runInstall[@]}")"
+        fi    
     fi
-
-
-    # Run post installation
-    [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
 
     # Run verification
     runVerification "$__pkg_name_runInstall"
@@ -298,6 +304,7 @@ function runPreInstallation {
 
     local __repo_path_runPreInstallation
     local __repo_text_runPreInstallation
+    local __cmd_array_runPreInstallation=()
 
     case "$__pkg_name_runPreInstallation" in
         rocm)
@@ -314,13 +321,30 @@ function runPreInstallation {
 
         pytorch)
             # Download Pytorch whl package
-            [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation="$PYT_PKG_PY2" || __pytorch_pkg_name_runPreInstallation="$PYT_PKG_PY3"
-            downloadFile "$WHL_URL$RET_DISTRO$RET_RELEASE-$__pytorch_pkg_name_runPreInstallation" "$TEMP_DIRECTRORY" "ERR" "Download Pytorch whl package"
-            mv "$TEMP_DIRECTRORY/$RET_DISTRO$RET_RELEASE-$__pytorch_pkg_name_runPreInstallation" "$__pytorch_pkg_name_runPreInstallation"
+            case "$RET_DISTRO" in
+                Ubuntu)
+                    if [ $RET_RELEASE == "16.04" ]; then
+                        WHL_URL+=$WHL_UBUNTU1604 
+                        [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY35
+                        WHL_URL+=$__pytorch_pkg_name_runPreInstallation
+
+                    elif [ $RET_RELEASE == "18.04" ]; then
+                        WHL_URL+=$WHL_UBUNTU1804
+                        [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY36
+                        WHL_URL+=$__pytorch_pkg_name_runPreInstallation
+                    fi
+                ;;
+
+                CentOS)
+                    TBD=0
+                ;;
+            esac
+
+            downloadFile "$WHL_URL" "$TEMP_DIRECTRORY" "ERR" "Download Pytorch whl package"
 
             # Exclude torch pkg and insert the new pkg name
             removeFromArray "torch" __pkg_name_arr_runPreInstallation __pkg_vers_arr_runPreInstallation
-            eval __pkg_name_arr_runPreInstallation="(${__pkg_name_arr_runPreInstallation[@]} $__pytorch_pkg_name_runPreInstallation:${PYPI})"
+            eval __pkg_name_arr_runPreInstallation="(${__pkg_name_arr_runPreInstallation[@]} $TEMP_DIRECTRORY/$__pytorch_pkg_name_runPreInstallation:${PYPI})"
         ;;
 
         py2 | py3)
@@ -431,6 +455,7 @@ function runVerification {
 
     local __pkg_name_runVerification="$1"
     local __cmd_array_runVerification=()
+    local __py_vers_runVerification
 
     case "$__pkg_name_runVerification" in
         rocm)
@@ -447,11 +472,9 @@ function runVerification {
             echo "Pytorch Verification"
         ;;
 
-        py2)
-            logPrint "NOTE" "The Current Python Version is: `python -V`"
-        ;;
-        py3)
-            logPrint "NOTE" "The Current Python Version is: `python3 -V`"
+        py2 | py3)
+            [ "$__pkg_name_runVerification" == "py2" ] && __py_vers_runVerification=$(python --version 2>&1) || __py_vers_runVerification=$(python3 --version 2>&1)
+            logPrint "NOTE" "The Current Python Version is: $__py_vers_runVerification"
         ;;
 
         docker)
