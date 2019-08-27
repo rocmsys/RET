@@ -486,7 +486,7 @@ function isPrgInstalled {
 
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
-        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} freeze 2>/dev/null | grep ${__pkg_name_isPrgInstalled}");
+        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} list 2>/dev/null | grep ${__pkg_name_isPrgInstalled}");
     else
         __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}");
         runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || {

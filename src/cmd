@@ -469,7 +469,9 @@ function runVerification {
         ;;
 
         pytorch)
-            echo "Pytorch Verification"
+            [ "$PYVER" = "py2" ] && __cmd_python_runVerification="python" || __cmd_python_runVerification="python3"
+            __py_vers_runVerification=$(su -p $SUDO_USER -c "$__cmd_python_runVerification -c 'import torch; print(torch.__version__)'")
+            logPrint "NOTE" "The Current Pytorch Version is: $__py_vers_runVerification"
         ;;
 
         py2 | py3)
