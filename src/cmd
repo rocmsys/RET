@@ -597,6 +597,7 @@ function buildPkgArray {
     local __deps_vers_buildPkgArray=()
     local __pkgs_buildPkgArray=()
     local __vers_buildPkgArray=()
+    local __idx=0
 
     # Get install packages
     if isInArray "YAML_ARRAY" "dependencies|${__key_buildPkgArray}|name:=" INDEX; then
@@ -623,7 +624,10 @@ function buildPkgArray {
 
     # Check if pkgs are installed
     for dep in "${__pkgs_buildPkgArray[@]}"; do
+        local __version="${__vers_buildPkgArray[$__idx]}"
+        [ ! -z "$__version" ] && [ "$__version" != "latest" ] && dep+="=${__version}"
         (isPrgInstalled "${dep}") || { __isInstalled_buildPkgArray=1; break; }
+        ((__idx++))
     done
 
     # Return packages array

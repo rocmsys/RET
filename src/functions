@@ -170,17 +170,15 @@ function checkDeps {
 
     logPrint "STEP" "${__title_checkDeps}"
     for dep in "${__name_array_checkDeps[@]}"; do
-        [ -z "${dep}" ] && continue || __pkg_name_checkDeps=("${dep%%:*}");
+        [ -z "${dep}" ] && continue || { __pkg_name_checkDeps=("${dep%%:*}"); __dep_toInstall="${dep}"; }
+            
+        # Get Version
+        local __version="${__ver_array_checkDeps[$__idx]}"
+        [ ! -z "$__version" ] && [ "$__version" != "latest" ] && __dep_toInstall+="=${__version}"
 
-        if isPrgInstalled "${dep}"; then
+        if isPrgInstalled "${__dep_toInstall}"; then
             logPrint "DET" "${__pkg_name_checkDeps}" "${CLEAR}Found" "${SUCC}"
         else
-            __dep_toInstall="${dep}"
-
-            # Get Version
-            local __version="${__ver_array_checkDeps[$__idx]}"
-            [ ! -z "$__version" ] && [ "$__version" != "latest" ] && __dep_toInstall="${dep}=${__version}"
-
             __dep_array_toInstall+=("${__dep_toInstall}")
             logPrint "DET" "${__pkg_name_checkDeps}" "Not Found!" "${FAIL}"
         fi
@@ -379,13 +377,16 @@ function removeFromArray {
 
     for item in "${__pkg_name_array_removeFromArray[@]}"; do
         if [[ "${item}" == "${__pkg_name_removeFromArray}"* ]] ; then
-            eval __pkg_name_array_removeFromArray="(${__pkg_name_array_removeFromArray[@]:0:$__index} ${__pkg_name_array_removeFromArray[@]:$__index+1})"
-            eval __pkg_vers_array_removeFromArray="(${__pkg_vers_array_removeFromArray[@]:0:$__index} ${__pkg_vers_array_removeFromArray[@]:$__index+1})"
-            return 0;
+            __pkg_name_array_removeFromArray=("${__pkg_name_array_removeFromArray[@]:0:$__index}" "${__pkg_name_array_removeFromArray[@]:$__index+1}")
+            __pkg_vers_array_removeFromArray=("${__pkg_vers_array_removeFromArray[@]:0:$__index}" "${__pkg_vers_array_removeFromArray[@]:$__index+1}")
+
+            [ $__index -gt 0 ] && ((__index--))
         fi
         ((__index++))
     done
-    return 1;
+
+    eval __pkg_name_array_removeFromArray="(${__pkg_name_array_removeFromArray[@]})"
+    eval __pkg_vers_array_removeFromArray="(${__pkg_vers_array_removeFromArray[@]})"
 }
 
 # Get OS and Version
@@ -486,7 +487,8 @@ function isPrgInstalled {
 
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
-        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} list 2>/dev/null | grep ${__pkg_name_isPrgInstalled}");
+        [ ! -z "$__pkg_vers_isPrgInstalled" ] && __pkg_vers_isPrgInstalled="Version: ${__pkg_vers_isPrgInstalled}" || __pkg_vers_isPrgInstalled="${__pkg_name_isPrgInstalled}"
+        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} show ${__pkg_name_isPrgInstalled} 2>/dev/null | grep '${__pkg_vers_isPrgInstalled}'"); # freeze doesn't work well
     else
         __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}");
         runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || {
@@ -536,7 +538,9 @@ function installPkg {
 
         # Extract the package handling utility
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
-        __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
+        if [ ! -z "$__pkg_vers_installPkg" ]; then
+            [[ "${__phu_installPkg}" =~ "pip" ]] && __dep_installPkg="${__pkg_name_installPkg}==${__pkg_vers_installPkg}" || __dep_installPkg="${__pkg_name_installPkg}=${__pkg_vers_installPkg}"
+        fi
 
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
         [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="yum groupinstall -y"
@@ -572,7 +576,7 @@ function parsePkg {
         *:*=*) # name:phu=version
             __pkg_name_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\1|p')
             __phu_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\2|p')
-            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\3|p')
+            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)=\(.*\)|\3|p')
         ;;
 
         *:*) # name:phu
@@ -584,7 +588,7 @@ function parsePkg {
         *=*) # name=version
             __pkg_name_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\)=\(.*\)|\1|p')
             __phu_parsePkg=""      # empty
-            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\)\(=.*\)|\2|p')
+            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\)=\(.*\)|\2|p')
         ;;
 
         *) # name

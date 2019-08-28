@@ -8,20 +8,21 @@
 
 # Ubuntu Packages
 - Ubuntu:
-  - name: libopenblas-dev
-    version: latest
-  - name: libomp-dev
+  - name: libiomp-dev
     version: latest
   - name: liblmdb-dev
     version: latest
-  - name: libopencv-highgui-dev
+  - name: libopencv-dev
     version: latest
-  - name: torch:pip
-    version: 1.3.0a0+87217cf
 
 # CentOS Packages
 - CentOS:
-  - name: libopenblas-dev
+  - name: lmdb-devel
     version: latest
+  - name: opencv-devel
+    version: latest
+
+- name: torch:pip
+  version: 1.3.0a0+87217cf
 ...
     
