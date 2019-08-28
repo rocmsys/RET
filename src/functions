@@ -538,8 +538,10 @@ function installPkg {
 
         # Extract the package handling utility
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
+        __dep_installPkg="${__pkg_name_installPkg}"
+
         if [ ! -z "$__pkg_vers_installPkg" ]; then
-            [[ "${__phu_installPkg}" =~ "pip" ]] && __dep_installPkg="${__pkg_name_installPkg}==${__pkg_vers_installPkg}" || __dep_installPkg="${__pkg_name_installPkg}=${__pkg_vers_installPkg}"
+            [[ "${__phu_installPkg}" =~ "pip" ]] && __dep_installPkg=+"==${__pkg_vers_installPkg}" || __dep_installPkg+="=${__pkg_vers_installPkg}"
         fi
 
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
