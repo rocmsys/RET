@@ -321,7 +321,7 @@ function runPreInstallation {
 
         pytorch)
             # Download Pytorch whl package
-            if isInArray "__pkg_name_arr_runPreInstallation" "torch" INDEX;; then
+            if isInArray "__pkg_name_arr_runPreInstallation" "torch" INDEX; then
                 case "$RET_DISTRO" in
                     Ubuntu)
                         if [ $RET_RELEASE == "16.04" ]; then
