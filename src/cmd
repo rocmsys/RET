@@ -321,30 +321,32 @@ function runPreInstallation {
 
         pytorch)
             # Download Pytorch whl package
-            case "$RET_DISTRO" in
-                Ubuntu)
-                    if [ $RET_RELEASE == "16.04" ]; then
-                        WHL_URL+=$WHL_UBUNTU1604 
-                        [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY35
-                        WHL_URL+=$__pytorch_pkg_name_runPreInstallation
+            if isInArray "__pkg_name_arr_runPreInstallation" "torch" INDEX;; then
+                case "$RET_DISTRO" in
+                    Ubuntu)
+                        if [ $RET_RELEASE == "16.04" ]; then
+                            WHL_URL+=$WHL_UBUNTU1604 
+                            [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY35
+                            WHL_URL+=$__pytorch_pkg_name_runPreInstallation
 
-                    elif [ $RET_RELEASE == "18.04" ]; then
-                        WHL_URL+=$WHL_UBUNTU1804
-                        [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY36
-                        WHL_URL+=$__pytorch_pkg_name_runPreInstallation
-                    fi
-                ;;
+                        elif [ $RET_RELEASE == "18.04" ]; then
+                            WHL_URL+=$WHL_UBUNTU1804
+                            [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY36
+                            WHL_URL+=$__pytorch_pkg_name_runPreInstallation
+                        fi
+                    ;;
 
-                CentOS)
-                    TBD=0
-                ;;
-            esac
+                    CentOS)
+                        TBD=0
+                    ;;
+                esac
 
-            downloadFile "$WHL_URL" "$TEMP_DIRECTRORY" "ERR" "Download Pytorch whl package"
+                downloadFile "$WHL_URL" "$TEMP_DIRECTRORY" "ERR" "Download Pytorch whl package"
 
-            # Exclude torch pkg and insert the new pkg name
-            removeFromArray "torch" __pkg_name_arr_runPreInstallation __pkg_vers_arr_runPreInstallation
-            eval __pkg_name_arr_runPreInstallation="(${__pkg_name_arr_runPreInstallation[@]} $TEMP_DIRECTRORY/$__pytorch_pkg_name_runPreInstallation:${PYPI})"
+                # Exclude torch pkg and insert the new pkg name
+                removeFromArray "torch" __pkg_name_arr_runPreInstallation __pkg_vers_arr_runPreInstallation
+                eval __pkg_name_arr_runPreInstallation="(${__pkg_name_arr_runPreInstallation[@]} $TEMP_DIRECTRORY/$__pytorch_pkg_name_runPreInstallation:${PYPI})"
+            fi
         ;;
 
         py2 | py3)
