@@ -541,7 +541,13 @@ function installPkg {
         __dep_installPkg="${__pkg_name_installPkg}"
 
         if [ ! -z "$__pkg_vers_installPkg" ]; then
-            [[ "${__phu_installPkg}" =~ "pip" ]] && __dep_installPkg+="==${__pkg_vers_installPkg}" || __dep_installPkg+="=${__pkg_vers_installPkg}"
+            if [[ "${__phu_installPkg}" =~ "pip" ]]; then
+                __dep_installPkg+="==${__pkg_vers_installPkg}"; 
+                __cmd_array_installPkg=("sudo -u $SUDO_USER ${PYPI} uninstall --user '${__dep_installPkg}'")
+                runCmd __cmd_array_installPkg "ERR"
+            else
+                __dep_installPkg+="=${__pkg_vers_installPkg}"
+            fi
         fi
 
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
