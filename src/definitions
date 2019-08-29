@@ -42,7 +42,7 @@ TF_BENCHMARKS_URL="https://github.com/tensorflow/benchmarks.git"
 BASH_URL="https://ftp.gnu.org/gnu/bash/"
 ROCM_DEB="http://repo.radeon.com/rocm/apt/debian/ xenial main"
 ROCM_RPM="http://repo.radeon.com/rocm/yum/rpm"
-WHL_URL="https://srv-file7.gofile.io/download/"
+WHL_URL="https://tesho.de/pytorch/"
 
 # Scope
 EMPTY_ARRAY=()
@@ -51,9 +51,6 @@ DESCRIPTION="ROCm Machine Learning Stack installer"
 PYT_PKG_PY27="torch-1.3.0a0+87217cf-cp27-cp27mu-linux_x86_64.whl"
 PYT_PKG_PY35="torch-1.3.0a0+87217cf-cp35-cp35m-linux_x86_64.whl"
 PYT_PKG_PY36="torch-1.3.0a0+87217cf-cp36-cp36m-linux_x86_64.whl"
-WHL_UBUNTU1604="gSDYqs/"
-WHL_UBUNTU1804="iY0kQw/"
-WHL_CENTOS7="YGQupu"
 
 # Benchmark
 TF_BNCH_VER="cnn_tf_v1.13_compatible"

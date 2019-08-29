@@ -322,15 +322,15 @@ function runPreInstallation {
         pytorch)
             # Download Pytorch whl package
             if isInArray "__pkg_name_arr_runPreInstallation" "torch" INDEX; then
+                WHL_URL+="$RET_DISTRO$RET_RELEASE/"
+
                 case "$RET_DISTRO" in
                     Ubuntu)
                         if [ $RET_RELEASE == "16.04" ]; then
-                            WHL_URL+=$WHL_UBUNTU1604 
                             [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY35
                             WHL_URL+=$__pytorch_pkg_name_runPreInstallation
 
                         elif [ $RET_RELEASE == "18.04" ]; then
-                            WHL_URL+=$WHL_UBUNTU1804
                             [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY36
                             WHL_URL+=$__pytorch_pkg_name_runPreInstallation
                         fi
