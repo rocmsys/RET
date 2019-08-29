@@ -25,11 +25,7 @@ Formatting a hard drive along with the install of a new OS is the best option
 after the instllation you will need git to download the RET source
 ```
   sudo apt -y install git
-```
-
-## Clone repository
-```
-   git clone https://github.com/rocmsys/RET.git
+  git clone https://github.com/rocmsys/RET.git
 ```
 ## Usage
 ```
