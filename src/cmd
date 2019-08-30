@@ -324,23 +324,15 @@ function runPreInstallation {
             if isInArray "__pkg_name_arr_runPreInstallation" "torch" INDEX; then
                 WHL_URL+="$RET_DISTRO$RET_RELEASE/"
 
+                [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY36
+
                 case "$RET_DISTRO" in
                     Ubuntu)
-                        if [ $RET_RELEASE == "16.04" ]; then
-                            [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY35
-                            WHL_URL+=$__pytorch_pkg_name_runPreInstallation
-
-                        elif [ $RET_RELEASE == "18.04" ]; then
-                            [ "$PYVER" = "py2" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY27 || __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY36
-                            WHL_URL+=$__pytorch_pkg_name_runPreInstallation
-                        fi
-                    ;;
-
-                    CentOS)
-                        TBD=0
+                        if [ $RET_RELEASE == "16.04" ]; then [ "$PYVER" = "py3" ] && __pytorch_pkg_name_runPreInstallation=$PYT_PKG_PY35; fi
                     ;;
                 esac
 
+                WHL_URL+=$__pytorch_pkg_name_runPreInstallation
                 downloadFile "$WHL_URL" "$TEMP_DIRECTRORY" "ERR" "Download Pytorch whl package"
 
                 # Exclude torch pkg and insert the new pkg name
