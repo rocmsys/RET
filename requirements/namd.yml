@@ -1,0 +1,17 @@
+# This file contains only dependencies required by NAMD 
+---
+# Define here OS independent packages
+- name: TBD
+  version: latest
+# Define here Ubuntu Packages
+- Ubuntu:
+  - name: TBD1
+    version: latest
+  - name: TBD2
+    version: latest
+# Define here CentOS Packages
+- CentOS:
+  - name: TBD
+    version: latest
+...
+    
