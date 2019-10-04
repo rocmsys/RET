@@ -1,17 +1,19 @@
 # This file contains only dependencies required by NAMD 
 ---
 # Define here OS independent packages
-- name: TBD
+- name: wget
   version: latest
+- name: dos2unix
+  version: latest
+
 # Define here Ubuntu Packages
 - Ubuntu:
-  - name: TBD1
+  - name: python3-dev
     version: latest
-  - name: TBD2
-    version: latest
+
 # Define here CentOS Packages
 - CentOS:
-  - name: TBD
+  - name: python36-devel
     version: latest
 ...
     
