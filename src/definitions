@@ -68,7 +68,7 @@ SKIPSYSC=false
 INCONTAINER=false
 FG_DEFAULT_COLOR="${FG_DEFAULT}"
 
-PYVER=py2
+PYVER=py3
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
 
 # Container
