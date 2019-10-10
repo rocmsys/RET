@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Set locale settings
+export LC_ALL=C
+
 # Include files
 PWD=$(pwd)
 SRC="${BASH_SOURCE%/*}"
