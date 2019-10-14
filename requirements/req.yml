@@ -24,8 +24,8 @@ os_support:
         - version: 4.13|4.15|4.17
         - default: 4.15
       - 18.04:
-        - version: 4.15|4.18 
-        - default: 4.18
+        - version: 4.15|4.18|5.0
+        - default: 5.0
 
   - os: RedHat
   - RedHat:
