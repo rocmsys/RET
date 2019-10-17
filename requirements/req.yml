@@ -117,6 +117,8 @@ dependencies:
         version: latest
       - name: python36-pip
         version: latest
+      - name: lshw
+        version: latest
       
   - rocm:
     - req_file: rocm.yml
