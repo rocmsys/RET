@@ -366,7 +366,7 @@ function addROCmRepo {
             __cmd_array_addROCmRepo=("echo -e 'deb [arch=amd64 trusted=yes] ${ROCM_DEB}' | tee ${Ubuntu_ROCM_REPO}"); runCmd __cmd_array_addROCmRepo "ERR"
         ;;
 
-        CentOS)
+        CentOS | RedHat)
             __cmd_array_addROCmRepo=("echo -e '[ROCm]\nname=ROCm\nbaseurl=${ROCM_RPM}\nenabled=1\ngpgcheck=0' | tee ${CentOS_ROCM_REPO}"); 
             runCmd __cmd_array_addROCmRepo "ERR"
         ;;
@@ -390,7 +390,7 @@ function addDockerRepo {
             runCmd __cmd_array_addDockerRepo "ERR"
         ;;
 
-        CentOS)
+        CentOS | RedHat)
             __cmd_array_addDockerRepo=("yum-config-manager --add-repo ${__url_addRepo}/centos/docker-ce.repo"); 
             runCmd __cmd_array_addDockerRepo "ERR"
         ;;

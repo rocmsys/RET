@@ -500,7 +500,7 @@ function isPrgInstalled {
         __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}");
         runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || {
             case $RET_DISTRO in
-                CentOS)
+                CentOS | RedHat)
                     if [[ "${__phu_isPrgInstalled}" == "group" ]]; then
                         __cmd_array_isPrgInstalled=("yum grouplist installed '${__pkg_name_isPrgInstalled}' 2>/dev/null | grep -i '${__pkg_name_isPrgInstalled}'");
                     else
