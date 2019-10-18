@@ -1005,6 +1005,7 @@ function updateCmd {
 function prepareRhel {
     local __cmd_array_prepareRhel=()
 
+    startLoadBar "Preparing RHEL for installation"
     __cmd_array_prepareRhel=("subscription-manager repos --enable rhel-server-rhscl-7-rpms");
     runCmd __cmd_array_prepareRhel "ERR"
 
@@ -1015,7 +1016,8 @@ function prepareRhel {
     runCmd __cmd_array_prepareRhel "ERR"
 
     __cmd_array_prepareRhel=("rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm");
-    runCmd __cmd_array_prepareRhel "ERR"   
+    runCmd __cmd_array_prepareRhel "ERR"
+    stopLoadBar
 }
 
 # Update the command by distro
