@@ -404,12 +404,19 @@ function getOSInfo {
     local __ARCH
     local __KERNEL=$(uname -r)
 
-    if [ -f /etc/centos-release ]; then
+    if [ -f /etc/centos-release ]; then #Use this to get the right COS version X.X
         __OS="CentOS"
         __VER=$(cat /etc/centos-release | sed 's|^.*[^0-9]\('$__digit'\.'$__digit'\)\(\.[0-9]*\).*$|\1|g')
     elif [ -f /etc/os-release ]; then
         . /etc/os-release
-        __OS=$NAME
+        case $ID in
+            ubuntu)
+                __OS="Ubuntu";;
+            centos)
+                __OS="CentOS";;
+            rhel)
+                __OS="RedHat";;
+        esac
         __VER=$VERSION_ID
     elif [ -f /etc/lsb-release ]; then
         . /etc/lsb-release
@@ -807,6 +814,7 @@ function checkSys {
     checkDeps __deps_array_checkSys __vers_array_checkSys
     if [ "${#__deps_array_checkSys[@]}" -ne 0 ]; then
         if (confirmYn "Install dependencies? [Y/n] "); then 
+            [[ $RET_DISTRO == "RedHat" ]] && prepareRhel
             installPkg __deps_array_checkSys
         else
             logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__deps_array_checkSys[@]}")"
@@ -982,7 +990,7 @@ function updateCmd {
         getOSInfo RET_DISTRO RET_RELEASE __kernel_updateCmd __arch_updateCmd
 
         case $RET_DISTRO in
-            CentOS)
+            CentOS | RedHat)
                 updateCmdArray "COS";;
             Ubuntu)
                 ;; # per default initialized
@@ -991,6 +999,23 @@ function updateCmd {
     else
         logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
     fi
+}
+
+# Preparing RHEL for installation
+function prepareRhel {
+    local __cmd_array_prepareRhel=()
+
+    __cmd_array_prepareRhel=("subscription-manager repos --enable rhel-server-rhscl-7-rpms");
+    runCmd __cmd_array_prepareRhel "ERR"
+
+    __cmd_array_prepareRhel=("subscription-manager repos --enable rhel-7-server-optional-rpms");
+    runCmd __cmd_array_prepareRhel "ERR"
+
+    __cmd_array_prepareRhel=("subscription-manager repos --enable rhel-7-server-extras-rpms");
+    runCmd __cmd_array_prepareRhel "ERR"
+
+    __cmd_array_prepareRhel=("rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm");
+    runCmd __cmd_array_prepareRhel "ERR"   
 }
 
 # Update the command by distro
