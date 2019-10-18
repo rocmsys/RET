@@ -1011,13 +1011,13 @@ function prepareRhel {
     startLoadBar "Preparing RHEL for installation"
 
     # Check if repo already enabled
-    __cmd_array_prepareRhel=("yum repoinfo ${__repo1_array_prepareRhel} 2>/dev/null | grep -e '^Repo-status.*enabled$'")
+    __cmd_array_prepareRhel=("yum repoinfo ${__repo1_array_prepareRhel} 2>/dev/null | grep -ie '^Repo-status.*enabled$'")
     runCmd __cmd_array_prepareRhel "ERR" 0 || { __cmd_array_prepareRhel=("subscription-manager repos --enable ${__repo1_array_prepareRhel}"); runCmd __cmd_array_prepareRhel "ERR"; }
 
-    __cmd_array_prepareRhel=("yum repoinfo ${__repo2_array_prepareRhel} 2>/dev/null | grep -e '^Repo-status.*enabled$'")
+    __cmd_array_prepareRhel=("yum repoinfo ${__repo2_array_prepareRhel} 2>/dev/null | grep -ie '^Repo-status.*enabled$'")
     runCmd __cmd_array_prepareRhel "ERR" 0 || { __cmd_array_prepareRhel=("subscription-manager repos --enable ${__repo2_array_prepareRhel}"); runCmd __cmd_array_prepareRhel "ERR"; }
 
-    __cmd_array_prepareRhel=("yum repoinfo ${__repo3_array_prepareRhel} 2>/dev/null | grep -e '^Repo-status.*enabled$'")
+    __cmd_array_prepareRhel=("yum repoinfo ${__repo3_array_prepareRhel} 2>/dev/null | grep -ie '^Repo-status.*enabled$'")
     runCmd __cmd_array_prepareRhel "ERR" 0 || { __cmd_array_prepareRhel=("subscription-manager repos --enable ${__repo3_array_prepareRhel}"); runCmd __cmd_array_prepareRhel "ERR"; }
 
     stopLoadBar

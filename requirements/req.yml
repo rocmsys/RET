@@ -132,7 +132,7 @@ dependencies:
         version: latest
       - name: python2-pip
         version: latest
-      - name: python36-pip
+      - name: python3-pip
         version: latest
 
       
