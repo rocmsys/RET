@@ -1,19 +1,6 @@
 # This file contains only dependencies required by NAMD 
 ---
-# Define here OS independent packages
-- name: wget
+- name: rocfft
   version: latest
-- name: dos2unix
-  version: latest
-
-# Define here Ubuntu Packages
-- Ubuntu:
-  - name: python3-dev
-    version: latest
-
-# Define here CentOS Packages
-- CentOS:
-  - name: python36-devel
-    version: latest
 ...
     

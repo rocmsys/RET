@@ -160,6 +160,9 @@ dependencies:
 
   - singularity:
     - req_file: singularity.yml
+
+  - namd:
+    - req_file: namd.yml
     
 # Project description
 description: ROCm Machine Learning one-script installer xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx 

@@ -9,6 +9,7 @@ SRC="${BASH_SOURCE%/*}"
 if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 [ -z "$SUDO_USER" ] && SUDO_USER="root"
 
+. $SRC/cmd_utils
 . $SRC/cmd
 . $SRC/format
 . $SRC/functions

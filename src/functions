@@ -511,6 +511,7 @@ function isPrgInstalled {
             esac
         }
     fi
+    [ "$__found" -eq 0 ] && return $__found;
     runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0
     return $__found;
 }
@@ -530,6 +531,9 @@ function installPkg {
     local __pkg_vers_installPkg
     local __phu_installPkg
     local __dep_installPkg
+
+    # Check if the pkg array is not empty
+    [ "${#__packages[@]}" -eq 0 ] && { logPrint "ERR" "Package array cannot be empty!" "installPkg" "${FAIL}"; exit; }
 
     startLoadBar "Preparing for Installation"
     # fix broken dependencies in place
