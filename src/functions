@@ -716,8 +716,8 @@ function loadBar {
 
     while true
     do
-        for (( i=${__pos_loadbar}; i<${#LOADBAR}; i++ )); do
-            logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
+        for (( i=${__pos_loadbar}; i<${#LOADBAR[@]}; i++ )); do
+            logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR[$i]} ${__msg_loadbar}"
             sleep 0.1;
         done
     done
@@ -727,7 +727,7 @@ function loadBar {
 # Input $1: Message text
 # Input $2: Load bar position (Optional)
 function startLoadBar {
-    stopLoadBar &>/dev/null 2>&1 # Stop previous process if exists
+    stopLoadBar >/dev/null 2>&1 # Stop previous process if exists
     loadBar "$1" "SUBSTEP" "$2" &
     LOADBARPID=$!
 }
@@ -752,6 +752,29 @@ function stopLoadBar {
 function exitAll {
    stopLoadBar; echo
    exit $1
+}
+
+# Read terminal output Update progress bar (loadBar)
+# Input $1: Message text
+function updateProgressBar {
+    local __msg_txt_updateProgressBar=${1:-"Download file"}
+    local __progress_per
+    local __LoadBar_Pos=0
+    local __succ_updateProgressBar=1
+    local __previous_value_updateProgressBar="${__progress_per}"
+
+    startLoadBar "${__msg_txt_updateProgressBar}" ${__LoadBar_Pos}
+    while read __progress_per
+    do
+        if [ "${__progress_per}" != "${__previous_value_updateProgressBar}" ]; then
+            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
+            startLoadBar "${__msg_txt_updateProgressBar}: ${__progress_per}" ${__LoadBar_Pos}
+            __previous_value_updateProgressBar="${__progress_per}"
+            __succ_updateProgressBar=0
+        fi
+    done
+    [ $__succ_updateProgressBar -eq 0 ] && stopLoadBar "${__msg_txt_updateProgressBar} Finished!" || stopLoadBar
+    return 0;
 }
 
 # Download file from URL
@@ -961,11 +984,11 @@ function runCmd {
 
     [ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
     if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
-        
         if [ "${DEBUG}" = "true" ]; then
             eval "${__cmd_runCmd[@]}" 
         elif [ "$__update_msg_runCmd" -eq 0 ]; then
             eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}'"
+            ls
         else
             eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
         fi

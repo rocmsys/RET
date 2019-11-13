@@ -294,9 +294,8 @@ function installNAMD {
     local __url_rocPRIM_installNAMD="https://github.com/ROCmSoftwarePlatform/rocPRIM.git"
     local __url_rocCUB_installNAMD="https://github.com/ROCmSoftwarePlatform/hipCUB.git"
 
-    export NPROC=`grep -c ^processor /proc/cpuinfo`
-    export INST_ROOT="$TEMP_DIRECTRORY/NAMD"
-
+    local __nProc_installNAMD=`grep -c ^processor /proc/cpuinfo`
+    local __inst_root_installNAMD="$TEMP_DIRECTRORY/NAMD"
 
     # Confirmation message
     logPrint "STEP" "Build NAMD"
@@ -304,49 +303,49 @@ function installNAMD {
     # Set the ROCm binaries in PATH
     __cmd_array_installNAMD=("source /etc/profile.d/rocm.sh"); runCmd __cmd_array_installNAMD "ERR"
 
-    # Clone NAMD #####################################################################################################
-    startLoadBar "Clone NAMD"
+    # Clone NAMD #######################################################################################################
+    startLoadBar "Clone NAMD Repository"
 
-    __cmd_array_installNAMD=("git clone ${__url_NAMD_installNAMD} $INST_ROOT")
+    __cmd_array_installNAMD=("git clone ${__url_NAMD_installNAMD} $__inst_root_installNAMD")
     runCmd __cmd_array_installNAMD "ERR"
 
     stopLoadBar "Clone NAMD Completed Successfully."
 
     # Build the Charm++ ##############################################################################################
-    __cmd_array_installNAMD=("./build charm++ multicore-linux-x86_64 --with-production -j$NPROC")
-    buildFromSource "$__url_Charm_installNAMD" "$INST_ROOT" __cmd_array_installNAMD "charm-v6.8.2" "charm-6.8.2"
+    __cmd_array_installNAMD=("./build charm++ multicore-linux-x86_64 --with-production -j$__nProc_installNAMD")
+    buildFromSource "$__url_Charm_installNAMD" "$__inst_root_installNAMD" __cmd_array_installNAMD "charm-v6.8.2" "charm-6.8.2"
 
 
     # Build the FFTW and TCL libs ####################################################################################
     __cmd_array_installNAMD=()
-    buildFromSource "$__url_FFTW_installNAMD" "$INST_ROOT" __cmd_array_installNAMD "linux-x86_64" "fftw"
+    buildFromSource "$__url_FFTW_installNAMD" "$__inst_root_installNAMD" __cmd_array_installNAMD "linux-x86_64" "fftw"
 
     # Download TCL
-    buildFromSource "$__url_TCL_installNAMD" "$INST_ROOT" __cmd_array_installNAMD "tcl8.5.9-linux-x86_64" "tcl"
+    buildFromSource "$__url_TCL_installNAMD" "$__inst_root_installNAMD" __cmd_array_installNAMD "tcl8.5.9-linux-x86_64" "tcl"
 
     # Download TCL-threaded
-    buildFromSource "$__url_TCL_Thread_installNAMD" "$INST_ROOT" __cmd_array_installNAMD "tcl8.5.9-linux-x86_64-threaded" "tcl-threaded"
+    buildFromSource "$__url_TCL_Thread_installNAMD" "$__inst_root_installNAMD" __cmd_array_installNAMD "tcl8.5.9-linux-x86_64-threaded" "tcl-threaded"
 
-    # ##################################################################################################################
+    ##################################################################################################################
 
-    # # Build the rocPRIM ##############################################################################################
-    __cmd_array_installNAMD=("mkdir build && cd build && export CXX=hcc && cmake -DBUILD_BENCHMARK=ON -DCMAKE_INSTALL_PREFIX=$INST_ROOT ../." "make install -j$NPROC" "cd $INST_ROOT")
-    buildFromSource "$__url_rocPRIM_installNAMD" "$INST_ROOT/rocPRIM" __cmd_array_installNAMD "rocPRIM" "rocPRIM" "0"
-    # ##################################################################################################################
+    # Build the rocPRIM ##############################################################################################
+    __cmd_array_installNAMD=("mkdir build && cd build && export CXX=hcc && cmake -DBUILD_BENCHMARK=ON -DCMAKE_INSTALL_PREFIX=$__inst_root_installNAMD ../." "make install -j$__nProc_installNAMD")
+    buildFromSource "$__url_rocPRIM_installNAMD" "$__inst_root_installNAMD/rocPRIM" __cmd_array_installNAMD "rocPRIM" "rocPRIM" "0"
+    ##################################################################################################################
 
     # Build the rocCUB #################################################################################################
-    __cmd_array_installNAMD=("mkdir build && cd build && export CXX=hcc && cmake -DCMAKE_INSTALL_PREFIX=$INST_ROOT .." "make install -j$NPROC" "cd $INST_ROOT")
-    buildFromSource "$__url_rocCUB_installNAMD" "$INST_ROOT/hipCUB" __cmd_array_installNAMD "rocCUB" "rocCUB" "0"
-    # # ##################################################################################################################
+    __cmd_array_installNAMD=("cd $__inst_root_installNAMD && mkdir build && cd build && export CXX=hcc && cmake -DCMAKE_INSTALL_PREFIX=$__inst_root_installNAMD .." "make install -j$__nProc_installNAMD")
+    buildFromSource "$__url_rocCUB_installNAMD" "$__inst_root_installNAMD/hipCUB" __cmd_array_installNAMD "rocCUB" "rocCUB" "0"
+    ##################################################################################################################
 
     # Build the rocCUB ###############################################################################################
     startLoadBar "Build NAMD"
 
     # Build NAMD
-    __cmd_array_installNAMD=("cd $INST_ROOT" "./config Linux-x86_64-g++ --charm-arch multicore-linux-x86_64 --with-hip")
+    __cmd_array_installNAMD=("cd $__inst_root_installNAMD && ./config Linux-x86_64-g++ --charm-arch multicore-linux-x86_64 --with-hip")
     runCmd __cmd_array_installNAMD "ERR"
 
-    __cmd_array_installNAMD=("cd Linux-x86_64-g++ && make -j$NPROC")
+    __cmd_array_installNAMD=("cd Linux-x86_64-g++ && make -j$__nProc_installNAMD")
     runCmd __cmd_array_installNAMD "ERR"
 
     stopLoadBar "Build NAMD Completed Successfully."
@@ -395,34 +394,12 @@ function buildFromSource {
         runCmd __cmd_array_buildFromSource "ERR" 
     fi
 
-    #stopLoadBar
+    stopLoadBar
 
     # Build source code
     for cmd in "${__build_cmd_buildFromSource[@]}"; do
+        echo "$cmd"
         __cmd_array_buildFromSource=("$cmd")
         runCmd __cmd_array_buildFromSource "ERR" "1" "Build/Install $__dist_dir_name_buildFromSource" "0"
     done
-}
-
-
-# Read terminal output Update progress bar (loadBar)
-# Input $1: Message text
-function updateProgressBar {
-    local __msg_txt_updateProgressBar=${1:-"Download file"}
-    local __progress_per
-    local __LoadBar_Pos=0
-    local __succ_updateProgressBar=1
-    local __previous_value_updateProgressBar="${__progress_per}"
-
-    while read __progress_per
-    do
-        if [ "${__progress_per}" != "${__previous_value_updateProgressBar}" ]; then
-            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
-            startLoadBar "${__msg_txt_updateProgressBar}: ${__progress_per}" ${__LoadBar_Pos}
-            __previous_value_updateProgressBar="${__progress_per}"
-            __succ_updateProgressBar=0
-        fi
-    done
-    [ $__succ_updateProgressBar -eq 0 ] && stopLoadBar "${__msg_txt_updateProgressBar} Finished!" || stopLoadBar
-    return 0;
 }
