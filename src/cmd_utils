@@ -306,7 +306,7 @@ function installNAMD {
     # Clone NAMD #######################################################################################################
     startLoadBar "Clone NAMD Repository"
 
-    __cmd_array_installNAMD=("git clone ${__url_NAMD_installNAMD} $__inst_root_installNAMD")
+    __cmd_array_installNAMD=("su -p $SUDO_USER -c 'git clone ${__url_NAMD_installNAMD} $__inst_root_installNAMD'")
     runCmd __cmd_array_installNAMD "ERR"
 
     stopLoadBar "Clone NAMD Completed Successfully."
