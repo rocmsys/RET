@@ -145,7 +145,7 @@ function parseArgs {
                     [ "${__cmd_parseArgs}" = "install" ] && __isROCmRequired_parseArgs=0; 
                 fi
 
-                [[ "$__arg_parseArgs" = "namd" ]] && __arg_parseArgs="$__arg_parseArgs:src"
+                [[ "$__arg_parseArgs" = "namd" ]] && { __arg_parseArgs="$__arg_parseArgs:src"; __isROCmRequired_parseArgs=0; }
                 __pkgs_parseArgs+=("$__arg_parseArgs");
               shift
             ;;

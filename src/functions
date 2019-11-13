@@ -727,7 +727,7 @@ function loadBar {
 # Input $1: Message text
 # Input $2: Load bar position (Optional)
 function startLoadBar {
-    stopLoadBar >/dev/null 2>&1 # Stop previous process if exists
+    stopLoadBar &>/dev/null 2>&1 # Stop previous process if exists
     loadBar "$1" "SUBSTEP" "$2" &
     LOADBARPID=$!
 }
@@ -764,28 +764,8 @@ function downloadFile {
     local __cmd_ret_downloadFile
     local __msg_txt_downloadFile=${4:-"Download file"}
 
-    # Read terminal output and pass it to loadBar
-    function updatePercentage {
-        local __download_per
-        local __LoadBar_Pos=0
-        local __succ_updatePercentage=1
-        local __previous_value_updatePercentage="${__download_per}"
-
-        while read __download_per
-        do
-            if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
-                ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
-                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
-                __previous_value_updatePercentage="${__download_per}"
-                __succ_updatePercentage=0
-            fi
-        done
-        [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
-        return $__succ_updatePercentage;
-    }
-
     # Download file and get the current download state
-    su -p $SUDO_USER -c "wget --progress=dot -P '$2' '$1' 2>&1 | grep --line-buffered '[[:space:]][[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g'" | updatePercentage
+    su -p $SUDO_USER -c "wget --progress=dot -P '$2' '$1' 2>&1 | grep --line-buffered '[[:space:]][[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g'" | updateProgressBar "${__msg_txt_downloadFile}"
 
     # Check the return state
     __cmd_ret_downloadFile="$?"
@@ -968,18 +948,28 @@ function checkBashVersion {
 # Run Command and check the return value
 # Input $1: Command Array (cmd + args)
 # Input $2: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-# Input $3: Ignore Check Process (Default 1)
+# Input $3: Ignore Check Process [Default 1]
 # Input $4: Message (Optional)
+# Input $5: Update MSG [Default 1]
 function runCmd {
     local -n __cmd_runCmd="$1"
     local __err_type_runCmd="$2"
     local __ignore_check_runCmd="${3:-1}"
     local __msg_runCmd="${4:-$__cmd_runCmd}"
+    local __update_msg_runCmd="${5:-1}"
     local __cmd_ret_runCmd
 
     [ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
     if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
-        [ "${DEBUG}" = "true" ] && eval "${__cmd_runCmd[@]}" || eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
+        
+        if [ "${DEBUG}" = "true" ]; then
+            eval "${__cmd_runCmd[@]}" 
+        elif [ "$__update_msg_runCmd" -eq 0 ]; then
+            eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}'"
+        else
+            eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
+        fi
+
         __cmd_ret_runCmd="$?"
         [ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd" || return "${__cmd_ret_runCmd}"
     fi
