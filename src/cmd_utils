@@ -343,7 +343,7 @@ function installNAMD {
     local __retPath_installNAMD=$(pwd)
     local __cmd_array_installNAMD=()
     local __url_NAMD_installNAMD="http://gitlab1.amd.com/nicurtis/NAMD.git"
-    local __url_Charm_installNAMD="http://charm.cs.illinois.edu/distrib/charm-6.8.2.tar.gzs"
+    local __url_Charm_installNAMD="http://charm.cs.illinois.edu/distrib/charm-6.8.2.tar.gz"
     local __url_FFTW_installNAMD="http://www.ks.uiuc.edu/Research/namd/libraries/fftw-linux-x86_64.tar.gz"
     local __url_TCL_installNAMD="http://www.ks.uiuc.edu/Research/namd/libraries/tcl8.5.9-linux-x86_64.tar.gz"
     local __url_TCL_Thread_installNAMD="http://www.ks.uiuc.edu/Research/namd/libraries/tcl8.5.9-linux-x86_64-threaded.tar.gz"
