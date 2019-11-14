@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 
+# Add a Directory to the PATH
+# Input $1: pkg name
+# Input $2: dir path
+function addPATH {
+    local __name_addPATH="$1"
+    local __path_addPATH="$2"
+    local __cmd_array_addPATH=()
+
+    __cmd_array_addPATH=("echo 'export PATH=$PATH:$__path_addPATH' | tee -a /etc/profile.d/$__name_addPATH.sh")
+    runCmd __cmd_array_addPATH "ERR"
+
+    __cmd_array_addPATH=("source /etc/profile.d/$__name_addPATH.sh"); runCmd __cmd_array_addPATH "ERR"
+}
+
 # Add the ROCm repository
 function addROCmRepo {
     startLoadBar "Run ROCm Pre-Installation: Add the ROCm apt repository"; printf '\n'
@@ -97,6 +111,22 @@ function tfVerification {
     fi
 }
 
+# Verify if NAMD installation was successful 
+function namdVerification {
+    logPrint "STEP" "Verifing NAMD installation"
+    if (isPrgInstalled "namd"); then
+        if (confirmYn "Run NAMD benchmark? [Y/n] "); then
+            startLoadBar "Run NAMD Verification"; printf '\n'
+            runBenchmark "namd" EMPTY_ARRAY
+            stopLoadBar
+            return "$?"
+        fi
+        return 0;
+    else
+        return 1;
+    fi
+}
+
 # Run TensorFlow benchmark
 function tfBenchmark {
     local -n __models_tfBenchmark=$1
@@ -105,8 +135,8 @@ function tfBenchmark {
     local __cmd_ret_tfBenchmark
     local __ret_value_tfBenchmark=0
 
-    if [ ! -d "$WORK_DIRECTRORY/tf" ]; then
-        __cmd_array_tfBenchmark=("git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTRORY/tf/"); runCmd __cmd_array_tfBenchmark "WARN"
+    if [ ! -d "$WORK_DIRECTRORY/tf" ]; then 
+        __cmd_array_tfBenchmark=("su -p $SUDO_USER -c 'git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTRORY/tf/'"); runCmd __cmd_array_tfBenchmark "WARN"
     fi
 
     # Run the training benchmark (e.g. ResNet-50)
@@ -123,6 +153,29 @@ function tfBenchmark {
     return $__ret_value_tfBenchmark;    
 }
 
+# Run NAMD benchmark
+function namdBenchmark {
+    local __url_namdBenchmark="http://gitlab1.amd.com/nicurtis/NAMD_benchmarks.git"
+    local __cmd_array_namdBenchmark=()
+    local __cmd_python_namdBenchmark
+    local __ret_value_namdBenchmark=0
+    
+    if [ ! -d "$WORK_DIRECTRORY/namd" ]; then
+        __cmd_array_namdBenchmark=("su -p $SUDO_USER -c 'git clone $__url_namdBenchmark $WORK_DIRECTRORY/namd/'"); runCmd __cmd_array_namdBenchmark "WARN"
+        __cmd_array_namdBenchmark=("cd $WORK_DIRECTRORY/namd/ && dos2unix ns_per_day.py"); runCmd __cmd_array_namdBenchmark "ERR"
+    fi
+
+    # Run the benchmark
+    startLoadBar "Run APOA1 STMV benchmark on 16 cores"; printf '\n'
+
+    [ "$PYVER" = "py2" ] && __cmd_python_namdBenchmark="python" || __cmd_python_namdBenchmark="python3"
+    __cmd_array_namdBenchmark=("cd $WORK_DIRECTRORY/namd/ && export PATH=$PATH:$WORK_DIRECTRORY/namd"); runCmd __cmd_array_namdBenchmark "ERR"
+
+    __cmd_array_namdBenchmark=("$__cmd_python_namdBenchmark run_benchmarks.py -b apoa1 stmv -c 16-16 -d 0"); runCmd __cmd_array_namdBenchmark "ERR"
+    runCmd __cmd_array_namdBenchmark "ERR" 0 && stopLoadBar "APOA1 STMV benchmark Done" || { stopLoadBar "APOA1 STMV benchmark Failed" "ERR"; __ret_value_namdBenchmark=1; }
+
+    return $__ret_value_namdBenchmark;    
+}
 
 # Build Package Array by key and check if packages already installed
 # Input  $1: Key
@@ -165,7 +218,10 @@ function buildPkgArray {
     [ "${INCONTAINER}" = "true" ] && { removeFromArray "rocm-dkms" __pkgs_buildPkgArray __vers_buildPkgArray; }
 
     # Check packages array
-    if [ "${#__pkgs_buildPkgArray[@]}" -eq 0 ] && [ "${__ignore_check_buildPkgArray}" -eq 1 ]; then logPrint "ERR" "No value Found with this key!" "$__key_buildPkgArray" "${FAIL}"; exit; fi
+    if [ "${#__pkgs_buildPkgArray[@]}" -eq 0 ] && [ "${__ignore_check_buildPkgArray}" -eq 1 ]; then 
+        logPrint "ERR" "No value Found with this key!" "$__key_buildPkgArray" "${FAIL}"; 
+        exit; 
+    fi
 
     # Check if pkgs are installed
     for dep in "${__pkgs_buildPkgArray[@]}"; do
@@ -287,7 +343,7 @@ function installNAMD {
     local __retPath_installNAMD=$(pwd)
     local __cmd_array_installNAMD=()
     local __url_NAMD_installNAMD="http://gitlab1.amd.com/nicurtis/NAMD.git"
-    local __url_Charm_installNAMD="http://charm.cs.illinois.edu/distrib/charm-6.8.2.tar.gz"
+    local __url_Charm_installNAMD="http://charm.cs.illinois.edu/distrib/charm-6.8.2.tar.gzs"
     local __url_FFTW_installNAMD="http://www.ks.uiuc.edu/Research/namd/libraries/fftw-linux-x86_64.tar.gz"
     local __url_TCL_installNAMD="http://www.ks.uiuc.edu/Research/namd/libraries/tcl8.5.9-linux-x86_64.tar.gz"
     local __url_TCL_Thread_installNAMD="http://www.ks.uiuc.edu/Research/namd/libraries/tcl8.5.9-linux-x86_64-threaded.tar.gz"
@@ -315,7 +371,6 @@ function installNAMD {
     __cmd_array_installNAMD=("./build charm++ multicore-linux-x86_64 --with-production -j$__nProc_installNAMD")
     buildFromSource "$__url_Charm_installNAMD" "$__inst_root_installNAMD" __cmd_array_installNAMD "charm-v6.8.2" "charm-6.8.2"
 
-
     # Build the FFTW and TCL libs ####################################################################################
     __cmd_array_installNAMD=()
     buildFromSource "$__url_FFTW_installNAMD" "$__inst_root_installNAMD" __cmd_array_installNAMD "linux-x86_64" "fftw"
@@ -329,23 +384,26 @@ function installNAMD {
     ##################################################################################################################
 
     # Build the rocPRIM ##############################################################################################
-    __cmd_array_installNAMD=("mkdir build && cd build && export CXX=hcc && cmake -DBUILD_BENCHMARK=ON -DCMAKE_INSTALL_PREFIX=$__inst_root_installNAMD ../." "make install -j$__nProc_installNAMD")
+    __cmd_array_installNAMD=("mkdir build && cd build && export CXX=hcc && cmake -DBUILD_BENCHMARK=ON -DCMAKE_INSTALL_PREFIX=$__inst_root_installNAMD ../." "make install -j$__nProc_installNAMD" "cd $__inst_root_installNAMD")
     buildFromSource "$__url_rocPRIM_installNAMD" "$__inst_root_installNAMD/rocPRIM" __cmd_array_installNAMD "rocPRIM" "rocPRIM" "0"
     ##################################################################################################################
 
     # Build the rocCUB #################################################################################################
-    __cmd_array_installNAMD=("cd $__inst_root_installNAMD && mkdir build && cd build && export CXX=hcc && cmake -DCMAKE_INSTALL_PREFIX=$__inst_root_installNAMD .." "make install -j$__nProc_installNAMD")
+    __cmd_array_installNAMD=("mkdir build && cd build && export CXX=hcc && cmake -DCMAKE_INSTALL_PREFIX=$__inst_root_installNAMD .." "make install -j$__nProc_installNAMD")
     buildFromSource "$__url_rocCUB_installNAMD" "$__inst_root_installNAMD/hipCUB" __cmd_array_installNAMD "rocCUB" "rocCUB" "0"
     ##################################################################################################################
 
-    # Build the rocCUB ###############################################################################################
+    # Build the NAMD ###############################################################################################
     startLoadBar "Build NAMD"
 
-    # Build NAMD
     __cmd_array_installNAMD=("cd $__inst_root_installNAMD && ./config Linux-x86_64-g++ --charm-arch multicore-linux-x86_64 --with-hip")
     runCmd __cmd_array_installNAMD "ERR"
 
-    __cmd_array_installNAMD=("cd Linux-x86_64-g++ && make -j$__nProc_installNAMD")
+    __cmd_array_installNAMD=("cd Linux-x86_64-g++ && make -j$__nProc_installNAMD && make release RELEASE_DIR_NAME=RET_NAMD")
+    runCmd __cmd_array_installNAMD "ERR"
+
+    # Copy the release folder into local distination and add it to the PATH
+    __cmd_array_installNAMD=("cp RET_NAMD/namd2 RET_NAMD/namd && cp -a RET_NAMD $__retPath_installNAMD/..")
     runCmd __cmd_array_installNAMD "ERR"
 
     stopLoadBar "Build NAMD Completed Successfully."
@@ -398,7 +456,6 @@ function buildFromSource {
 
     # Build source code
     for cmd in "${__build_cmd_buildFromSource[@]}"; do
-        echo "$cmd"
         __cmd_array_buildFromSource=("$cmd")
         runCmd __cmd_array_buildFromSource "ERR" "1" "Build/Install $__dist_dir_name_buildFromSource" "0"
     done

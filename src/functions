@@ -756,8 +756,10 @@ function exitAll {
 
 # Read terminal output Update progress bar (loadBar)
 # Input $1: Message text
+# Input $2: Ignore Check Process [Default 1]
 function updateProgressBar {
     local __msg_txt_updateProgressBar=${1:-"Download file"}
+    local __ignore_check_updateProgressBar="${2:-1}"
     local __progress_per
     local __LoadBar_Pos=0
     local __succ_updateProgressBar=1
@@ -773,8 +775,10 @@ function updateProgressBar {
             __succ_updateProgressBar=0
         fi
     done
+
+    [ $__ignore_check_updateProgressBar -eq 0 ] && __succ_updateProgressBar=0
     [ $__succ_updateProgressBar -eq 0 ] && stopLoadBar "${__msg_txt_updateProgressBar} Finished!" || stopLoadBar
-    return 0;
+    return $__succ_updateProgressBar;
 }
 
 # Download file from URL
@@ -787,28 +791,8 @@ function downloadFile {
     local __cmd_ret_downloadFile
     local __msg_txt_downloadFile=${4:-"Download file"}
 
-    # Read terminal output and pass it to loadBar
-    function updatePercentage {
-        local __download_per
-        local __LoadBar_Pos=0
-        local __succ_updatePercentage=1
-        local __previous_value_updatePercentage="${__download_per}"
-
-        while read __download_per
-        do
-            if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
-                ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
-                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
-                __previous_value_updatePercentage="${__download_per}"
-                __succ_updatePercentage=0
-            fi
-        done
-        [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
-        return $__succ_updatePercentage;
-    }
-    
     # Download file and get the current download state
-    su -p $SUDO_USER -c "wget --progress=dot -P '$2' '$1' 2>&1 | grep --line-buffered '[[:space:]][[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g'" | updatePercentage
+    su -p $SUDO_USER -c "wget --progress=dot -P '$2' '$1' 2>&1 | grep --line-buffered '[[:space:]][[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g'" | updateProgressBar "${__msg_txt_downloadFile}"
 
     # Check the return state
     __cmd_ret_downloadFile="$?"
@@ -1007,7 +991,7 @@ function runCmd {
         if [ "${DEBUG}" = "true" ]; then
             eval "${__cmd_runCmd[@]}" 
         elif [ "$__update_msg_runCmd" -eq 0 ]; then
-            eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}'"
+            eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}' 0"
         else
             eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
         fi

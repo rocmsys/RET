@@ -241,6 +241,7 @@ function cmdManager {
 # Input $1: args (packages)
 function installCmd {
     local -n __args_installCmd=$1
+    local __cmd_array_installCmd=()
 
 	# Install Packages
 	for pkg in "${__args_installCmd[@]}"; do
@@ -248,6 +249,9 @@ function installCmd {
 	        rocm)
                 checkSys; # Check system requirements
 		    ;;
+            namd*)
+                __cmd_array_installCmd=("source /etc/profile.d/namd.sh"); runCmd __cmd_array_installCmd "ERR" 0
+            ;;
 	    esac
         # Install Package
         runInstall "$pkg"
@@ -276,10 +280,10 @@ function runInstall {
 
     # Install the Packages if not already installed
     checkDeps __pkg_name_array_runInstall __pkg_vers_array_runInstall "Verifying ${__pkg_name_runInstall} Dependencies"
-    if [ "${#__pkg_name_array_runInstall[@]}" -ne 0 ]; then
+    if [ "${#__pkg_name_array_runInstall[@]}" -ne 0 ]; then __isInstalled_runInstall=0;
         if (confirmYn "Install dependencies? [Y/n] "); then
             # Run pre installation if required
-            [ "$__isInstalled_runInstall" -eq "1" ] && runPreInstallation "${__pkg_name_runInstall}" __pkg_name_array_runInstall __pkg_vers_array_runInstall
+            runPreInstallation "${__pkg_name_runInstall}" __pkg_name_array_runInstall __pkg_vers_array_runInstall
 
             # Exclude src pkg if is from source
             [ $__isFromSource_runInstall -eq 0 ] && __pkg_name_array_runInstall=(${__pkg_name_array_runInstall[@]/"$__pkg_name_runInstall"})
@@ -294,14 +298,8 @@ function runInstall {
                 ;;
             esac
 
-            # This will be removed in the next release
-            #if [ "$__pkg_name_runInstall" = "singularity" ]; then 
-            #    __cmd_array_runInstall=("singularity --version");
-            #    runCmd __cmd_array_runInstall "ERR" 0 || installSingularity;
-            #fi
-
             # Run post installation
-            [ "$__isInstalled_runInstall" -eq "1" ] && runPostInstallation "${__pkg_name_runInstall}"
+            runPostInstallation "${__pkg_name_runInstall}"
         else
             logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__pkg_name_array_runInstall[@]}")"
         fi    
@@ -311,7 +309,7 @@ function runInstall {
     runVerification "$__pkg_name_runInstall"
 
     if [ $? -eq 0 ]; then
-        [ "$__isInstalled_runInstall" -eq "1" ] && __msg_rocm="The ${__pkg_name_runInstall} installation was successful!" || __msg_rocm="It seems as if ${__pkg_name_runInstall} has already been properly installed!"
+        [ "${#__isInstalled_runInstall[@]}" -eq "0" ] && __msg_rocm="The ${__pkg_name_runInstall} installation was successful!" || __msg_rocm="It seems as if ${__pkg_name_runInstall} has already been properly installed!"
         logPrint "DONE" "${__msg_rocm}"
     elif [ $? -eq 7 ]; then
         exitAll 7
@@ -368,17 +366,13 @@ function runPreInstallation {
             fi
         ;;
 
-        py2 | py3)
-            PRE="DONOTHING"
-        ;;
-
         docker)
             addDockerRepo "https://download.docker.com/linux"
             echo ''; confirmYn "Uninstall old Docker versions? [Y/n] " || logPrint "ERR" "Uninstall Docker" "Docker" "${FAIL}"
             local __docker_pkg_runPreInstallation=("docker-*"); removePkg __docker_pkg_runPreInstallation
         ;;
 
-        singularity)
+        py2 | py3 | singularity | namd)
             PRE="DONOTHING"
         ;;
     esac
@@ -397,10 +391,7 @@ function runPostInstallation {
             usermod -aG video $SUDO_USER
 
             # Put the ROCm binaries in PATH
-            __cmd_array_runPostInstallation=("echo 'export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64' | tee -a /etc/profile.d/rocm.sh"); 
-            runCmd __cmd_array_runPostInstallation "ERR"
-
-            __cmd_array_runPostInstallation=("source /etc/profile.d/rocm.sh"); runCmd __cmd_array_runPostInstallation "ERR"
+            addPATH "rocm" "/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64"
             stopLoadBar
         ;;
 
@@ -424,8 +415,16 @@ function runPostInstallation {
         singularity)
             POST="DONOTHING"
         ;;
+
+        namd)
+            # Add it to the PATH
+            startLoadBar "Run NAMD Post-Installation: Add to PATH "; printf '\n'
+            addPATH "namd" "$PWD/../RET_NAMD"
+            stopLoadBar
+        ;;
     esac
 }
+
 
 # Run install verification
 # Input $1: pkg name
@@ -466,6 +465,11 @@ function runVerification {
         singularity)
             logPrint "NOTE" "The Current `singularity --version`"
             __cmd_array_runVerification=("singularity --version"); runCmd __cmd_array_runVerification "ERR" 0; return "$?";
+        ;;
+
+        namd)
+            namdVerification
+            return "$?";
         ;;
     esac
 }
@@ -556,13 +560,18 @@ function runBenchmark {
     local __cmd_array_runBenchmark=()
 
     case "$__ml_framework_runBenchmark" in
-            tensorflow)
-                tfBenchmark __models_runBenchmark
-                return "$?";
-            ;;
+        tensorflow)
+            tfBenchmark __models_runBenchmark
+            return "$?";
+        ;;
 
-            pytorch)
-                echo "Pytorch benchmarking..."
-            ;;
-        esac
+        pytorch)
+            echo "Pytorch benchmarking..."
+        ;;
+
+        namd)
+            namdBenchmark
+            return "$?";
+        ;;
+    esac
 }
