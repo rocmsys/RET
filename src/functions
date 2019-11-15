@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 
-# Print the message/inser to the log file 
+# Print the message/inser to the log file
 # Input $1: type [STEP (for one of the main steps), DET (for detailed info), ERR (for error), NOTE ( for note), DONE (success confirmation)]
 # Input $2: title
 # Input $3: value (only for type [DET, ERR])
 # Input $4: State [SUCC, FAIL]
 function logPrint {
-    # Init input variables 
+    # Init input variables
     local __type=$1
     local __title=$2
     local __value=$3
 
     # Step heading
     if [ "${__type}" = "STEP" ]; then
-        sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear; 
+        sleep 1; ((STEP_COUNT++)); local __terminal_width=$(tput cols); tput clear;
         printf "${FG_DEFAULT_COLOR}"'=%.0s' $(seq 1 ${__terminal_width}); printf "${END}"'\n'
         echo -e "${STEP}[STEP:$STEP_COUNT/$TOTALSTEPS] ${__title}...${END}";
         printf "${FG_DEFAULT_COLOR}"'=%.0s' $(seq 1 ${__terminal_width}); printf "${END}"'\n'
@@ -119,17 +119,17 @@ function checkOs {
 # Input $1: string to convert
 function str2ArrayRange {
     local __str=$1
-    local __s='[[:space:]]*' 
+    local __s='[[:space:]]*'
     local __digit='[0-9.]*'
     local __conversation_type="SEQ" # Params are SEQ (for sequence) and SPT (for split)
- 
+
     [[ "${__str}" == *'>='*'<='* ]] && __conversation_type="SEQ" || __conversation_type="SPT"
 
     if [[ "$__conversation_type" == "SEQ" ]]; then
         echo $__str | sed -n 's|^.*>='$__s'\('$__digit'\)[[:space:]]<='$__s'\('$__digit'\).*|\1-\2|p' |
                       awk 'BEGIN{FS="-";}{for (i=$1; i<$2; i+=0.01) { print(i); }}'
     elif [[ "$__conversation_type" == "SPT" ]]; then
-        echo $__str | sed 's| ||g' | awk '{ split($0,a,"|"); for (item in a){ print(a[item]);} }' 
+        echo $__str | sed 's| ||g' | awk '{ split($0,a,"|"); for (item in a){ print(a[item]);} }'
     fi
 }
 
@@ -146,7 +146,7 @@ function isSupported {
 
     # Check if __ret_array needs to be interept (If sym. like >=, <=, <, etc.)
     if [[ "${__ret_array[0]}" == *'>='*'<='* || "${__ret_array[0]}" == *'|'* ]]; then
-        __ret_array=$(str2ArrayRange "${__ret_array[0]}") 
+        __ret_array=$(str2ArrayRange "${__ret_array[0]}")
         IFS=$'\r\n' eval  __ret_array='(${__ret_array})'
     fi
 
@@ -159,51 +159,43 @@ function isSupported {
 # Input $2: array with the version of deps
 # Input $3: title (Optional)
 function checkDeps {
-    local -n __name_array=$1
-    local -n __ver_array=${2:-EMPTY_ARRAY}
-    local __idx=0
+    local -n __name_array_checkDeps=$1
+    local -n __ver_array_checkDeps=${2:-EMPTY_ARRAY}
     local __title_checkDeps=${3:-"Verifying Dependencies"}
+
+    local __idx=0
     local __dep_toInstall
-    local __DEPS_TOINSTALL=() # Array of deps
+    local __dep_array_toInstall=() # Array of deps
     local __pkg_name_checkDeps
 
     logPrint "STEP" "${__title_checkDeps}"
-    for dep in "${__name_array[@]}"; do
-        [ -z "${dep}" ] && continue || __pkg_name_checkDeps=("${dep%%:*}");
+    for dep in "${__name_array_checkDeps[@]}"; do
+        [ -z "${dep}" ] && continue || { __pkg_name_checkDeps=("${dep%%:*}"); __dep_toInstall="${dep}"; }
+            
+        # Get Version
+        local __version="${__ver_array_checkDeps[$__idx]}"
+        [ ! -z "$__version" ] && [ "$__version" != "latest" ] && __dep_toInstall+="=${__version}"
 
-        if isPrgInstalled "${dep}"; then
-            logPrint "DET" "${__pkg_name_checkDeps}" "Found" "${SUCC}"
+        if isPrgInstalled "${__dep_toInstall}"; then
+            logPrint "DET" "${__pkg_name_checkDeps}" "${CLEAR}Found" "${SUCC}"
         else
-            __dep_toInstall="${dep}"
-
-            # Get Version
-            local __version="${__ver_array[$__idx]}"
-            [ ! -z "$__version" ] && [ "$__version" != "latest" ] && __dep_toInstall="${dep}=${__version}"
-
-            __DEPS_TOINSTALL+=("${__dep_toInstall}")
+            __dep_array_toInstall+=("${__dep_toInstall}")
             logPrint "DET" "${__pkg_name_checkDeps}" "Not Found!" "${FAIL}"
         fi
        ((__idx++))
     done
 
-    # Install deps if needed
-    if [ "${#__DEPS_TOINSTALL[@]}" -ne 0 ]; then
-        logPrint "NOTE" "The above not installed packages are required to complete this setup."
-        if (confirmYn "Install dependencies? [Y/n] "); then
-            installPkg __DEPS_TOINSTALL
-        else
-            logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__DEPS_TOINSTALL[@]}")"
-        fi
-    fi
+    eval  __name_array_checkDeps='(${__dep_array_toInstall[@]})'
+    [ "${#__dep_array_toInstall[@]}" -ne 0 ] && logPrint "NOTE" "The above not installed packages are required to complete this setup."
 }
 
-# Read and parse yaml file 
+# Read and parse yaml file
 # Input $1: yaml date
 # Note: this parser support only the syntax needed. Flow Styles are not supported
 function parse_yaml {
     local __data=$1
-    local __s='[[:space:]]*' 
-    local __w='[a-zA-Z0-9_.]*' 
+    local __s='[[:space:]]*'
+    local __w='[a-zA-Z0-9_.]*'
     local __fs=${__fs:-$(echo @|tr @ '\034')}
     local __q=''\"\'''
     local __sep=\"\|\"
@@ -223,16 +215,16 @@ function parse_yaml {
 
     echo "$__data" | \
         sed -e "$__rm_sp" -e "$__rm_doc_begin" -e "$__rm_doc_end" -e "$__rm_cmt" -e "$__rm_il_cmt" -e "$__rm_bl" -e "$__get_item_list" -e "$__get_map_list" | \
-    
+
     awk -F$__fs 'BEGIN{
         last_indent = 0; br_count = 0;
     }
     {
         #The suggested syntax for YAML files is to use 2 spaces for indentation
         indent = length($1)/2;
-    
 
-        # extract the dictionarie key 
+
+        # extract the dictionarie key
         if(length($2)!= 0){node[indent] = $2}
 
         # extract the value
@@ -244,7 +236,7 @@ function parse_yaml {
 
         br=""; for (i=0; i<indent; i++) {br=(br)(node[i])('$__sep')}
         branch=br node[indent];
-        
+
 
         # remove the last char
         if(length(node[indent]) == 0){branch = substr(branch, 1, length(branch)-1)}
@@ -254,9 +246,9 @@ function parse_yaml {
         isBrExists = 0;
         for(i in br_array){
             split(br_array[i], tmp_br, '$__br_eq');
-            
+
             if(branch == tmp_br[1]){
-                br_array[i] = branch '$__br_eq' tmp_br[2]";"value; 
+                br_array[i] = branch '$__br_eq' tmp_br[2]";"value;
                 isBrExists = 1;
             }
         }
@@ -277,8 +269,8 @@ function parse_yaml {
 # Read yaml file and binds the child files
 # Input $1: yaml file name
 function prepareReqFile {
-    local __file_name=$1 
-    local __s='[[:space:]]*' 
+    local __file_name=$1
+    local __s='[[:space:]]*'
     local __fm="- "
     local __fd=": "
     local __rm_doc_begin='s|^'$__s'\(---\)'$__s'||g' # rm doc begin
@@ -312,19 +304,19 @@ function prepareReqFile {
 # Output $2: Return Array
 function yaml2arr {
     local __yaml_file=$1
-    local __res_array=$2
+    local __ret_array=$2
     local __yaml_data
 
     # Prepare Requirement file
     __yaml_data=$(prepareReqFile $__yaml_file)
 
     local __array=$(parse_yaml "${__yaml_data}")
-    IFS=$'\r\n' eval  $__res_array='(${__array})'
+    IFS=$'\r\n' eval  $__ret_array='(${__array})'
     #echo "${__array[@]}"; exit
 }
 
 # Get value yaml value by key
-# Input $1: Key 
+# Input $1: Key
 # Input $2: YAML_Array Ref
 # Output $3: Return Array
 function getYAMLValue {
@@ -373,10 +365,34 @@ function isInArray {
     return 1;
 }
 
+# Remove package and the corresponding version from array
+# Input $1: pkg name
+# Input $2: pkg name array
+# Input $3: pkg version array
+function removeFromArray {
+    local __pkg_name_removeFromArray=$1
+    local -n __pkg_name_array_removeFromArray=$2
+    local -n __pkg_vers_array_removeFromArray=$3
+    local __index=0
+
+    for item in "${__pkg_name_array_removeFromArray[@]}"; do
+        if [[ "${item}" == "${__pkg_name_removeFromArray}"* ]] ; then
+            __pkg_name_array_removeFromArray=("${__pkg_name_array_removeFromArray[@]:0:$__index}" "${__pkg_name_array_removeFromArray[@]:$__index+1}")
+            __pkg_vers_array_removeFromArray=("${__pkg_vers_array_removeFromArray[@]:0:$__index}" "${__pkg_vers_array_removeFromArray[@]:$__index+1}")
+
+            [ $__index -gt 0 ] && ((__index--))
+        fi
+        ((__index++))
+    done
+
+    eval __pkg_name_array_removeFromArray="(${__pkg_name_array_removeFromArray[@]})"
+    eval __pkg_vers_array_removeFromArray="(${__pkg_vers_array_removeFromArray[@]})"
+}
+
 # Get OS and Version
 # Return OS, Version, Kernel and the Architecture
 function getOSInfo {
-    # Init output variables 
+    # Init output variables
     local __res_os=$1
     local __res_ver=$2
     local __res_kernel=$3
@@ -388,12 +404,19 @@ function getOSInfo {
     local __ARCH
     local __KERNEL=$(uname -r)
 
-    if [ -f /etc/centos-release ]; then
+    if [ -f /etc/centos-release ]; then #Use this to get the right COS version X.X
         __OS="CentOS"
         __VER=$(cat /etc/centos-release | sed 's|^.*[^0-9]\('$__digit'\.'$__digit'\)\(\.[0-9]*\).*$|\1|g')
     elif [ -f /etc/os-release ]; then
         . /etc/os-release
-        __OS=$NAME
+        case $ID in
+            ubuntu)
+                __OS="Ubuntu";;
+            centos)
+                __OS="CentOS";;
+            rhel)
+                __OS="RedHat";;
+        esac
         __VER=$VERSION_ID
     elif [ -f /etc/lsb-release ]; then
         . /etc/lsb-release
@@ -431,7 +454,7 @@ function fileSanityCheck {
     fi
 }
 
-# Get user confirmation of Y/n 
+# Get user confirmation of Y/n
 # Input $1: message (optional)
 # Return 0,1
 function confirmYn {
@@ -441,7 +464,7 @@ function confirmYn {
     if [[ ${REPLY} =~ ^[Yy] ]] || [[ -z "${REPLY}" ]]; then
         __return_confirmYn=0
     fi
-    toLog "INFO" "${1:-Do you want to continue? [Y/n] }[${REPLY}]" 
+    toLog "INFO" "${1:-Do you want to continue? [Y/n] }[${REPLY}]"
     return "$__return_confirmYn";
 }
 
@@ -471,12 +494,13 @@ function isPrgInstalled {
 
     # update value if found
     if [[ "${__phu_isPrgInstalled}" =~ "pip" ]]; then
-        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} list 2>/dev/null | grep ${__pkg_name_isPrgInstalled}");
+        [ ! -z "$__pkg_vers_isPrgInstalled" ] && __pkg_vers_isPrgInstalled="Version: ${__pkg_vers_isPrgInstalled}" || __pkg_vers_isPrgInstalled="${__pkg_name_isPrgInstalled}"
+        __cmd_array_isPrgInstalled=("sudo -u $SUDO_USER ${PYPI} show ${__pkg_name_isPrgInstalled} 2>/dev/null | grep '${__pkg_vers_isPrgInstalled}'"); # freeze doesn't work well
     else
-        __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}"); 
-        runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || { 
+        __cmd_array_isPrgInstalled=("type ${__pkg_name_isPrgInstalled}");
+        runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0 || {
             case $RET_DISTRO in
-                CentOS)
+                CentOS | RedHat)
                     if [[ "${__phu_isPrgInstalled}" == "group" ]]; then
                         __cmd_array_isPrgInstalled=("yum grouplist installed '${__pkg_name_isPrgInstalled}' 2>/dev/null | grep -i '${__pkg_name_isPrgInstalled}'");
                     else
@@ -485,8 +509,9 @@ function isPrgInstalled {
                 Ubuntu)
                     __cmd_array_isPrgInstalled=("${!RET_CMDS_ARRAY[RET_SEARCH_CMD]} ${__pkg_name_isPrgInstalled} 2>/dev/null | grep -e '^ii'");;
             esac
-        } 
+        }
     fi
+    [ "$__found" -eq 0 ] && return $__found;
     runCmd __cmd_array_isPrgInstalled "ERR" 0 && __found=0
     return $__found;
 }
@@ -507,6 +532,9 @@ function installPkg {
     local __phu_installPkg
     local __dep_installPkg
 
+    # Check if the pkg array is not empty
+    [ "${#__packages[@]}" -eq 0 ] && { logPrint "ERR" "Package array cannot be empty!" "installPkg" "${FAIL}"; exit; }
+
     startLoadBar "Preparing for Installation"
     # fix broken dependencies in place
     __cmd_array_installPkg=("${!RET_CMDS_ARRAY[RET_FIXBROKEN_CMD]}"); runCmd __cmd_array_installPkg "WARN"
@@ -521,14 +549,24 @@ function installPkg {
 
         # Extract the package handling utility
         parsePkg "${dep}" __pkg_name_installPkg __pkg_vers_installPkg __phu_installPkg
-        __dep_installPkg="${__pkg_name_installPkg}${__pkg_vers_installPkg}"
+        __dep_installPkg="${__pkg_name_installPkg}"
+
+        if [ ! -z "$__pkg_vers_installPkg" ]; then
+            if [[ "${__phu_installPkg}" =~ "pip" ]]; then
+                __cmd_array_installPkg=("sudo -u $SUDO_USER ${PYPI} uninstall -y '${__dep_installPkg}'")
+                runCmd __cmd_array_installPkg "ERR"
+                __dep_installPkg+="==${__pkg_vers_installPkg}"; 
+            else
+                __dep_installPkg+="=${__pkg_vers_installPkg}"
+            fi
+        fi
 
         [[ "${__phu_installPkg}" =~ "pip" ]] && __cmd_installPkg="sudo -u $SUDO_USER ${PYPI} install --user" #sudo pip isn't encouraged
         [[ "${__phu_installPkg}" == "group" ]] && __cmd_installPkg="yum groupinstall -y"
 
         startLoadBar "Installing Package: ${__dep_installPkg}"
         __cmd_array_installPkg=("${__cmd_installPkg} '${__dep_installPkg}'"); runCmd __cmd_array_installPkg "ERR"
-        logPrint "DET" "${__dep_installPkg}" "Installed" "${SUCC}"
+        logPrint "DET" "${__dep_installPkg}" "${CLEAR}Installed" "${SUCC}"
     done
 
     # Clean Archives cache
@@ -538,7 +576,7 @@ function installPkg {
     return 0;
 }
 
-# Parse and return name, version and package handling utility from package str 
+# Parse and return name, version and package handling utility from package str
 # Input $1: package title/name e.g. name:phu=version
 # Output $2: package name
 # Output $3: package version
@@ -553,11 +591,11 @@ function parsePkg {
     local __pkg_vers_parsePkg
     local __phu_parsePkg
 
-    case "$__pkg_parsePkg" in 
+    case "$__pkg_parsePkg" in
         *:*=*) # name:phu=version
             __pkg_name_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\1|p')
             __phu_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\2|p')
-            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)\(=.*\)|\3|p')
+            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\):\(.*\)=\(.*\)|\3|p')
         ;;
 
         *:*) # name:phu
@@ -569,14 +607,14 @@ function parsePkg {
         *=*) # name=version
             __pkg_name_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\)=\(.*\)|\1|p')
             __phu_parsePkg=""      # empty
-            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\)\(=.*\)|\2|p')
+            __pkg_vers_parsePkg=$(echo "${__pkg_parsePkg}" | sed -n 's|^\(.*\)=\(.*\)|\2|p')
         ;;
 
         *) # name
             __pkg_name_parsePkg="${__pkg_parsePkg}"
             __phu_parsePkg=""      # empty
             __pkg_vers_parsePkg="" # empty
-        ;;    
+        ;;
     esac
 
     eval $__res_pkg_name_parsePkg='$__pkg_name_parsePkg'
@@ -618,7 +656,7 @@ function removePkg {
             __rm_msg_removePkg="Already uninstalled"
         fi
 
-        logPrint "DET" "${__dep_removePkg}" "${__rm_msg_removePkg}" "${SUCC}"
+        logPrint "DET" "${__dep_removePkg}" "${CLEAR}${__rm_msg_removePkg}" "${SUCC}"
     done
 
     stopLoadBar "The Uninstallation Completed Successfully."
@@ -629,7 +667,7 @@ function removePkg {
 # Input $1: Return State
 # Input $2: The cmd causing the error
 # Input $3: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-# Input $4: The output message 
+# Input $4: The output message
 function checkReturn {
     local __state=$1
     local __cmd=$2
@@ -647,7 +685,15 @@ function checkReturn {
 # read YAML file
 function preRequirement {
     local __necessary_packages=("git" "tee" "curl" "wget" "lynx" "sed" "gawk" "rpm" "ssh")
+    
     checkDeps __necessary_packages "" "Run Pre-installation Requirements"
+    if [ "${#__necessary_packages[@]}" -ne 0 ]; then
+        if (confirmYn "Install dependencies? [Y/n] "); then 
+            installPkg __necessary_packages
+        else
+            logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__necessary_packages[@]}")"
+        fi
+    fi
 
     # read yaml file
     yaml2arr "$REQ_FILE" YAML_ARRAY
@@ -669,10 +715,10 @@ function loadBar {
     tput civis
 
     while true
-    do 
-        for (( i=${__pos_loadbar}; i<${#LOADBAR}; i++ )); do
-            logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR:$i:1} ${__msg_loadbar}"
-            sleep 0.1; 
+    do
+        for (( i=${__pos_loadbar}; i<${#LOADBAR[@]}; i++ )); do
+            logPrint "${__msg_type_loadbar}" "${CLEAR}${LOADBAR[$i]} ${__msg_loadbar}"
+            sleep 0.1;
         done
     done
 }
@@ -696,7 +742,7 @@ function stopLoadBar {
     local __msg_value_stopLoadBar="$3"
     tput cnorm
 
-    kill -9 "${LOADBARPID}" >/dev/null 2>&1 # send SIGKILL 
+    kill -9 "${LOADBARPID}" >/dev/null 2>&1 # send SIGKILL
     wait "${LOADBARPID}" >/dev/null 2>&1
     [ -z "${__msg_stopLoadBar}" ] || logPrint "${__msg_type_stopLoadBar}" "${__msg_stopLoadBar}" "${__msg_value_stopLoadBar}"
 }
@@ -706,6 +752,33 @@ function stopLoadBar {
 function exitAll {
    stopLoadBar; echo
    exit $1
+}
+
+# Read terminal output Update progress bar (loadBar)
+# Input $1: Message text
+# Input $2: Ignore Check Process [Default 1]
+function updateProgressBar {
+    local __msg_txt_updateProgressBar=${1:-"Download file"}
+    local __ignore_check_updateProgressBar="${2:-1}"
+    local __progress_per
+    local __LoadBar_Pos=0
+    local __succ_updateProgressBar=1
+    local __previous_value_updateProgressBar="${__progress_per}"
+
+    startLoadBar "${__msg_txt_updateProgressBar}" ${__LoadBar_Pos}
+    while read __progress_per
+    do
+        if [ "${__progress_per}" != "${__previous_value_updateProgressBar}" ]; then
+            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
+            startLoadBar "${__msg_txt_updateProgressBar}: ${__progress_per}" ${__LoadBar_Pos}
+            __previous_value_updateProgressBar="${__progress_per}"
+            __succ_updateProgressBar=0
+        fi
+    done
+
+    [ $__ignore_check_updateProgressBar -eq 0 ] && __succ_updateProgressBar=0
+    [ $__succ_updateProgressBar -eq 0 ] && stopLoadBar "${__msg_txt_updateProgressBar} Finished!" || stopLoadBar
+    return $__succ_updateProgressBar;
 }
 
 # Download file from URL
@@ -718,32 +791,12 @@ function downloadFile {
     local __cmd_ret_downloadFile
     local __msg_txt_downloadFile=${4:-"Download file"}
 
-    # Read terminal output and pass it to loadBar
-    function updatePercentage {
-        local __download_per
-        local __LoadBar_Pos=0
-        local __succ_updatePercentage=1
-        local __previous_value_updatePercentage="${__download_per}"
-
-        while read __download_per
-        do
-            if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
-                ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
-                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
-                __previous_value_updatePercentage="${__download_per}"
-                __succ_updatePercentage=0
-            fi
-        done
-        [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
-        return $__succ_updatePercentage;
-    }
-
     # Download file and get the current download state
-    wget --progress=dot -P "$2" "$1" 2>&1 | grep --line-buffered "[[:space:]][[:digit:]][[:digit:]]*%" | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updatePercentage
+    su -p $SUDO_USER -c "wget --progress=dot -P '$2' '$1' 2>&1 | grep --line-buffered '[[:space:]][[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g'" | updateProgressBar "${__msg_txt_downloadFile}"
 
-    # Check the return state 
+    # Check the return state
     __cmd_ret_downloadFile="$?"
-    checkReturn "$__cmd_ret_downloadFile" "wget -O $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
+    checkReturn "$__cmd_ret_downloadFile" "wget -P $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
 }
 
 # Check system requirements
@@ -752,8 +805,8 @@ function checkSys {
     local __vers_array_checkSys=()
 
     # Check OS
-    checkOs 
-    
+    checkOs
+
     # Check Global Dependencies
     getYAMLValue "dependencies|globale|name" YAML_ARRAY DEPS_ARRAY
     getYAMLValue "dependencies|globale|name|version" YAML_ARRAY VER_ARRAY
@@ -766,7 +819,18 @@ function checkSys {
     __deps_array_checkSys+=("${DEPS_ARRAY[@]}")
     __vers_array_checkSys+=("${VER_ARRAY[@]}")
 
+    # Exclude Kernel-* if in Container
+    [ "${INCONTAINER}" = "true" ] && { removeFromArray "kernel-" __deps_array_checkSys __vers_array_checkSys; }
+
     checkDeps __deps_array_checkSys __vers_array_checkSys
+    if [ "${#__deps_array_checkSys[@]}" -ne 0 ]; then
+        if (confirmYn "Install dependencies? [Y/n] "); then 
+            [[ $RET_DISTRO == "RedHat" ]] && prepareRhel
+            installPkg __deps_array_checkSys
+        else
+            logPrint "ERR" "Packages are required to complete this setup!" "$(printf "%s " "${__deps_array_checkSys[@]}")"
+        fi
+    fi
 }
 
 # Check if system reboot required
@@ -796,7 +860,7 @@ function editFile {
     local __old_value_editFile=$2
     local __new_value_editFile=$3
 
-    local __cmd_array_editFile=("sed -i -e 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}")
+    local __cmd_array_editFile=("su -p $SUDO_USER -c \"sed -i -e 's|${__old_value_editFile}|${__new_value_editFile}|g' ${__file_name_editFile}\"")
     runCmd __cmd_array_editFile "ERR" "1" "Cannot edit file: ${__file_name_editFile}"
 }
 
@@ -805,17 +869,17 @@ function initLog {
     local __msg_initLog="${1:-START SCRIPT}"
 
     # Creat log directory
-    [ ! -d "${LOG_DIRECTRORY}" ] && mkdir "${LOG_DIRECTRORY}"
-    
+    su -p $SUDO_USER -c "mkdir '${LOG_DIRECTRORY}'" >/dev/null 2>&1
+
     # re-create the log file
-    rm -f $LOG_FILE >/dev/null 2>&1
-    sudo -u $SUDO_USER touch $LOG_FILE >/dev/null 2>&1
+    su -p $SUDO_USER -c "rm -f $LOG_FILE" >/dev/null 2>&1
+    su -p $SUDO_USER -c "touch $LOG_FILE" >/dev/null 2>&1
 
     # Init Header
-    echo '=========================================================================' > $LOG_FILE
-    echo "                          ROCm Enablement Tool Log                       " >> $LOG_FILE
-    echo '=========================================================================' >> $LOG_FILE
-    echo ""                                                                          >> $LOG_FILE
+    su -p $SUDO_USER -c "echo '=========================================================================' > $LOG_FILE"
+    su -p $SUDO_USER -c "echo '                          ROCm Enablement Tool Log                       ' >> $LOG_FILE"
+    su -p $SUDO_USER -c "echo '=========================================================================' >> $LOG_FILE"
+    su -p $SUDO_USER -c "echo ''                                                                          >> $LOG_FILE"
 
     # Add the first msg after header
     toLog "INFO" "${__msg_initLog} [USER: $SUDO_USER]"
@@ -828,7 +892,7 @@ function toLog {
     local __state_toLog="$1"
     local __msg_toLog="$2"
 
-    echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> $LOG_FILE
+    su -p $SUDO_USER -c "echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` '[${__state_toLog:0:3}] ${__msg_toLog}' >> $LOG_FILE"
 }
 
 # Check Bash Version and Update it if requiered
@@ -842,14 +906,18 @@ function checkBashVersion {
 
     # Compare version need command line calculator
     startLoadBar "Check Bash Version"
-    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc gcc >/dev/null 2>&1
+    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc >/dev/null 2>&1
     __cmd_ret_checkBashVersion="$?"
     checkReturn "$__cmd_ret_checkBashVersion" "${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc" "ERR"
 
     __bash_ver=$(bash --version | sed -n 's|^.*version \([0-9]*.[0-9][0-9]*\).*|\1|p')
     stopLoadBar
     [ $(echo "$__bash_ver >= $REQ_BASH_VERSION"|bc) -eq 1 ] && return 0
-    
+
+    # Install required packages
+    ${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} gcc wget make which >/dev/null 2>&1
+    __cmd_ret_checkBashVersion="$?"
+    checkReturn "$__cmd_ret_checkBashVersion" "${!RET_CMDS_ARRAY[RET_INSTALL_CMD]} bc" "WARN"
 
     # Get bash location and Create bash Backup
     __path_checkBashVersion=$(which bash)
@@ -907,18 +975,27 @@ function checkBashVersion {
 # Run Command and check the return value
 # Input $1: Command Array (cmd + args)
 # Input $2: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-# Input $3: Ignore Check Process (Default 1)
+# Input $3: Ignore Check Process [Default 1]
 # Input $4: Message (Optional)
+# Input $5: Update MSG [Default 1]
 function runCmd {
     local -n __cmd_runCmd="$1"
     local __err_type_runCmd="$2"
     local __ignore_check_runCmd="${3:-1}"
     local __msg_runCmd="${4:-$__cmd_runCmd}"
+    local __update_msg_runCmd="${5:-1}"
     local __cmd_ret_runCmd
 
     [ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
     if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
-        [ "${DEBUG}" = "true" ] && eval "${__cmd_runCmd[@]}" || eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
+        if [ "${DEBUG}" = "true" ]; then
+            eval "${__cmd_runCmd[@]}" 
+        elif [ "$__update_msg_runCmd" -eq 0 ]; then
+            eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}' 0"
+        else
+            eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
+        fi
+
         __cmd_ret_runCmd="$?"
         [ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd" || return "${__cmd_ret_runCmd}"
     fi
@@ -926,16 +1003,14 @@ function runCmd {
 
 # Check what distro
 function updateCmd {
-    local __distro_updateCmd
-    local __release_updateCmd
     local __kernel_updateCmd
     local __arch_updateCmd
 
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
-        getOSInfo RET_DISTRO __release_updateCmd __kernel_updateCmd __arch_updateCmd
+        getOSInfo RET_DISTRO RET_RELEASE __kernel_updateCmd __arch_updateCmd
 
         case $RET_DISTRO in
-            CentOS)
+            CentOS | RedHat)
                 updateCmdArray "COS";;
             Ubuntu)
                 ;; # per default initialized
@@ -944,6 +1019,28 @@ function updateCmd {
     else
         logPrint "ERR" "OS Not Supported!" "$OSTYPE" "${FAIL}"
     fi
+}
+
+# Preparing RHEL for installation
+function prepareRhel {
+    local __cmd_array_prepareRhel=()
+    local __repo1_array_prepareRhel="rhel-server-rhscl-7-rpms"
+    local __repo2_array_prepareRhel="rhel-7-server-optional-rpms"
+    local __repo3_array_prepareRhel="rhel-7-server-extras-rpms"
+
+    startLoadBar "Preparing RHEL for installation"
+
+    # Check if repo already enabled
+    __cmd_array_prepareRhel=("yum repoinfo ${__repo1_array_prepareRhel} 2>/dev/null | grep -ie '^Repo-status.*enabled$'")
+    runCmd __cmd_array_prepareRhel "ERR" 0 || { __cmd_array_prepareRhel=("subscription-manager repos --enable ${__repo1_array_prepareRhel}"); runCmd __cmd_array_prepareRhel "ERR"; }
+
+    __cmd_array_prepareRhel=("yum repoinfo ${__repo2_array_prepareRhel} 2>/dev/null | grep -ie '^Repo-status.*enabled$'")
+    runCmd __cmd_array_prepareRhel "ERR" 0 || { __cmd_array_prepareRhel=("subscription-manager repos --enable ${__repo2_array_prepareRhel}"); runCmd __cmd_array_prepareRhel "ERR"; }
+
+    __cmd_array_prepareRhel=("yum repoinfo ${__repo3_array_prepareRhel} 2>/dev/null | grep -ie '^Repo-status.*enabled$'")
+    runCmd __cmd_array_prepareRhel "ERR" 0 || { __cmd_array_prepareRhel=("subscription-manager repos --enable ${__repo3_array_prepareRhel}"); runCmd __cmd_array_prepareRhel "ERR"; }
+
+    stopLoadBar
 }
 
 # Update the command by distro

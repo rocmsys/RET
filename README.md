@@ -1,4 +1,4 @@
-# Welcome to RET (ROCm Enablement Tool) [![Status](https://travis-ci.org/rocmsys/RET.svg?branch=dev)](https://travis-ci.org/rocmsys/RET)
+# Welcome to RET (ROCm Enablement Tool) [![Status](https://travis-ci.org/rocmsys/RET.svg?branch=master)](https://travis-ci.org/rocmsys/RET)
 
 RET is a comprehensive checking, set up, installation, testing and benchmarking tool which does carry out the installation of ROCm suite ranging from dependencies, drivers and toolchain to framework and benchmark. 
 RET makes the process of carrying out automated ROCm installation incredibly simple and provides a more user friendly and faster installation experience. 
@@ -25,13 +25,7 @@ Formatting a hard drive along with the install of a new OS is the best option
 after the instllation you will need git to download the RET source
 ```
   sudo apt -y install git
-```
-
-**Note:** DO NOT update and upgrade your system
-
-## Clone repository
-```
-   git clone https://github.com/rocmsys/RET.git
+  git clone https://github.com/rocmsys/RET.git
 ```
 ## Usage
 ```
@@ -115,3 +109,5 @@ python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50  --bat
 - [ ] Check HW Compatibility
 - [x] Adapt RET on top of Docker Container
 - [ ] Cloud Support
+
+[![Project Stats](https://www.openhub.net/p/RET-ROCm/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/RET-ROCm)

@@ -1,0 +1,28 @@
+# This file contains only dependencies required by Pytorch
+---
+# Define here OS independent packages
+- name: future:pip
+  version: latest
+- name: numpy:pip
+  version: 1.16.4
+
+# Ubuntu Packages
+- Ubuntu:
+  - name: libiomp-dev
+    version: latest
+  - name: liblmdb-dev
+    version: latest
+  - name: libopencv-dev
+    version: latest
+
+# CentOS Packages
+- CentOS:
+  - name: lmdb-devel
+    version: latest
+  - name: opencv-devel
+    version: latest
+
+- name: torch:pip
+  version: 1.3.0a0+87217cf
+...
+    

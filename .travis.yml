@@ -13,7 +13,5 @@ deploy:
   provider: script
   script: sudo bash ret install rocm -y --nov
   script: sudo bash ret install tensorflow -y --nov
-  script: bash ret build docker -y
-  script: bash ret build singularity -y
   on:
-    branch: dev
+    branch: master

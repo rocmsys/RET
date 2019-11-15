@@ -1,24 +1,34 @@
 #!/usr/bin/env bash
 
+# Set locale settings
+export LC_ALL=C
+
 # Include files
 PWD=$(pwd)
 SRC="${BASH_SOURCE%/*}"
 if [ ! -d "$SRC" ]; then SRC="$PWD"; fi
 [ -z "$SUDO_USER" ] && SUDO_USER="root"
 
+. $SRC/cmd_utils
 . $SRC/cmd
 . $SRC/format
 . $SRC/functions
 . $SRC/update_kernel
+
+# Check privileges
+if ! isSudo; then
+	echo -e "${ERR}Please run the following command instead!...[sudo $0 $ret_args]${END}";
+    exitAll 2
+fi
 
 # Min Requirement
 REQ_BASH_VERSION=4.3
 
 
 # DIRECTORY Paths
-TEMP_DIRECTRORY=$(mktemp -d)
-WORK_DIRECTRORY="./benchmarks"
-LOG_DIRECTRORY="./log"
+TEMP_DIRECTRORY=$(su -p $SUDO_USER -c "mktemp -d")
+WORK_DIRECTRORY="$PWD/benchmarks"
+LOG_DIRECTRORY="$PWD/log"
 
 # File Paths
 REQ_FILE="requirements/req.yml"
@@ -36,11 +46,15 @@ TF_BENCHMARKS_URL="https://github.com/tensorflow/benchmarks.git"
 BASH_URL="https://ftp.gnu.org/gnu/bash/"
 ROCM_DEB="http://repo.radeon.com/rocm/apt/debian/ xenial main"
 ROCM_RPM="http://repo.radeon.com/rocm/yum/rpm"
+WHL_URL="https://tesho.de/pytorch/"
 
 # Scope
 EMPTY_ARRAY=()
 RET_VERSION="0.1.1"
 DESCRIPTION="ROCm Machine Learning Stack installer"
+PYT_PKG_PY27="torch-1.3.0a0+87217cf-cp27-cp27mu-linux_x86_64.whl"
+PYT_PKG_PY35="torch-1.3.0a0+87217cf-cp35-cp35m-linux_x86_64.whl"
+PYT_PKG_PY36="torch-1.3.0a0+87217cf-cp36-cp36m-linux_x86_64.whl"
 
 # Benchmark
 TF_BNCH_VER="cnn_tf_v1.13_compatible"
@@ -58,12 +72,13 @@ SKIPSYSC=false
 INCONTAINER=false
 FG_DEFAULT_COLOR="${FG_DEFAULT}"
 
-PYVER="py2"
+PYVER=py3
 [ "$PYVER" = "py2" ] && PYPI="pip" || PYPI="pip3"
 
 # Container
 IMGNAME="ubuntu:18.04"
 
+###################################Commands##############################
 # Debian cmds
 DEB_INSTALL_CMD="apt-get -qq -y --allow-unauthenticated install"
 DEB_INSTALL_PKG_CMD="dpkg -i"

@@ -1,0 +1,9 @@
+# This file contains only dependencies required by NAMD 
+---
+- name: rocfft
+  version: latest
+- name: optionloop:pip
+  version: latest
+- name: dos2unix
+  version: latest
+...

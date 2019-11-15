@@ -3,8 +3,7 @@
 # Define here OS independent packages
 - name: wheel:pip
   version: latest
-- name: python3-setuptools
-  version: latest
+
 # Ubuntu Python3 Packages
 - Ubuntu:
   - name: python3-dev
@@ -17,6 +16,8 @@
     version: latest
   - name: python3-future
     version: latest
+  - name: python3-setuptools
+    version: latest
 # CentOS Python3 Packages
 - CentOS:
   - name: python36-devel
@@ -28,6 +29,8 @@
   - name: python36-PyYAML
     version: latest
   - name: python36-future
+    version: latest
+  - name: python36-setuptools
     version: latest
 ...
     

@@ -24,25 +24,26 @@ os_support:
         - version: 4.13|4.15|4.17
         - default: 4.15
       - 18.04:
-        - version: 4.15|4.18 
-        - default: 4.18
+        - version: 4.15|4.18|5.0
+        - default: 5.0
 
   - os: RedHat
   - RedHat:
     release:
-      - 7.4
       - 7.5
       - 7.6
+      - 7.7
     kernel:
-      - version: TBD
-      - default: TBD
+      - 7.7:
+        - version: 3.10
+        - default: 3.10
 
   - os: CentOS
   - CentOS:
     release:
-      - 7.4
       - 7.5
       - 7.6
+      - 7.7
     kernel:
       - 7.6:
         - version: 3.10
@@ -102,7 +103,7 @@ dependencies:
       - name: python-pip
         version: latest
       - name: python3-pip
-        version: latest  
+        version: latest
     # CentOS Global Dependencies    
     - CentOS:
       - name: epel-release
@@ -117,6 +118,23 @@ dependencies:
         version: latest
       - name: python36-pip
         version: latest
+      - name: lshw
+        version: latest
+    # RedHat Global Dependencies
+    - RedHat:
+      - name: epel-release
+        version: latest      
+      - name: kernel-headers-`uname -r`
+        version: latest
+      - name: kernel-devel-`uname -r`
+        version: latest 
+      - name: dkms
+        version: latest
+      - name: python2-pip
+        version: latest
+      - name: python3-pip
+        version: latest
+
       
   - rocm:
     - req_file: rocm.yml
@@ -132,8 +150,7 @@ dependencies:
       version: latest
 
   - pytorch:
-    - name: TBD
-      version: TBD
+    - req_file: pytorch.yml
 
   - mivisionx:
     - req_file: mivisionx.yml
@@ -143,6 +160,9 @@ dependencies:
 
   - singularity:
     - req_file: singularity.yml
+
+  - namd:
+    - req_file: namd.yml
     
 # Project description
 description: ROCm Machine Learning one-script installer xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx 
