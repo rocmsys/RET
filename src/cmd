@@ -264,7 +264,7 @@ function runInstall {
     local __pkg_name_runInstall="$1"
     local __pkg_name_array_runInstall=()
     local __pkg_vers_array_runInstall=()
-    local __isInstalled_runInstall=0
+    local __isInstalled_runInstall=1
     local __cmd_array_runInstall=()
     local __isFromSource_runInstall=1
 
@@ -309,7 +309,7 @@ function runInstall {
     runVerification "$__pkg_name_runInstall"
 
     if [ $? -eq 0 ]; then
-        [ "${__isInstalled_runInstall}" -eq "0" ] && __msg_rocm="The ${__pkg_name_runInstall} installation was successful!" || __msg_rocm="It seems as if ${__pkg_name_runInstall} has already been properly installed!"
+        [ "${__isInstalled_runInstall}" -ne "0" ] && __msg_rocm="The ${__pkg_name_runInstall} installation was successful!" || __msg_rocm="It seems as if ${__pkg_name_runInstall} has already been properly installed!"
         logPrint "DONE" "${__msg_rocm}"
     elif [ $? -eq 7 ]; then
         exitAll 7
