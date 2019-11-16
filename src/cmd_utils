@@ -11,7 +11,10 @@ function addPATH {
     __cmd_array_addPATH=("echo 'export PATH=$PATH:$__path_addPATH' | tee -a /etc/profile.d/$__name_addPATH.sh")
     runCmd __cmd_array_addPATH "ERR"
 
-    __cmd_array_addPATH=("source /etc/profile.d/$__name_addPATH.sh"); runCmd __cmd_array_addPATH "ERR"
+    __cmd_array_addPATH=("echo -e '# Env added by RET\nsource /etc/profile.d/$__name_addPATH.sh'>>~/.bashrc"); runCmd __cmd_array_addPATH "ERR"
+
+    # Update the env on the current(child) shell
+    __cmd_array_addPATH=("source ~/.bashrc"); runCmd __cmd_array_addPATH "ERR"
 }
 
 # Add the ROCm repository
