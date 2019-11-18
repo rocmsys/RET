@@ -883,6 +883,7 @@ function initLog {
 
     # Add the first msg after header
     toLog "INFO" "${__msg_initLog} [USER: $SUDO_USER]"
+    toLog "INFO" "${TEMP_DIRECTRORY} [tmp Path]"
 }
 
 # Insert log message to the log file
@@ -892,7 +893,14 @@ function toLog {
     local __state_toLog="$1"
     local __msg_toLog="$2"
 
-    su -p $SUDO_USER -c "echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` '[${__state_toLog:0:3}] ${__msg_toLog}' >> $LOG_FILE"
+    if [ -z "${__msg_toLog}" ]; then
+        while read __msg_toLog
+        do
+            [ ! -z "${__msg_toLog}" ] && sudo -u "$SUDO_USER" echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> "$LOG_FILE" 
+        done
+    else
+        su -p $SUDO_USER -c "echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` '[${__state_toLog:0:3}] ${__msg_toLog}' >> $LOG_FILE"
+    fi
 }
 
 # Check Bash Version and Update it if requiered
@@ -991,9 +999,9 @@ function runCmd {
         if [ "${DEBUG}" = "true" ]; then
             eval "${__cmd_runCmd[@]}" 
         elif [ "$__update_msg_runCmd" -eq 0 ]; then
-            eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}' 0"
+            eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}' 0" 1> >(toLog "OUT") 2> >(toLog "ERR")
         else
-            eval "${__cmd_runCmd[@]}" >/dev/null 2>&1
+            eval "${__cmd_runCmd[@]}" 1> >(toLog "OUT") 2> >(toLog "ERR") #>/dev/null 2>&1
         fi
 
         __cmd_ret_runCmd="$?"
