@@ -764,6 +764,7 @@ function updateProgressBar {
     local __LoadBar_Pos=0
     local __succ_updateProgressBar=1
     local __previous_value_updateProgressBar="${__progress_per}"
+echo "##############"
 
     startLoadBar "${__msg_txt_updateProgressBar}" ${__LoadBar_Pos}
     while read __progress_per
@@ -892,15 +893,21 @@ function initLog {
 function toLog {
     local __state_toLog="$1"
     local __msg_toLog="$2"
+    local __update_toLog="${3:-1}"
 
-    if [ -z "${__msg_toLog}" ]; then
-        while read __msg_toLog
-        do
-            [ ! -z "${__msg_toLog}" ] && sudo -u "$SUDO_USER" echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> "$LOG_FILE" 
-        done
-    else
-        su -p $SUDO_USER -c "echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` '[${__state_toLog:0:3}] ${__msg_toLog}' >> $LOG_FILE"
-    fi
+    #if [ -z "${__msg_toLog}" ]; then
+    #    while read __msg_toLog
+    #    do
+            #if [ "$__update_toLog" -eq 0 ]; then
+            #    tmp="${__msg_toLog}"
+            #    echo $tmp 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar 'XXXX' 0
+            #fi
+    #        [ ! -z "${__msg_toLog}" ] && sudo -u "$SUDO_USER" echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> "$LOG_FILE" 
+    #    done
+    #else
+        sudo -u "$SUDO_USER" echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> "$LOG_FILE"
+        #su -p $SUDO_USER -c "echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` '[${__state_toLog:0:3}] ${__msg_toLog}' >> $LOG_FILE"
+    #fi
 }
 
 # Check Bash Version and Update it if requiered
@@ -996,17 +1003,31 @@ function runCmd {
 
     [ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
     if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
-        if [ "${DEBUG}" = "true" ]; then
-            eval "${__cmd_runCmd[@]}" 
-        elif [ "$__update_msg_runCmd" -eq 0 ]; then
-            eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}' 0" 1> >(toLog "OUT") 2> >(toLog "ERR")
-        else
-            eval "${__cmd_runCmd[@]}" 1> >(toLog "OUT") 2> >(toLog "ERR") #>/dev/null 2>&1
-        fi
-
+        toLog "CMD" "${__cmd_runCmd[@]} [runCmd]"
+        echo "${__cmd_runCmd[@]}"
+        eval "${__cmd_runCmd[@]}" &> >(XX)
         __cmd_ret_runCmd="$?"
+        echo $__cmd_ret_runCmd
+
+        #if [ "${DEBUG}" = "true" ]; then
+        #    eval "${__cmd_runCmd[@]}" 
+        #elif [ "$__update_msg_runCmd" -eq 0 ]; then
+        #    eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}' 0"
+        #else
+        #    eval "${__cmd_runCmd[@]}" 1> >(toLog "OUT" "" "${__update_msg_runCmd}") 2> >(toLog "ERR" "" "${__update_msg_runCmd}")
+        #fi
+
+        
         [ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd" || return "${__cmd_ret_runCmd}"
     fi
+}
+
+#$1: ERR/OUT
+function XX {
+    while read __was__
+    do
+        toLog "OUT" "${__was__}"
+    done
 }
 
 # Check what distro
