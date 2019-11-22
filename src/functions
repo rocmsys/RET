@@ -754,52 +754,6 @@ function exitAll {
    exit $1
 }
 
-# Read terminal output Update progress bar (loadBar)
-# Input $1: Message text
-# Input $2: Ignore Check Process [Default 1]
-function updateProgressBar {
-    local __msg_txt_updateProgressBar=${1:-"Download file"}
-    local __ignore_check_updateProgressBar="${2:-1}"
-    local __progress_per
-    local __LoadBar_Pos=0
-    local __succ_updateProgressBar=1
-    local __previous_value_updateProgressBar="${__progress_per}"
-echo "##############"
-
-    startLoadBar "${__msg_txt_updateProgressBar}" ${__LoadBar_Pos}
-    while read __progress_per
-    do
-        if [ "${__progress_per}" != "${__previous_value_updateProgressBar}" ]; then
-            ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
-            startLoadBar "${__msg_txt_updateProgressBar}: ${__progress_per}" ${__LoadBar_Pos}
-            __previous_value_updateProgressBar="${__progress_per}"
-            __succ_updateProgressBar=0
-        fi
-    done
-
-    [ $__ignore_check_updateProgressBar -eq 0 ] && __succ_updateProgressBar=0
-    [ $__succ_updateProgressBar -eq 0 ] && stopLoadBar "${__msg_txt_updateProgressBar} Finished!" || stopLoadBar
-    return $__succ_updateProgressBar;
-}
-
-# Download file from URL
-# Input $1: URL
-# Input $2: Output Path
-# Input $3: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-# Input $4: Message text
-function downloadFile {
-    local __err_type_downloadFile=$3
-    local __cmd_ret_downloadFile
-    local __msg_txt_downloadFile=${4:-"Download file"}
-
-    # Download file and get the current download state
-    su -p $SUDO_USER -c "wget --progress=dot -P '$2' '$1' 2>&1 | grep --line-buffered '[[:space:]][[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g'" | updateProgressBar "${__msg_txt_downloadFile}"
-
-    # Check the return state
-    __cmd_ret_downloadFile="$?"
-    checkReturn "$__cmd_ret_downloadFile" "wget -P $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
-}
-
 # Check system requirements
 function checkSys {
     local __deps_array_checkSys=()
@@ -893,21 +847,11 @@ function initLog {
 function toLog {
     local __state_toLog="$1"
     local __msg_toLog="$2"
-    local __update_toLog="${3:-1}"
 
-    #if [ -z "${__msg_toLog}" ]; then
-    #    while read __msg_toLog
-    #    do
-            #if [ "$__update_toLog" -eq 0 ]; then
-            #    tmp="${__msg_toLog}"
-            #    echo $tmp 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar 'XXXX' 0
-            #fi
-    #        [ ! -z "${__msg_toLog}" ] && sudo -u "$SUDO_USER" echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> "$LOG_FILE" 
-    #    done
-    #else
-        sudo -u "$SUDO_USER" echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` "[${__state_toLog:0:3}] ${__msg_toLog}" >> "$LOG_FILE"
-        #su -p $SUDO_USER -c "echo `date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` '[${__state_toLog:0:3}] ${__msg_toLog}' >> $LOG_FILE"
-    #fi
+    if [ "${PREVIEWLOGMESG:9}" != "${__msg_toLog:9}" ]; then
+        su -p $SUDO_USER -c "echo \"`date '+[%Y.%m.%d  @ %H:%M:%S:%N]'` [${__state_toLog:0:3}] ${__msg_toLog}\" >> $LOG_FILE" >/dev/null 2>&1
+        PREVIEWLOGMESG="${__msg_toLog}"
+    fi
 }
 
 # Check Bash Version and Update it if requiered
@@ -946,7 +890,11 @@ function checkBashVersion {
     confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
 
     # Download and extract the bash package
-    downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
+    #downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTRORY" "ERR" "Download $BASH_FILENAME"
+    startLoadBar "Download $BASH_FILENAME"
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTRORY $BASH_URL$BASH_FILENAME.$__file_extension'")
+    runCmd __cmd_array_installSingularity "ERR" "1" "Download $BASH_FILENAME" "0"
+    stopLoadBar
 
     tar zxvf "$TEMP_DIRECTRORY/$BASH_FILENAME.$__file_extension" -C "$TEMP_DIRECTRORY" >/dev/null 2>&1
     __cmd_ret_checkBashVersion="$?"
@@ -1000,34 +948,48 @@ function runCmd {
     local __msg_runCmd="${4:-$__cmd_runCmd}"
     local __update_msg_runCmd="${5:-1}"
     local __cmd_ret_runCmd
+    local __pid_runCmd
 
     [ "${#__cmd_runCmd[@]}" -eq 0 ] && logPrint "ERR" "Command Can Not Be Empty!" "runCmd"
     if [ "${__cmd_runCmd}" != "$RET_IGNORE_CMD" ]; then
         toLog "CMD" "${__cmd_runCmd[@]} [runCmd]"
-        echo "${__cmd_runCmd[@]}"
-        eval "${__cmd_runCmd[@]}" &> >(XX)
+
+        eval "${__cmd_runCmd[@]}" &> >(treatStdout "$__update_msg_runCmd" "$__msg_runCmd")
         __cmd_ret_runCmd="$?"
-        echo $__cmd_ret_runCmd
 
-        #if [ "${DEBUG}" = "true" ]; then
-        #    eval "${__cmd_runCmd[@]}" 
-        #elif [ "$__update_msg_runCmd" -eq 0 ]; then
-        #    eval "${__cmd_runCmd[@]} 2>&1 | grep -o --line-buffered '\[[[:space:]]*[[:digit:]][[:digit:]]*%\]' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g' | updateProgressBar '${__msg_runCmd}' 0"
-        #else
-        #    eval "${__cmd_runCmd[@]}" 1> >(toLog "OUT" "" "${__update_msg_runCmd}") 2> >(toLog "ERR" "" "${__update_msg_runCmd}")
-        #fi
-
-        
-        [ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "$__msg_runCmd" "$__err_type_runCmd" || return "${__cmd_ret_runCmd}"
+        __pid_runCmd=$!; wait "$__pid_runCmd" # Wait for command to finish 
+        [ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "${__cmd_runCmd[@]}" "$__err_type_runCmd" || return "${__cmd_ret_runCmd}"
     fi
 }
 
-#$1: ERR/OUT
-function XX {
-    while read __was__
+# Treat Stdout and pass it to toLog function.
+# Input $1: Update MSG [Default 1]
+# Input $2: Message (Optional)
+function treatStdout {
+    local __update_msg_treatStdout="${1:-1}"
+    local __msg_treatStdout="${2:-Command progress}"
+    local __line_treatStdout
+    local __LoadBar_Pos=0
+    local __succ_treatStdout=1
+if [ -t 0 ]; then
+    echo running interactivelly
+fi
+    while read __line_treatStdout
     do
-        toLog "OUT" "${__was__}"
+        if [ "${DEBUG}" = "true" ]; then
+            echo "${__line_treatStdout}"
+        elif [ "$__update_msg_treatStdout" -eq 0 ]; then
+                __progress_per=$(echo "${__line_treatStdout}" 2>&1 | grep -o --line-buffered '[[:space:]]*[[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g') 
+                if [ "${__progress_per}" != "${__previous_value_treatStdout}" ] && [ ! -z "${__progress_per}" ]; then
+                    ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR[@]}))
+                    startLoadBar "$__msg_treatStdout: ${__progress_per}" ${__LoadBar_Pos}
+                    __previous_value_treatStdout="${__progress_per}"   
+                    __succ_treatStdout=0
+                fi  
+        fi
+        toLog "OUT" "${__line_treatStdout}"
     done
+    [ $__succ_treatStdout -eq 0 ] && stopLoadBar
 }
 
 # Check what distro

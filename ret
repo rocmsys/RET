@@ -8,9 +8,7 @@ trap exitAll SIGINT
 
 # init the log file
 initLog
-ret_args="$@"
 
 # run pre-start setup
 preStart
-
 [ $# = 0 ] && { printUsage; exit; } || parseArgs "$@"

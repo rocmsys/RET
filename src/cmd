@@ -358,7 +358,11 @@ function runPreInstallation {
                 esac
 
                 WHL_URL+=$__pytorch_pkg_name_runPreInstallation
-                downloadFile "$WHL_URL" "$TEMP_DIRECTRORY" "ERR" "Download Pytorch whl package"
+                # Download source file
+                startLoadBar "Download Pytorch whl package"
+                __cmd_array_runPreInstallation=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTRORY $WHL_URL'")
+                runCmd __cmd_array_runPreInstallation "ERR" "1" "Download Pytorch whl package" "0"
+                stopLoadBar
 
                 # Exclude torch pkg and insert the new pkg name
                 removeFromArray "torch" __pkg_name_arr_runPreInstallation __pkg_vers_arr_runPreInstallation

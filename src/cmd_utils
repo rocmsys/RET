@@ -296,7 +296,11 @@ function installSingularity {
     logPrint "STEP" "Build Singularity"
 
     # Download Go package
-    downloadFile "$__url_go" "$TEMP_DIRECTRORY" "ERR" "Download Go"
+    startLoadBar "Download Go"
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTRORY $__url_go'")
+    runCmd __cmd_array_installSingularity "ERR" "1" "Download Go" "0"
+    stopLoadBar
+
 
     # Install the Go ###################################################################################
     startLoadBar "Install Go"
@@ -311,7 +315,10 @@ function installSingularity {
     ###################################################################################################
 
     # Download and extract the singularity package ####################################################
-    downloadFile  "$__url_installSingularity" "$TEMP_DIRECTRORY" "ERR" "Download Singularity"
+    startLoadBar "Download Singularity"
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTRORY $__url_installSingularity'")
+    runCmd __cmd_array_installSingularity "ERR" "1" "Download Singularity" "0"
+    stopLoadBar
 
     # Install the singularity
     startLoadBar "Install Singularity"
@@ -442,24 +449,28 @@ function buildFromSource {
 
     # Download or clone source code
     if [ "$__fromGit_buildFromSource" -ne 0 ]; then
-        downloadFile "$__src_url_buildFromSource" "$__dist_buildFromSource" "ERR" "Download $__dist_dir_name_buildFromSource"
+        
+        # Download source file
+        startLoadBar "Download $__dist_dir_name_buildFromSource"
+        __cmd_array_buildFromSource=("su -p $SUDO_USER -c 'wget --progress=dot -P $__dist_buildFromSource $__src_url_buildFromSource'")
+        runCmd __cmd_array_buildFromSource "ERR" "1" "Download $__dist_dir_name_buildFromSource" "0"
+        stopLoadBar
 
-        # Extract directory name
         startLoadBar "Extract $__dist_dir_name_buildFromSource"
         __cmd_array_buildFromSource=("tar -xzvf $__dist_buildFromSource/$__pkg_name_buildFromSource -C $__dist_buildFromSource && mv $__dist_buildFromSource/$__src_dir_name_buildFromSource $__dist_buildFromSource/$__dist_dir_name_buildFromSource && cd $__dist_buildFromSource/$__dist_dir_name_buildFromSource")
         runCmd __cmd_array_buildFromSource "ERR"
-
     else
         startLoadBar "Clone $__dist_dir_name_buildFromSource"
         __cmd_array_buildFromSource=("su -p $SUDO_USER -c 'git clone ${__src_url_buildFromSource} $__dist_buildFromSource' && cd $__dist_buildFromSource")
         runCmd __cmd_array_buildFromSource "ERR" 
     fi
-
     stopLoadBar
-
+    
     # Build source code
+    startLoadBar "Build/Install $__dist_dir_name_buildFromSource"
     for cmd in "${__build_cmd_buildFromSource[@]}"; do
         __cmd_array_buildFromSource=("$cmd")
         runCmd __cmd_array_buildFromSource "ERR" "1" "Build/Install $__dist_dir_name_buildFromSource" "0"
     done
+    stopLoadBar
 }
