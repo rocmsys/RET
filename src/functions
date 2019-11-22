@@ -957,7 +957,7 @@ function runCmd {
         eval "${__cmd_runCmd[@]}" &> >(treatStdout "$__update_msg_runCmd" "$__msg_runCmd")
         __cmd_ret_runCmd="$?"
 
-        __pid_runCmd=$!; wait "$__pid_runCmd" # Wait for command to finish 
+        __pid_runCmd=$!; wait "$__pid_runCmd" >/dev/null 2>&1 # Wait for command to finish 
         [ "${__ignore_check_runCmd}" -eq 1 ] && checkReturn "$__cmd_ret_runCmd" "${__cmd_runCmd[@]}" "$__err_type_runCmd" || return "${__cmd_ret_runCmd}"
     fi
 }
