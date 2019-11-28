@@ -80,7 +80,7 @@ function updateKernel {
     case "$1" in
         "Ubuntu") [[ ! -z "${__kernel_type_updateKernel##*-}" ]] && __kernel_type_updateKernel=${__kernel_type_updateKernel##*-} \
 		                                                 || __kernel_type_updateKernel=${__kernel_type_updateKernel#*-}
-	          getKernel "$UBUNTU_KERNEL_URL" "${__default_kernel[0]}" "$__sys_arch_updateKernel" "$__kernel_type_updateKernel" "$TEMP_DIRECTRORY" ;;
+	          getKernel "$UBUNTU_KERNEL_URL" "${__default_kernel[0]}" "$__sys_arch_updateKernel" "$__kernel_type_updateKernel" "$TEMP_DIRECTORY" ;;
 
         "RedHat") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
 	    "CentOS") logPrint "ERR" "Update Kernel: OS Distro Not Supported!" "$1" "${FAIL}" ;;
@@ -90,9 +90,9 @@ function updateKernel {
     # kernel Installation
     logPrint "STEP" "Install the Kernel packages"
     startLoadBar "Install kernel packages"
-    dpkg -i "$TEMP_DIRECTRORY/"linux*.deb >/dev/null 2>&1
+    dpkg -i "$TEMP_DIRECTORY/"linux*.deb >/dev/null 2>&1
     __cmd_ret_updateKernel="$?"
-    [ $__cmd_ret_updateKernel -ne 0 ] && stopLoadBar "There was a problem installing the kernel!" "ERR" "dpkg -i $TEMP_DIRECTRORY/linux*.deb" \
+    [ $__cmd_ret_updateKernel -ne 0 ] && stopLoadBar "There was a problem installing the kernel!" "ERR" "dpkg -i $TEMP_DIRECTORY/linux*.deb" \
                                       || { stopLoadBar "Download Completed Successfully."; update-grub >/dev/null 2>&1; }
 
 
