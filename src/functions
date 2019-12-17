@@ -854,6 +854,34 @@ function toLog {
     fi
 }
 
+# Download a file into a directory.
+# Input $1: The URL of the file
+# Input $2: The download folder
+# Input $3: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
+# Input $4: Message (Optional)
+# Input $5: Check process output (Optional)
+# Sample usage: 
+# downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTORY" "ERR" "Download $BASH_FILENAME"
+function downloadFile {
+    local __url_downloadFile="$1"
+    local __folder_downloadFile="$2"
+    local __err_type_downloadFile="$3"
+    local __msg_downloadFile="$4"
+    local __update_msg_downloadFile="${5:-1}"
+
+    [ "$__url_downloadFile" == "" ] && logPrint "ERR" "URL Cannot Be Empty!" "downloadFile"
+    [ ! -d "$__folder_downloadFile" ] && logPrint "ERR" "Download Folder Must Exist! It is: ${__folder_downloadFile}" "downloadFile"
+   
+    __cmd_downloadFile="su -p $SUDO_USER -c \"wget --progress=dot -P $__folder_downloadFile $__url_downloadFile\""
+ 
+    toLog "CMD" "${__cmd_downloadFile} [downloadFile]"
+    eval "${__cmd_downloadFile}" &> >(treatStdout "$__update_msg_downloadFile" "$__msg_downloadFile")
+    __cmd_ret_downloadFile="$?"
+
+    __pid_downloadFile=$!; wait "$__pid_downloadFile" >/dev/null 2>&1 # Wait for command to finish 
+    checkReturn "$__cmd_ret_downloadFile" "${__cmd_downloadFile}" "$__err_type_downloadFile" # always check return
+}
+
 # Check Bash Version and Update it if requiered
 function checkBashVersion {
     local __bash_ver
@@ -890,11 +918,8 @@ function checkBashVersion {
     confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
 
     # Download and extract the bash package
-    #downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTORY" "ERR" "Download $BASH_FILENAME"
+    downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTORY" "ERR" "Download $BASH_FILENAME"
     startLoadBar "Download $BASH_FILENAME"
-    #__cmd_array_installSingularity=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTORY $BASH_URL$BASH_FILENAME.$__file_extension'")  # 
-    #runCmd __cmd_array_installSingularity "ERR" "1" "Download $BASH_FILENAME" "0"                                                               # does not work with bash version < 4.3
-    wget --progress=dot -P $TEMP_DIRECTORY $BASH_URL$BASH_FILENAME.$__file_extension
     stopLoadBar
 
     tar zxvf "$TEMP_DIRECTORY/$BASH_FILENAME.$__file_extension" -C "$TEMP_DIRECTORY" >/dev/null 2>&1
