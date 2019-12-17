@@ -918,8 +918,8 @@ function checkBashVersion {
     confirmYn "Update to $BASH_FILENAME? [Y/n] " || logPrint "ERR" "Update Bash: The Current Bash Version is Not Supported!" "$__bash_ver" "${FAIL}"
 
     # Download and extract the bash package
-    downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTORY" "ERR" "Download $BASH_FILENAME"
     startLoadBar "Download $BASH_FILENAME"
+    downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTORY" "ERR" "Download $BASH_FILENAME"
     stopLoadBar
 
     tar zxvf "$TEMP_DIRECTORY/$BASH_FILENAME.$__file_extension" -C "$TEMP_DIRECTORY" >/dev/null 2>&1
