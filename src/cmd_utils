@@ -193,29 +193,33 @@ function namdBenchmark {
 
 # Run MPI benchmark
 function mpiBenchmark {
-    export OMPI_HOME=/opt/rocm/RET/ompi
+    export RET_MPI=${WORK_DIRECTRORY}/RET_MPI
     #local __url_mpiBenchmark="https://github.com/ROCmSoftwarePlatform/hipOMB.git"
     local __url_mpiBenchmark="https://github.com/yuq/osu-micro-benchmarks-5.3.2.git"
     local __cmd_array_mpiBenchmark=()
-    local __cmd_mpirun_mpiBenchmark="${OMPI_HOME}/bin/mpirun"
+    local __cmd_mpirun_mpiBenchmark="mpirun"
     local __cmd_ret_mpiBenchmark
     local __ret_value_mpiBenchmark=0
 
-    if [ ! -d "/opt/rocm/RET/omb" ]; then
-        startLoadBar "Setting up OSU MPI Benchmark"; printf '\n'
-        __cmd_array_mpiBenchmark=("cd /opt/rocm/RET && git clone $__url_mpiBenchmark omb")
-	runCmd __cmd_array_mpiBenchmark "WARN"
-	__cmd_array_mpiBenchmark=("cd /opt/rocm/RET/omb && autoreconf -ivf && ./configure --enable-rocm --with-rocm=/opt/rocm --prefix=/opt/rocm/RET/omb CC=$OMPI_HOME/bin/mpic++ CXX=$OMPI_HOME/bin/mpicxx LDFLAGS='-L$OMPI_HOME/lib -lmpi -L/opt/rocm/lib -lhip_hcc' CPPFLAGS='-std=c++11' && make -j install")
-        runCmd __cmd_array_mpiBenchmark "ERR"
-        stopLoadBar
-    fi
+    startLoadBar "Setting up OSU MPI Benchmark"; printf '\n'
+
+    __cmd_array_mpiBenchmark=("su -p $SUDO_USER -c 'rm -fr $RET_MPI/omb'")
+    runCmd __cmd_array_mpiBenchmark "WARN"
+    __cmd_array_mpiBenchmark=("su -p $SUDO_USER -c 'mkdir -p $RET_MPI/omb'")
+    runCmd __cmd_array_mpiBenchmark "ERR"
+    __cmd_array_mpiBenchmark=("su -p $SUDO_USER -c 'cd $RET_MPI && git clone $__url_mpiBenchmark omb'")
+    runCmd __cmd_array_mpiBenchmark "WARN"
+    __cmd_array_mpiBenchmark=("su -p $SUDO_USER -c \"source /etc/profile.d/mpi.sh && cd $RET_MPI/omb && autoreconf -ivf && ./configure --enable-rocm --with-rocm=/opt/rocm --prefix=$RET_MPI/omb CC=mpicc CXX=mpicxx LDFLAGS='-L$RET_MPI/ompi/lib -lmpi -L/opt/rocm/lib -lhip_hcc' CPPFLAGS='-std=c++11' && make -j install\"")
+    runCmd __cmd_array_mpiBenchmark "ERR"
+
+    stopLoadBar
 
     # Run the benchmark
     startLoadBar "Run OSU MPI Benchmark"; printf '\n'
 
-    __cmd_array_mpiBenchmark=("source /etc/profile.d/mpi.sh && $__cmd_mpirun_mpiBenchmark -np 2 --mca osc ucx --mca spml ucx -x LD_LIBRARY_PATH --allow-run-as-root -mca pml ucx -x UCX_TLS=sm,self,rocm_copy,rocm_ipc,rocm_gdr /opt/rocm/RET/omb/mpi/pt2pt/osu_bw -d rocm D D 0 1 ")
+    __cmd_array_mpiBenchmark=("su -p $SUDO_USER -c \"source /etc/profile.d/mpi.sh && $__cmd_mpirun_mpiBenchmark -np 2 --mca osc ucx --mca spml ucx -x LD_LIBRARY_PATH --allow-run-as-root -mca pml ucx -x UCX_TLS=sm,self,rocm_copy,rocm_ipc,rocm_gdr $RET_MPI/omb/mpi/pt2pt/osu_bw -d rocm D D 0 1 \"")
     runCmd __cmd_array_mpiBenchmark "ERR"
-    #__cmd_array_mpiBenchmark=("source /etc/profile.d/mpi.sh && $__cmd_mpirun_mpiBenchmark -np 2 --mca osc ucx --mca spml ucx -x LD_LIBRARY_PATH --allow-run-as-root -mca pml ucx -x UCX_TLS=sm,self,rocm_copy,rocm_ipc,rocm_gdr /opt/rocm/RET/omb/mpi/pt2pt/osu_lat -d rocm D D 0 1 ")
+    #__cmd_array_mpiBenchmark=("source /etc/profile.d/mpi.sh && $__cmd_mpirun_mpiBenchmark -np 2 --mca osc ucx --mca spml ucx -x LD_LIBRARY_PATH --allow-run-as-root -mca pml ucx -x UCX_TLS=sm,self,rocm_copy,rocm_ipc,rocm_gdr $RET_MPI/omb/mpi/pt2pt/osu_lat -d rocm D D 0 1 ")
     #runCmd __cmd_array_mpiBenchmark "ERR"
 
     __cmd_ret_mpiBenchmark="$?"
@@ -477,12 +481,17 @@ function installMPI {
     local __url_GDRCOPY_installMPI="https://github.com/NVIDIA/gdrcopy.git -b v1.3"
     local __url_UCX_installMPI="https://github.com/openucx/ucx.git -b v1.6.x"
 
-    local __inst_root_installMPI="/opt/rocm/RET"
+    local __inst_root_installMPI="${PWD}/RET_MPI"
     local __inst_root_installOpenMPI="$__inst_root_installMPI/ompi"
     local __inst_root_installGDRCOPY="$__inst_root_installMPI/gdrcopy"
     local __inst_root_installGDRCOPY_LIB="$__inst_root_installGDRCOPY/lib64"
     local __inst_root_installGDRCOPY_INCLUDE="$__inst_root_installGDRCOPY/include"
     local __inst_root_installUCX="$__inst_root_installMPI/ucx"
+
+    if [ ! -d "$__inst_root_installMPI" ]; then
+        __cmd_array_installMPI=("su -p $SUDO_USER -c 'mkdir -p $__inst_root_installMPI'")
+        runCmd __cmd_array_installMPI "ERR"
+    fi
 
     # Build GDRCPY ##############################################################################################
     startLoadBar "Build GDRcopy"
@@ -491,12 +500,8 @@ function installMPI {
         __cmd_array_installMPI=("rm -fr $__inst_root_installGDRCOPY")
         runCmd __cmd_array_installMPI "ERR"
     fi
-    __cmd_array_installMPI=("git clone ${__url_GDRCOPY_installMPI} $__inst_root_installGDRCOPY")
-    runCmd __cmd_array_installMPI "ERR"
-    __cmd_array_installMPI=("cd $__inst_root_installGDRCOPY && mkdir -p $__inst_root_installGDRCOPY_LIB $__inst_root_installGDRCOPY_INCLUDE")
-    runCmd __cmd_array_installMPI "ERR"
-    __cmd_array_installMPI=("make PREFIX=$__inst_root_installGDRCOPY lib install && cd $__inst_root_installMPI")
-    runCmd __cmd_array_installMPI "ERR"
+    __cmd_array_installMPI=("cd $__inst_root_installGDRCOPY && mkdir -p $__inst_root_installGDRCOPY_LIB $__inst_root_installGDRCOPY_INCLUDE" "make PREFIX=$__inst_root_installGDRCOPY lib install && cd $__inst_root_installMPI")
+    buildFromSource "$__url_GDRCOPY_installMPI" "$__inst_root_installGDRCOPY" __cmd_array_installMPI "gdrcopy" "gdrcopy" "0"
 
     stopLoadBar "Build GDRcopy completed successfully."
 
@@ -507,11 +512,9 @@ function installMPI {
         __cmd_array_installMPI=("rm -fr $__inst_root_installUCX")
         runCmd __cmd_array_installMPI "ERR"
     fi
-    __cmd_array_installMPI=("git clone ${__url_UCX_installMPI} $__inst_root_installUCX")
-    runCmd __cmd_array_installMPI "ERR"
-    __cmd_array_installMPI=("cd $__inst_root_installUCX && ./autogen.sh && mkdir build && cd build && ../contrib/configure-release --prefix=$__inst_root_installUCX --with-rocm=/opt/rocm --with-gdrcopy=$__inst_root_installGDRCOPY --enable-gtest --enable-examples && sudo make -j install && cd $__inst_root_installMPI")
-    #buildFromSource "$__url_UCX_installMPI" "$__inst_root_installUCX" __cmd_array_installMPI "ucx" "ucx" "0"
-    runCmd __cmd_array_installMPI "ERR"
+
+    __cmd_array_installMPI=("cd $__inst_root_installUCX && ./autogen.sh && mkdir build && cd build && ../contrib/configure-release --prefix=$__inst_root_installUCX --with-rocm=/opt/rocm --with-gdrcopy=$__inst_root_installGDRCOPY --enable-gtest --enable-examples" "make -j install && cd $__inst_root_installMPI")
+    buildFromSource "$__url_UCX_installMPI" "$__inst_root_installUCX" __cmd_array_installMPI "ucx" "ucx" "0"
 
     stopLoadBar "Build UCX completed successfully."
 
@@ -522,11 +525,8 @@ function installMPI {
         __cmd_array_installMPI=("rm -fr $__inst_root_installOpenMPI")
         runCmd __cmd_array_installMPI "ERR"
     fi
-    __cmd_array_installMPI=("git clone ${__url_OpenMPI_installMPI} $__inst_root_installOpenMPI")
-    runCmd __cmd_array_installMPI "ERR"
-    __cmd_array_installMPI=("cd $__inst_root_installOpenMPI && ./autogen.pl && mkdir build && cd build && ../configure --prefix=$__inst_root_installOpenMPI --with-ucx=$__inst_root_installUCX --enable-mca-no-build=btl-uct && sudo make -j install && cd $__inst_root_installMPI")
-    #buildFromSource "$__url_OpenMPI_installMPI" "$__inst_root_installOpenMPI" __cmd_array_installMPI "ompi" "ompi" "0"
-    runCmd __cmd_array_installMPI "ERR"
+    __cmd_array_installMPI=("cd $__inst_root_installOpenMPI && ./autogen.pl && mkdir build && cd build && ../configure --prefix=$__inst_root_installOpenMPI --with-ucx=$__inst_root_installUCX --enable-mca-no-build=btl-uct" "make -j install && cd $__inst_root_installMPI")
+    buildFromSource "$__url_OpenMPI_installMPI" "$__inst_root_installOpenMPI" __cmd_array_installMPI "ompi" "ompi" "0"
 
     stopLoadBar "Build Open MPI completed successfully."
 

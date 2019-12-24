@@ -436,11 +436,10 @@ function runPostInstallation {
         ;;
         mpi)
             startLoadBar "Run ${__pkg_name_runPostInstallation} Post-Installation: Setting PATH and LD_LIBRARY_PATH in /etc/profile.d/mpi.sh "; printf '\n'
-            # Put the ROCm binaries in PATH
-            ROCM_PATH=/opt/rocm
-            __cmd_array_runPostInstallation=("echo 'export PATH=/opt/rocm/RET/ompi/bin:/opt/rocm/RET/ucx/bin:${PATH}' | tee -a /etc/profile.d/mpi.sh")
+            RET_MPI="${PWD}/RET_MPI"
+            __cmd_array_runPostInstallation=("echo 'export PATH=${RET_MPI}/ompi/bin:${RET_MPI}/ucx/bin:${PATH}' | tee -a /etc/profile.d/mpi.sh")
             runCmd __cmd_array_runPostInstallation "ERR"
-            __cmd_array_runPostInstallation=("echo 'export LD_LIBRARY_PATH=/opt/rocm/RET/ompi/lib:/opt/rocm/RET/ucx/lib:/opt/rocm/RET/gdrcopy/lib64:${LD_LIBRARY_PATH}' | tee -a /etc/profile.d/mpi.sh")
+            __cmd_array_runPostInstallation=("echo 'export LD_LIBRARY_PATH=${RET_MPI}/ompi/lib:${RET_MPI}/ucx/lib:${RET_MPI}/gdrcopy/lib64:${LD_LIBRARY_PATH}' | tee -a /etc/profile.d/mpi.sh")
             runCmd __cmd_array_runPostInstallation "ERR"
             __cmd_array_runPostInstallation=("source /etc/profile.d/mpi.sh")
             runCmd __cmd_array_runPostInstallation "ERR"
