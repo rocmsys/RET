@@ -854,32 +854,42 @@ function toLog {
     fi
 }
 
-# Download a file into a directory.
-# Input $1: The URL of the file
-# Input $2: The download folder
+# Download file from URL
+# Input $1: URL
+# Input $2: Output Path
 # Input $3: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
-# Input $4: Message (Optional)
-# Input $5: Check process output (Optional)
-# Sample usage: 
-# downloadFile "$BASH_URL$BASH_FILENAME.$__file_extension" "$TEMP_DIRECTORY" "ERR" "Download $BASH_FILENAME"
+# Input $4: Message text
 function downloadFile {
-    local __url_downloadFile="$1"
-    local __folder_downloadFile="$2"
-    local __err_type_downloadFile="$3"
-    local __msg_downloadFile="$4"
-    local __update_msg_downloadFile="${5:-1}"
+    local __err_type_downloadFile=$3
+    local __cmd_ret_downloadFile
+    local __msg_txt_downloadFile=${4:-"Download file"}
 
-    [ "$__url_downloadFile" == "" ] && logPrint "ERR" "URL Cannot Be Empty!" "downloadFile"
-    [ ! -d "$__folder_downloadFile" ] && logPrint "ERR" "Download Folder Must Exist! It is: ${__folder_downloadFile}" "downloadFile"
-   
-    __cmd_downloadFile="su -p $SUDO_USER -c \"wget --progress=dot -P $__folder_downloadFile $__url_downloadFile\""
- 
-    toLog "CMD" "${__cmd_downloadFile} [downloadFile]"
-    eval "${__cmd_downloadFile}" &> >(treatStdout "$__update_msg_downloadFile" "$__msg_downloadFile")
+    # Read terminal output and pass it to loadBar
+    function updatePercentage {
+        local __download_per
+        local __LoadBar_Pos=0
+        local __succ_updatePercentage=1
+        local __previous_value_updatePercentage="${__download_per}"
+
+        while read __download_per
+        do
+            if [ "${__download_per}" != "${__previous_value_updatePercentage}" ]; then
+                ((__LoadBar_Pos++)); __LoadBar_Pos=$((__LoadBar_Pos % ${#LOADBAR}))
+                startLoadBar "${__msg_txt_downloadFile}: ${__download_per}" ${__LoadBar_Pos}
+                __previous_value_updatePercentage="${__download_per}"
+                __succ_updatePercentage=0
+            fi
+        done
+        [ $__succ_updatePercentage -eq 0 ] && stopLoadBar "Download Finished!" || stopLoadBar
+        return $__succ_updatePercentage;
+    }
+
+    # Download file and get the current download state
+    su -p $SUDO_USER -c "wget --progress=dot -P '$2' '$1' 2>&1 | grep --line-buffered '[[:space:]][[:digit:]][[:digit:]]*%' | sed -u -e 's|.* \([0-9]\+[0-9]*\%\).*|\1|g'" | updatePercentage
+
+    # Check the return state
     __cmd_ret_downloadFile="$?"
-
-    __pid_downloadFile=$!; wait "$__pid_downloadFile" >/dev/null 2>&1 # Wait for command to finish 
-    checkReturn "$__cmd_ret_downloadFile" "${__cmd_downloadFile}" "$__err_type_downloadFile" # always check return
+    checkReturn "$__cmd_ret_downloadFile" "wget -P $2 $1" "${__err_type_downloadFile}" "There was a problem downloading this package!"
 }
 
 # Check Bash Version and Update it if requiered
