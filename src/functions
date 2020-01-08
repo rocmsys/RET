@@ -855,6 +855,8 @@ function toLog {
 }
 
 # Download file from URL
+# NOTE: Can be used with older bash < 4.3. runCmd requires bash >= 4.3 and can thus 
+# not be used to replace this function in all scenarios.
 # Input $1: URL
 # Input $2: Output Path
 # Input $3: Error type [ERR (stop the execution), WARN (only show the warning an keep running)]
