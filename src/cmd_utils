@@ -138,8 +138,8 @@ function tfBenchmark {
     local __cmd_ret_tfBenchmark
     local __ret_value_tfBenchmark=0
 
-    if [ ! -d "$WORK_DIRECTRORY/tf" ]; then 
-        __cmd_array_tfBenchmark=("su -p $SUDO_USER -c 'git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTRORY/tf/'"); runCmd __cmd_array_tfBenchmark "WARN"
+    if [ ! -d "$WORK_DIRECTORY/tf" ]; then 
+        __cmd_array_tfBenchmark=("su -p $SUDO_USER -c 'git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTORY/tf/'"); runCmd __cmd_array_tfBenchmark "WARN"
     fi
 
     # Run the training benchmark (e.g. ResNet-50)
@@ -148,7 +148,7 @@ function tfBenchmark {
     for model in "${__models_tfBenchmark[@]}"; do
         TF_MODEL=$model
         startLoadBar "Run ${TF_MODEL} benchmark"; printf '\n'
-        su -p $SUDO_USER -c "$__cmd_python_tfBenchmark $WORK_DIRECTRORY/tf/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=$TF_MODEL --num_gpus=$NUM_GPUS --batch_size=$BATCH_SIZE --use_fp16=True"
+        su -p $SUDO_USER -c "$__cmd_python_tfBenchmark $WORK_DIRECTORY/tf/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=$TF_MODEL --num_gpus=$NUM_GPUS --batch_size=$BATCH_SIZE --use_fp16=True"
         __cmd_ret_tfBenchmark="$?"
         [ "$__cmd_ret_tfBenchmark" -eq 0 ] && stopLoadBar "${TF_MODEL} benchmark Done" || { stopLoadBar "${TF_MODEL} benchmark Failed" "ERR"; __ret_value_tfBenchmark=1; }
     done
@@ -163,16 +163,16 @@ function namdBenchmark {
     local __cmd_python_namdBenchmark
     local __ret_value_namdBenchmark=0
     
-    if [ ! -d "$WORK_DIRECTRORY/namd" ]; then
-        __cmd_array_namdBenchmark=("su -p $SUDO_USER -c 'git clone $__url_namdBenchmark $WORK_DIRECTRORY/namd/'"); runCmd __cmd_array_namdBenchmark "WARN"
-        __cmd_array_namdBenchmark=("cd $WORK_DIRECTRORY/namd/ && dos2unix ns_per_day.py"); runCmd __cmd_array_namdBenchmark "ERR"
+    if [ ! -d "$WORK_DIRECTORY/namd" ]; then
+        __cmd_array_namdBenchmark=("su -p $SUDO_USER -c 'git clone $__url_namdBenchmark $WORK_DIRECTORY/namd/'"); runCmd __cmd_array_namdBenchmark "WARN"
+        __cmd_array_namdBenchmark=("cd $WORK_DIRECTORY/namd/ && dos2unix ns_per_day.py"); runCmd __cmd_array_namdBenchmark "ERR"
     fi
 
     # Run the benchmark
     startLoadBar "Run APOA1 STMV benchmark on 16 cores"; printf '\n'
 
     [ "$PYVER" = "py2" ] && __cmd_python_namdBenchmark="python" || __cmd_python_namdBenchmark="python3"
-    __cmd_array_namdBenchmark=("cd $WORK_DIRECTRORY/namd/ && export PATH=$PATH:$WORK_DIRECTRORY/namd"); runCmd __cmd_array_namdBenchmark "ERR"
+    __cmd_array_namdBenchmark=("cd $WORK_DIRECTORY/namd/ && export PATH=$PATH:$WORK_DIRECTORY/namd"); runCmd __cmd_array_namdBenchmark "ERR"
 
     __cmd_array_namdBenchmark=("$__cmd_python_namdBenchmark run_benchmarks.py -b apoa1 stmv -c 16-16 -d 0"); runCmd __cmd_array_namdBenchmark "ERR"
     runCmd __cmd_array_namdBenchmark "ERR" 0 && stopLoadBar "APOA1 STMV benchmark Done" || { stopLoadBar "APOA1 STMV benchmark Failed" "ERR"; __ret_value_namdBenchmark=1; }
@@ -297,7 +297,7 @@ function installSingularity {
 
     # Download Go package
     startLoadBar "Download Go"
-    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTRORY $__url_go'")
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTORY $__url_go'")
     runCmd __cmd_array_installSingularity "ERR" "1" "Download Go" "0"
     stopLoadBar
 
@@ -305,7 +305,7 @@ function installSingularity {
     # Install the Go ###################################################################################
     startLoadBar "Install Go"
 
-    __cmd_array_installSingularity=("tar -xzvf $TEMP_DIRECTRORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local")
+    __cmd_array_installSingularity=("tar -xzvf $TEMP_DIRECTORY/go${__version_go}.linux-amd64.tar.gz -C /usr/local")
     runCmd __cmd_array_installSingularity "ERR"
 
     export GOPATH=${HOME}/go
@@ -316,17 +316,17 @@ function installSingularity {
 
     # Download and extract the singularity package ####################################################
     startLoadBar "Download Singularity"
-    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTRORY $__url_installSingularity'")
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c 'wget --progress=dot -P $TEMP_DIRECTORY $__url_installSingularity'")
     runCmd __cmd_array_installSingularity "ERR" "1" "Download Singularity" "0"
     stopLoadBar
 
     # Install the singularity
     startLoadBar "Install Singularity"
 
-    __cmd_array_installSingularity=("su -p $SUDO_USER -c \"tar -xzf $TEMP_DIRECTRORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTRORY\"")
+    __cmd_array_installSingularity=("su -p $SUDO_USER -c \"tar -xzf $TEMP_DIRECTORY/singularity-$__version_installSingularity.tar.gz -C $TEMP_DIRECTORY\"")
     runCmd __cmd_array_installSingularity "ERR"
 
-    cd "$TEMP_DIRECTRORY/singularity"
+    cd "$TEMP_DIRECTORY/singularity"
 
     __cmd_array_installSingularity=("su -p $SUDO_USER -c \"./mconfig\"")
     runCmd __cmd_array_installSingularity "ERR"
@@ -361,7 +361,7 @@ function installNAMD {
     local __url_rocCUB_installNAMD="https://github.com/ROCmSoftwarePlatform/hipCUB.git"
 
     local __nProc_installNAMD=`grep -c ^processor /proc/cpuinfo`
-    local __inst_root_installNAMD="$TEMP_DIRECTRORY/NAMD"
+    local __inst_root_installNAMD="$TEMP_DIRECTORY/NAMD"
 
     # Confirmation message
     logPrint "STEP" "Build NAMD"

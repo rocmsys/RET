@@ -43,7 +43,6 @@ os_support:
     release:
       - 7.5
       - 7.6
-      - 7.7
     kernel:
       - 7.6:
         - version: 3.10

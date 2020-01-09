@@ -27,14 +27,14 @@ REQ_BASH_VERSION=4.3
 
 
 # DIRECTORY Paths
-TEMP_DIRECTRORY=$(su -p $SUDO_USER -c "mktemp -d")
-WORK_DIRECTRORY="$PWD/benchmarks"
-LOG_DIRECTRORY="$PWD/log"
+TEMP_DIRECTORY=$(su -p $SUDO_USER -c "mktemp -d")
+WORK_DIRECTORY="$PWD/benchmarks"
+LOG_DIRECTORY="$PWD/log"
 
 # File Paths
 REQ_FILE="requirements/req.yml"
 DEF_FILE="src/definitions"
-LOG_FILE="${LOG_DIRECTRORY}/ret.log"
+LOG_FILE="${LOG_DIRECTORY}/ret.log"
 BASH_FILENAME="bash-4.4.18"
 Ubuntu_ROCM_REPO="/etc/apt/sources.list.d/rocm.list"
 CentOS_ROCM_REPO="/etc/yum.repos.d/rocm.repo"

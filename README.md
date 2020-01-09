@@ -5,7 +5,7 @@ RET makes the process of carrying out automated ROCm installation incredibly sim
 
 * Install Linux OS
 * Run ret
-* Run your Tensorflow benchmark OR Train your own model with tensorflow
+* Run your TensorFlow benchmark OR Train your own model with TensorFlow
 
 ## Hardware Support and supported GPU
 please refer to ROCm main repository
@@ -16,13 +16,13 @@ at [ROCmInstall](https://rocm.github.io/ROCmInstall.html).
   - Ubuntu: 
       - 16.04
       - 18.04
-  - CentOS 7.6   (Tensorflow run on Docker)
+  - CentOS 7.6   (TensorFlow run on Docker)
   
 ## Prerequisites
 *Note*: it is required to start with a clean system
 
 Formatting a hard drive along with the install of a new OS is the best option
-after the instllation you will need git to download the RET source
+after the installation you will need git to download the RET source
 ```
   sudo apt -y install git
   git clone https://github.com/rocmsys/RET.git
@@ -43,12 +43,12 @@ Command:
 
    Packages:
               [rocm]                             : ROCm-dkms packages
-              [tensorflow]                       : Tensorflow framework
+              [tensorflow]                       : TensorFlow framework
 
    Model:
               [vgg16]                            : vgg16 model}
               [alexnet]                          : alexnet model
-              [resnet50]                         : resnet50 model. Default Model
+              [resnet50]                         : ResNet-50 model. Default Model
    Container:
               [docker]                           : Build Docker Container
               [singularity]                      : Build Singularity Container
@@ -71,13 +71,12 @@ Options:
    cd RET
    sudo ./ret install rocm         # install ROCm stack
    sudo reboot
-   sudo ./ret install tensorflow   # install Tensorflow
+   sudo ./ret install tensorflow   # install TensorFlow
 ```
-
-### Tensorflow's tf_cnn_benchmarks
+### TensorFlow's tf_cnn_benchmarks
 Details on the tf_cnn_benchmarks can be found at this [Link](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/README.md).  
 
-Here are the basic instructions to run resnet50 benchmark:
+Here are the basic instructions to run ResNet-50 benchmark:
 ```
 sudo ./ret benchmark tensorflow resnet50
 ```
