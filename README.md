@@ -46,9 +46,7 @@ Command:
               [tensorflow]                       : TensorFlow framework
 
    Model:
-              [vgg16]                            : vgg16 model}
-              [alexnet]                          : alexnet model
-              [resnet50]                         : ResNet-50 model. Default Model
+              [resnet56]                         : ResNet-56 model. Default Model
    Container:
               [docker]                           : Build Docker Container
               [singularity]                      : Build Singularity Container
@@ -76,19 +74,18 @@ Options:
 ### TensorFlow's tf_cnn_benchmarks
 Details on the tf_cnn_benchmarks can be found at this [Link](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/README.md).  
 
-Here are the basic instructions to run ResNet-50 benchmark:
+Here are the basic instructions to run ResNet-56 benchmark:
 ```
-sudo ./ret benchmark tensorflow resnet50
+sudo ./ret benchmark tensorflow resnet56
 ```
 You can also use the TensorFlow benchmarks:
 #### Download tensorflow benchmark
 ```
-git clone -b cnn_tf_v1.13_compatible https://github.com/tensorflow/benchmarks.git
-cd benchmarks
+git clone https://github.com/reger-men/tensorflow_benchmark.git
 ```
-#### Run the training benchmark (e.g. ResNet-50)
+#### Run the training benchmark (e.g. ResNet-56)
 ```
-python3 ./scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=resnet50  --batch_size=256 --num_batches=50 --use_fp16=True --datasets_use_prefetch=False --display_every=10
+python3 train.py
 ```
 
 **Note:** You may need to add your GPU number ```--num_gpus=YOUR_GPU_NUMBER```
