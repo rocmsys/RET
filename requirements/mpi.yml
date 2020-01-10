@@ -1,0 +1,25 @@
+# This file contains only dependencies required by Open MPI, UCX, GDRcopy
+---
+- name: git
+  version: latest
+- name: m4
+  version: latest
+- name: autoconf
+  version: latest
+- name: automake
+  version: latest
+- name: libtool
+  version: latest
+- name: flex
+  version: latest
+
+# Define here Ubuntu Packages
+- Ubuntu:
+  - name: python3-dev
+    version: latest
+
+# Define here CentOS Packages
+- CentOS:
+  - name: python36-devel
+    version: latest
+...

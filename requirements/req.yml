@@ -163,6 +163,9 @@ dependencies:
   - namd:
     - req_file: namd.yml
     
+  - mpi:
+    - req_file: mpi.yml
+
 # Project description
 description: ROCm Machine Learning one-script installer xxxxxxxxxxxx xxxxxxxxxxxxxxxxxx xx xxxxxxxxxxxxxxxx 
 ...

@@ -29,6 +29,7 @@ function printUsage {
     echo -e "    [pytorch]                          ${FG_LIGHT_BLUE}: Pytorch Framework${END}"
     echo -e ""
     echo -e "${BOLD}HPC Package:${END}"
+    echo -e "    [mpi]                              ${FG_LIGHT_BLUE}: ROCm-enabled MPI library${END}"
     echo -e "    [namd]                             ${FG_LIGHT_BLUE}: NAMD HPC Application${END}"
     echo -e ""
     echo -e "${BOLD}Container:${END}"
@@ -137,7 +138,7 @@ function parseArgs {
             ;;
 
             # Set Packages ########################################################################
-            "rocm" | "tensorflow" | "pytorch" | "namd")
+            "rocm" | "tensorflow" | "pytorch" | "namd" | "mpi" )
                 # Permitted commands: install, remove and update
                 if [[ ! "$__cmd_parseArgs" =~ ^("install"|"update"|"remove"|"benchmark")$ ]]; then logPrint "ERR" "Wrong command! Did you mean: $0 install $__arg_parseArgs"; exit; fi
                 if [[ "$__arg_parseArgs" =~ ^("tensorflow"|"pytorch")$ ]]; then 
@@ -146,6 +147,7 @@ function parseArgs {
                 fi
 
                 [[ "$__arg_parseArgs" = "namd" ]] && { __arg_parseArgs="$__arg_parseArgs:src"; __isROCmRequired_parseArgs=0; }
+                [[ "$__arg_parseArgs" = "mpi" ]] && { __arg_parseArgs="$__arg_parseArgs:src"; __isROCmRequired_parseArgs=0; }
                 __pkgs_parseArgs+=("$__arg_parseArgs");
               shift
             ;;
@@ -252,6 +254,9 @@ function installCmd {
             namd*)
                 __cmd_array_installCmd=("source /etc/profile.d/namd.sh"); runCmd __cmd_array_installCmd "ERR" 0
             ;;
+            mpi*)
+                __cmd_array_installCmd=("source /etc/profile.d/mpi.sh"); runCmd __cmd_array_installCmd "ERR" 0
+            ;;
 	    esac
         # Install Package
         runInstall "$pkg"
@@ -295,6 +300,9 @@ function runInstall {
                 ;;
                 namd)
                     installNAMD;
+                ;;
+                mpi)
+                    installMPI;
                 ;;
             esac
 
@@ -376,7 +384,7 @@ function runPreInstallation {
             local __docker_pkg_runPreInstallation=("docker-*"); removePkg __docker_pkg_runPreInstallation
         ;;
 
-        py2 | py3 | singularity | namd)
+        py2 | py3 | singularity | namd | mpi )
             PRE="DONOTHING"
         ;;
     esac
@@ -426,6 +434,17 @@ function runPostInstallation {
             addPATH "namd" "$PWD/../RET_NAMD"
             stopLoadBar
         ;;
+        mpi)
+            startLoadBar "Run ${__pkg_name_runPostInstallation} Post-Installation: Setting PATH and LD_LIBRARY_PATH in /etc/profile.d/mpi.sh "; printf '\n'
+            RET_MPI="${PWD}/RET_MPI"
+            __cmd_array_runPostInstallation=("echo 'export PATH=${RET_MPI}/ompi/bin:${RET_MPI}/ucx/bin:${PATH}' | tee -a /etc/profile.d/mpi.sh")
+            runCmd __cmd_array_runPostInstallation "ERR"
+            __cmd_array_runPostInstallation=("echo 'export LD_LIBRARY_PATH=${RET_MPI}/ompi/lib:${RET_MPI}/ucx/lib:${RET_MPI}/gdrcopy/lib64:${LD_LIBRARY_PATH}' | tee -a /etc/profile.d/mpi.sh")
+            runCmd __cmd_array_runPostInstallation "ERR"
+            __cmd_array_runPostInstallation=("source /etc/profile.d/mpi.sh")
+            runCmd __cmd_array_runPostInstallation "ERR"
+            stopLoadBar
+        ;;
     esac
 }
 
@@ -473,6 +492,11 @@ function runVerification {
 
         namd)
             namdVerification
+            return "$?";
+        ;;
+        mpi )
+            __cmd_array_runVerification=("source /etc/profile.d/mpi.sh && mpirun --version");
+            mpiVerification
             return "$?";
         ;;
     esac
@@ -577,5 +601,10 @@ function runBenchmark {
             namdBenchmark
             return "$?";
         ;;
+        mpi)
+            mpiBenchmark
+            return "$?";
+        ;;
     esac
 }
+
