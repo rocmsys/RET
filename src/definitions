@@ -43,7 +43,7 @@ RECIPEFILE="container/singularity/recipe"
 
 # Url's
 UBUNTU_KERNEL_URL="kernel.ubuntu.com/~kernel-ppa/mainline/"
-TF_BENCHMARKS_URL="https://github.com/tensorflow/benchmarks.git"
+TF_BENCHMARKS_URL="https://github.com/reger-men/tensorflow_benchmark.git"
 BASH_URL="https://ftp.gnu.org/gnu/bash/"
 ROCM_DEB="http://repo.radeon.com/rocm/apt/debian/ xenial main"
 ROCM_RPM="http://repo.radeon.com/rocm/yum/rpm"
@@ -58,8 +58,8 @@ PYT_PKG_PY35="torch-1.3.0a0+87217cf-cp35-cp35m-linux_x86_64.whl"
 PYT_PKG_PY36="torch-1.3.0a0+87217cf-cp36-cp36m-linux_x86_64.whl"
 
 # Benchmark
-TF_BNCH_VER="cnn_tf_v1.13_compatible"
-TF_MODEL="resnet50"
+TF_BNCH_VER="master"
+TF_MODEL="resnet56"
 NUM_GPUS=1
 BATCH_SIZE=128
 

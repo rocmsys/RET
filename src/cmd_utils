@@ -149,7 +149,7 @@ function tfBenchmark {
     local __cmd_ret_tfBenchmark
     local __ret_value_tfBenchmark=0
 
-    if [ ! -d "$WORK_DIRECTORY/tf" ]; then 
+    if [ ! -d "$WORK_DIRECTORY/tf" ]; then
         __cmd_array_tfBenchmark=("su -p $SUDO_USER -c 'git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTORY/tf/'"); runCmd __cmd_array_tfBenchmark "WARN"
     fi
 
@@ -159,7 +159,7 @@ function tfBenchmark {
     for model in "${__models_tfBenchmark[@]}"; do
         TF_MODEL=$model
         startLoadBar "Run ${TF_MODEL} benchmark"; printf '\n'
-        su -p $SUDO_USER -c "$__cmd_python_tfBenchmark $WORK_DIRECTORY/tf/scripts/tf_cnn_benchmarks/tf_cnn_benchmarks.py --model=$TF_MODEL --num_gpus=$NUM_GPUS --batch_size=$BATCH_SIZE --use_fp16=True"
+        su -p $SUDO_USER -c "$__cmd_python_tfBenchmark $WORK_DIRECTRORY/tf/train.py --num_gpus=$NUM_GPUS --batch_size=$BATCH_SIZE"
         __cmd_ret_tfBenchmark="$?"
         [ "$__cmd_ret_tfBenchmark" -eq 0 ] && stopLoadBar "${TF_MODEL} benchmark Done" || { stopLoadBar "${TF_MODEL} benchmark Failed" "ERR"; __ret_value_tfBenchmark=1; }
     done

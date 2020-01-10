@@ -38,9 +38,7 @@ function printUsage {
     echo -e "    [ImageName]                        ${FG_LIGHT_BLUE}: Choosing an OS Base Image from [ubuntu:16.04, ubuntu:18.04, centos:7] Default is [ubuntu:18.04]${END}"
     echo -e ""
     echo -e "${BOLD}Model:${END}"
-    echo -e "    [vgg16]                            ${FG_LIGHT_BLUE}: vgg16 model${END}"
-    echo -e "    [alexnet]                          ${FG_LIGHT_BLUE}: alexnet model${END}"
-    echo -e "    [resnet50]                         ${FG_LIGHT_BLUE}: resnet50 model. Default Model${END}"
+    echo -e "    [resnet56]                         ${FG_LIGHT_BLUE}: resnet56 model. Default Model${END}"
     echo -e ""
     echo -e "${BOLD}Options:${END}"
     echo -e "    [-py2|-py3]                        ${FG_LIGHT_BLUE}: Define the Python version. Default is [Python3]${END}"
@@ -161,9 +159,9 @@ function parseArgs {
               shift
             ;;
 
-            "vgg16" | "alexnet" | "resnet50" | "ubuntu:16.04" | "ubuntu:18.04" | "centos:7")
+            "resnet56" | "ubuntu:16.04" | "ubuntu:18.04" | "centos:7")
                 # Permitted commands: benchmark
-                if [[ "$__arg_parseArgs" =~ ^("vgg16"|"alexnet"|"resnet50")$ ]]; then if [[ ! "$__cmd_parseArgs" == "benchmark" ]]; then 
+                if [[ "$__arg_parseArgs" =~ ^("resnet56")$ ]]; then if [[ ! "$__cmd_parseArgs" == "benchmark" ]]; then 
                     logPrint "ERR" "Wrong command! Did you mean: $0 benchmark tensorflow $__arg_parseArgs"; exit; fi
                 else
                     if [[ ! "$__cmd_parseArgs" == "build" ]]; then logPrint "ERR" "Wrong command! Did you mean: $0 build docker $__arg_parseArgs"; exit; fi
