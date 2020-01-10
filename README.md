@@ -71,8 +71,8 @@ Options:
    sudo reboot
    sudo ./ret install tensorflow   # install TensorFlow
 ```
-### TensorFlow's tf_cnn_benchmarks
-Details on the tf_cnn_benchmarks can be found at this [Link](https://github.com/tensorflow/benchmarks/blob/master/scripts/tf_cnn_benchmarks/README.md).  
+### TensorFlow's benchmarks
+Details on the benchmarks can be found at this [Link](https://github.com/reger-men/tensorflow_benchmark.git/README.md).  
 
 Here are the basic instructions to run ResNet-56 benchmark:
 ```
