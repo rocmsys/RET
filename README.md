@@ -72,7 +72,7 @@ Options:
    sudo ./ret install tensorflow   # install TensorFlow
 ```
 ### TensorFlow's benchmarks
-Details on the benchmarks can be found at this [Link](https://github.com/reger-men/tensorflow_benchmark.git/README.md).  
+Details on the benchmarks can be found at this [Link](https://github.com/reger-men/tensorflow_benchmark/blob/master/README.md).  
 
 Here are the basic instructions to run ResNet-56 benchmark:
 ```
