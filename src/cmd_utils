@@ -158,10 +158,11 @@ function tfBenchmark {
     [ "${#__models_tfBenchmark[@]}" -eq 0 ] && __models_tfBenchmark=("$TF_MODEL")
     for model in "${__models_tfBenchmark[@]}"; do
         TF_MODEL=$model
-        startLoadBar "Run ${TF_MODEL} benchmark"; printf '\n'
-        su -p $SUDO_USER -c "$__cmd_python_tfBenchmark $WORK_DIRECTRORY/tf/train.py --num_gpus=$NUM_GPUS --batch_size=$BATCH_SIZE"
-        __cmd_ret_tfBenchmark="$?"
-        [ "$__cmd_ret_tfBenchmark" -eq 0 ] && stopLoadBar "${TF_MODEL} benchmark Done" || { stopLoadBar "${TF_MODEL} benchmark Failed" "ERR"; __ret_value_tfBenchmark=1; }
+	startLoadBar "Run ${TF_MODEL} benchmark"; printf '\n'
+	_dbg=DEBUG; DEBUG=true
+	__cmd_array_tfBenchmark=("su -p $SUDO_USER -c '$__cmd_python_tfBenchmark $WORK_DIRECTORY/tf/train.py --num_gpus=$NUM_GPUS --batch_size=$BATCH_SIZE'"); runCmd __cmd_array_tfBenchmark "ERR"
+	DEBUG=_dbg
+	stopLoadBar
     done
 
     return $__ret_value_tfBenchmark;
