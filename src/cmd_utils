@@ -151,6 +151,7 @@ function tfBenchmark {
 
     if [ ! -d "$WORK_DIRECTORY/tf" ]; then
         __cmd_array_tfBenchmark=("su -p $SUDO_USER -c 'git clone -b $TF_BNCH_VER $TF_BENCHMARKS_URL $WORK_DIRECTORY/tf/'"); runCmd __cmd_array_tfBenchmark "WARN"
+	__cmd_array_tfBenchmark=("su -p $SUDO_USER -c '${PYPI} install -r $WORK_DIRECTORY/tf/requirements.txt'"); runCmd __cmd_array_tfBenchmark "WARN"
     fi
 
     # Run the training benchmark (e.g. ResNet-50)
