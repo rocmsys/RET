@@ -145,6 +145,8 @@ dependencies:
     - req_file: py3.yml
 
   - tensorflow:
+    - name: paramiko:pip
+      version: 2.7.1
     - name: tensorflow-rocm:pip
       version: latest
 
