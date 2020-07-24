@@ -18,10 +18,10 @@
   version: latest
 - name: rocm-utils
   version: latest
-- name: rocm-profiler
-  version: latest
-- name: cxlactivitylogger
-  version: latest
+  #- name: rocm-profiler
+  #  version: latest
+  #- name: cxlactivitylogger
+  #  version: latest
 - name: miopen-hip
   version: latest
 - name: miopengemm
