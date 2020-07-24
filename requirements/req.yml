@@ -21,10 +21,10 @@ os_support:
       - 18.04
     kernel:
       - 16.04:
-        - version: 4.13|4.15|4.17
+        - version: 4.13|4.15|4.17|5.3
         - default: 4.15
       - 18.04:
-        - version: 4.15|4.18|5.0
+        - version: 4.15|4.18|5.0|5.3
         - default: 5.0
 
   - os: RedHat
