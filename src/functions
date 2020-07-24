@@ -407,6 +407,7 @@ function getOSInfo {
     if [ -f /etc/centos-release ]; then #Use this to get the right COS version X.X
         __OS="CentOS"
         __VER=$(cat /etc/centos-release | sed 's|^.*[^0-9]\('$__digit'\.'$__digit'\)\(\.[0-9]*\).*$|\1|g')
+	__KERNEL=$(yum info kernel -q | grep Version | sed "s/[^0-9^.]//g" | head -1)
     elif [ -f /etc/os-release ]; then
         . /etc/os-release
         case $ID in

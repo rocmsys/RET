@@ -113,9 +113,9 @@ dependencies:
     - CentOS:
       - name: epel-release
         version: latest
-      - name: kernel-headers-`uname -r`
+      - name: kernel-headers-`yum info kernel -q | grep Version | sed "s/[^0-9^.]//g" | head -1`
         version: latest
-      - name: kernel-devel-`uname -r`
+      - name: kernel-devel-`yum info kernel -q | grep Version | sed "s/[^0-9^.]//g" | head -1`
         version: latest 
       - name: dkms
         version: latest
