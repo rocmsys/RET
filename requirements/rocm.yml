@@ -10,7 +10,7 @@
   version: latest
 - name: hsa-ext-rocr-dev
   version: latest
-- name: hsakmt-roct-dev
+- name: hsakmt-roct-dev$__arch_flag
   version: latest
 - name: hsa-rocr-dev
   version: latest
