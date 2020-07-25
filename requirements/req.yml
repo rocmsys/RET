@@ -21,10 +21,10 @@ os_support:
       - 18.04
     kernel:
       - 16.04:
-        - version: 4.13|4.15|4.17
+        - version: 4.13|4.15|4.17|5.3
         - default: 4.15
       - 18.04:
-        - version: 4.15|4.18|5.0
+        - version: 4.15|4.18|5.0|5.3
         - default: 5.0
 
   - os: RedHat
@@ -43,8 +43,12 @@ os_support:
     release:
       - 7.5
       - 7.6
+      - 7.8
     kernel:
       - 7.6:
+        - version: 3.10
+        - default: 3.10
+      - 7.8:
         - version: 3.10
         - default: 3.10
 
@@ -103,13 +107,15 @@ dependencies:
         version: latest
       - name: python3-pip
         version: latest
+      - name: lshw
+        version: latest
     # CentOS Global Dependencies    
     - CentOS:
       - name: epel-release
         version: latest
-      - name: kernel-headers-`uname -r`
+      - name: kernel-headers-`yum info kernel -q | grep Version | sed "s/[^0-9^.]//g" | head -1`
         version: latest
-      - name: kernel-devel-`uname -r`
+      - name: kernel-devel-`yum info kernel -q | grep Version | sed "s/[^0-9^.]//g" | head -1`
         version: latest 
       - name: dkms
         version: latest
